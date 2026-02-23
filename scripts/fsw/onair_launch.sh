@@ -4,4 +4,4 @@
 #
 
 sleep 20
-python3 cf/onair/driver.py cf/onair/cfs_sample.ini
+python3 cf/onair/driver.py --save cf/onair/nos3_security.ini

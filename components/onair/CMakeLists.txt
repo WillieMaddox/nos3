@@ -4,8 +4,8 @@ set(ONAIR_INSTALL_SUB onair)
 set(ONAIR_SOURCE_DIR "fsw/")
 set(ONAIR_SOURCE_ADDITIONAL
     message_headers.py
-    cfs_sample_tlm.json
-    cfs_sample.ini
+    nos3_security_tlm.json
+    nos3_security.ini
     ${sbn_client_MISSION_DIR}/fsw/python_interface/sbn_python_client.py
     )
 

@@ -14,7 +14,7 @@
 			<enable>true</enable>
 		</lc>
 		<sbn>
-			<enable>false</enable>
+			<enable>true</enable>
 		</sbn>
 		<sc>
 			<enable>true</enable>
@@ -49,7 +49,7 @@
 			<enable>true</enable>
 		</mgr>
 		<onair>
-			<enable>false</enable>
+			<enable>true</enable>
 		</onair>
 		<radio>
 			<enable>true</enable>
@@ -70,7 +70,7 @@
 			<enable>true</enable>
 		</torquer>
 		<thruster>
-			<enable>false</enable>
+			<enable>true</enable>
 		</thruster>
 	</components>
 	<gui>
