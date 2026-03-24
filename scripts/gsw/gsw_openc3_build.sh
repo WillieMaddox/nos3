@@ -59,24 +59,29 @@ fi
 # Copy targets
 mkdir openc3-cosmos-nos3/targets
 cd openc3-cosmos-nos3/targets
-targets=""
-for i in $(find $BASE_DIR/components -name target.txt) 
-do 
+component_targets=""
+for i in $(find $BASE_DIR/components -name target.txt)
+do
     j=$(dirname $i)
     cp -r $j .
+    component_targets="$component_targets $(basename $j)"
     targets="$targets $(basename $j)"
 done
-for i in $(find $GSW_DIR/config/targets -name target.txt) 
-do 
+for i in $(find $GSW_DIR/config/targets -name target.txt)
+do
     j=$(dirname $i)
     cp -r $j .
     k=$(basename $j)
     targets="$targets $(basename $j)"
 done
 for i in $(find . -name *.txt)
-do 
+do
     sed -i -e 's/<%= CosmosCfsConfig::PROCESSOR_ENDIAN %>/LITTLE_ENDIAN/; s/<%=CF_INCOMING_PDU_MID%>/0x1800/; s/<%=CF_SPACE_TO_GND_PDU_MID%>/0x0800/;' $i
 done
+
+# Apply OpenC3 5 Ruby compatibility transforms to component .rb files
+echo $component_targets | tr ' ' '\n' | grep -v '^$' > /tmp/nos3_component_targets.txt
+python3 $SCRIPT_DIR/gsw/openc3_rb_transform.py . /tmp/nos3_component_targets.txt
 cd ..
 
 # Copy lib
@@ -99,6 +104,7 @@ do
     then
         debug=$i"_DEBUG"
         radio=$i"_RADIO"
+        echo TARGET $i $i >> plugin.txt
         echo TARGET $i $debug >> plugin.txt
         echo TARGET $i $radio >> plugin.txt
     else
@@ -118,7 +124,7 @@ done
 echo "   MAP_TARGET TO_DEBUG" >> plugin.txt
 echo "" >> plugin.txt
 
-echo "INTERFACE RADIO udp_interface.rb radio-sim 6010 6011 nil nil 128 10.0 nil" >> plugin.txt
+echo "INTERFACE RADIO udp_interface.rb cryptolib 6010 6011 nil nil 128 10.0 nil" >> plugin.txt
 for i in $targets
 do
     if [ "$i" != "SIM_42_TRUTH" -a "$i" != "SYSTEM" -a "$i" != "TO_DEBUG" ]

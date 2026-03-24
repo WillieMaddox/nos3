@@ -10,12 +10,12 @@ CONFIG_FILE="$ORIGINAL_CONFIG"
 
 # Make flight software configuration directory
 mkdir -p "$BASE_DIR/cfg/build/temp_mission/"
-cp -r "$BASE_DIR/cfg/nos3-mission.xml" "$BASE_DIR/cfg/build/temp_mission/"
+cp -rf "$BASE_DIR/cfg/nos3-mission.xml" "$BASE_DIR/cfg/build/temp_mission/"
 
 # Copy baseline configurations into build directory
-cp -r "$BASE_DIR/cfg/InOut" "$BASE_DIR/cfg/build/"
-cp -r "$BASE_DIR/cfg/nos3_defs" "$BASE_DIR/cfg/build/"
-cp -r "$BASE_DIR/cfg/sims" "$BASE_DIR/cfg/build/"
+cp -rf "$BASE_DIR/cfg/InOut" "$BASE_DIR/cfg/build/"
+cp -rf "$BASE_DIR/cfg/nos3_defs" "$BASE_DIR/cfg/build/"
+cp -rf "$BASE_DIR/cfg/sims" "$BASE_DIR/cfg/build/"
 
 # If SC1_CFG is passed in, validate and patch
 if [ -n "${SC1_CFG// }" ]; then
