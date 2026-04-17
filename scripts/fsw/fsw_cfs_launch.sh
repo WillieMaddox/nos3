@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 #
 # Convenience script for NOS3 development
 # Use with the Dockerfile in the deployment repository
@@ -47,6 +47,7 @@ cp $BASE_DIR/fsw/build/exe/cpu1/cf/cfe_es_startup.scr /tmp/nos3/uplink/tmp0.so 2
 cp $BASE_DIR/fsw/build/exe/cpu1/cf/sample.so /tmp/nos3/uplink/tmp1.so 2> /dev/null
 
 echo "Create ground networks..."
+$DNETWORK inspect nos3-core > /dev/null 2>&1 || \
 $DNETWORK create \
     --driver=bridge \
     --subnet=192.168.41.0/24 \
@@ -84,11 +85,11 @@ do
     #echo "Spacecraft configuration = " $SC_CFG_FILE
     
     echo $SC_NUM " - Create spacecraft network..."
-    $DNETWORK create $SC_NETNAME 2> /dev/null
+    $DNETWORK inspect $SC_NETNAME > /dev/null 2>&1 || $DNETWORK create $SC_NETNAME 2> /dev/null
     echo ""
 
     echo $SC_NUM " - Connect GSW " "${GSW:-cosmos-openc3-operator-1}" " to spacecraft network..."
-    $DNETWORK connect  $SC_NETNAME "${GSW:-cosmos-openc3-operator-1}" --alias cosmos --alias active-gs
+    $DNETWORK connect  $SC_NETNAME "${GSW:-cosmos-openc3-operator-1}" --alias cosmos --alias active-gs 2> /dev/null || true
     echo ""
 
     echo $SC_NUM " - 42..."
