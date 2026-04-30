@@ -39,7 +39,7 @@ endif
 
 # The "LOCALTGTS" defines the top-level targets that are implemented in this makefile
 # Any other target may also be given, in that case it will simply be passed through.
-LOCALTGTS := all checkout clean clean-fsw clean-sim clean-gsw code-coverage config debug fsw gcov gsw help help-all launch log prep sim stop stop-gsw uninstall
+LOCALTGTS := all checkout clean clean-fsw clean-sim clean-gsw code-coverage config debug fsw gcov gsw help help-all launch launch-quiet log prep sim stop stop-gsw uninstall
 OTHERTGTS := $(filter-out $(LOCALTGTS),$(MAKECMDGOALS))
 
 # As this makefile does not build any real files, treat everything as a PHONY target
@@ -237,6 +237,9 @@ igniter: ## Launch Configuration GUI Igniter
 
 launch: ## Launch NOS3 System
 	./cfg/build/launch.sh
+
+launch-quiet: ## Launch NOS3 System headless (no GUI/X11) for automated reset/verification testing
+	./scripts/fsw/launch_sat_quiet.sh
 
 log: ## Log outputs
 	./scripts/log.sh
