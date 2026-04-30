@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 
 # Convenience script for NOS3 development
 

@@ -34,3 +34,10 @@ docs/wiki/_build
 docs/wiki/_templates
 *.bkp
 *.html
+
+#
+# Tooling / dev environment
+#
+.claude
+.playwright-mcp
+logs
