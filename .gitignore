@@ -41,3 +41,10 @@ docs/wiki/_templates
 .claude
 .playwright-mcp
 logs
+
+#
+# AI anomaly detection — derived/runtime artifacts
+#
+data/onair/models/*.pkl
+data/onair/scenarios/*.log
+data/onair/scenarios/*_dryrun*.json
