@@ -28,7 +28,8 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-BOOKKEEPING = {"__file_id", "__row_idx"}
+BOOKKEEPING = {"__file_id", "__row_idx", "__scenario", "__time",
+               "__attack_id", "__attack_window"}
 
 
 @dataclass

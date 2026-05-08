@@ -48,3 +48,6 @@ logs
 data/onair/models/*.pkl
 data/onair/scenarios/*.log
 data/onair/scenarios/*_dryrun*.json
+# SPARTA attack-script per-run logs land in CWD by default
+ex_*_log_*.csv
+demo_*_log_*.csv

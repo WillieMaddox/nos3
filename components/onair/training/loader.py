@@ -20,6 +20,7 @@ import os
 import re
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 DEFAULT_CSV_DIR = "fsw/build/exe/cpu1/data/onair/csv"
@@ -36,6 +37,7 @@ class LoadStats:
     files_skipped_leaks: int
     files_skipped_alignment: int
     rows: int
+    rows_skipped_warmup: int = 0
 
 
 def _file_is_clean(path: str) -> tuple[bool, str]:
@@ -79,25 +81,56 @@ def list_clean_csvs(csv_dir: str) -> tuple[list[str], LoadStats]:
     return kept, stats
 
 
-def load(csv_dir: str = DEFAULT_CSV_DIR) -> tuple[pd.DataFrame, LoadStats]:
+def load(
+    csv_dir: str = DEFAULT_CSV_DIR,
+    *,
+    skip_warmup_rows: int = 0,
+) -> tuple[pd.DataFrame, LoadStats]:
     """Concatenate all clean CSVs.
 
     Adds two bookkeeping columns prefixed with `__` so feature engineering can
     skip them:
         __file_id  - source file basename, used to mask deltas at file boundaries
-        __row_idx  - row index within the source file
+        __row_idx  - row index within the *original* source file (before warmup
+                     skip). When skip_warmup_rows=30, kept rows have
+                     __row_idx in [30..N-1]. This keeps the index aligned with
+                     wall-clock interpolation: row_time = file_start + __row_idx
+                     / true_step_rate.
+
+    If `skip_warmup_rows > 0`, the first N rows of every CSV file are dropped.
+    This removes startup-transient frames where some MIDs have not yet delivered
+    their first sample (placeholder values + huge first-arrival deltas). Files
+    shorter than N+1 rows are dropped entirely.
     """
     files, stats = list_clean_csvs(csv_dir)
     if not files:
         raise FileNotFoundError(f"No clean CSVs found under {csv_dir}")
 
     frames = []
+    rows_dropped = 0
     for path in files:
         df = pd.read_csv(path, dtype=str, na_filter=False, low_memory=False)
-        df.insert(0, "__row_idx", range(len(df)))
+        n_pre = len(df)
+        if skip_warmup_rows > 0:
+            if n_pre <= skip_warmup_rows:
+                rows_dropped += n_pre
+                continue
+            rows_dropped += skip_warmup_rows
+            df = df.iloc[skip_warmup_rows:].reset_index(drop=True)
+        # __row_idx tracks the row's position in the ORIGINAL CSV so per-row
+        # time interpolation stays aligned with the true CSV step rate.
+        df.insert(0, "__row_idx", range(skip_warmup_rows, n_pre))
         df.insert(0, "__file_id", os.path.basename(path))
         frames.append(df)
     out = pd.concat(frames, ignore_index=True)
+    stats = LoadStats(
+        files_total=stats.files_total,
+        files_kept=stats.files_kept,
+        files_skipped_leaks=stats.files_skipped_leaks,
+        files_skipped_alignment=stats.files_skipped_alignment,
+        rows=len(out),
+        rows_skipped_warmup=rows_dropped,
+    )
     return out, stats
 
 
@@ -166,11 +199,112 @@ def _scenario_for_file(file_ts: dt.datetime, scenarios: list[dict]) -> str | Non
     return None
 
 
+def _load_attacks(manifest_path: str) -> list[dict]:
+    """Read attack windows from one manifest. Empty list if `attacks` absent."""
+    with open(manifest_path) as f:
+        m = json.load(f)
+    out = []
+    for a in m.get("attacks", []):
+        try:
+            start = dt.datetime.fromisoformat(a["start_utc"]).replace(tzinfo=dt.timezone.utc)
+            end = dt.datetime.fromisoformat(a["end_utc"]).replace(tzinfo=dt.timezone.utc)
+        except (KeyError, ValueError):
+            continue
+        out.append({
+            "id": a.get("id", "unknown"),
+            "script": a.get("script", ""),
+            "level": a.get("level", 0),
+            "start": start, "end": end,
+        })
+    return out
+
+
+def _load_attacks_all(manifest: str | list[str]) -> list[dict]:
+    out: list[dict] = []
+    for path in _resolve_manifest_paths(manifest):
+        out.extend(_load_attacks(path))
+    return out
+
+
+def _compute_step_rates(
+    file_records: list[tuple[str, dt.datetime, int]],
+    *,
+    max_gap_s: float = 1000.0,
+    fallback_rate_hz: float = 5.0,
+) -> dict[str, float]:
+    """Per-file CSV step rate (Hz), inferred from chronological neighbours.
+
+    rate = n_rows / (next_file_start - this_file_start). Files with no
+    chronological neighbour within `max_gap_s` use the median of measured
+    rates (or `fallback_rate_hz` if nothing was measurable).
+    """
+    sorted_recs = sorted(file_records, key=lambda r: r[1])
+    rates: dict[str, float | None] = {}
+    measured: list[float] = []
+    for i, (name, ts, n_rows) in enumerate(sorted_recs):
+        rate: float | None = None
+        if i + 1 < len(sorted_recs) and n_rows > 0:
+            gap = (sorted_recs[i + 1][1] - ts).total_seconds()
+            if 0 < gap < max_gap_s:
+                rate = n_rows / gap
+                measured.append(rate)
+        rates[name] = rate
+    fallback = float(np.median(measured)) if measured else fallback_rate_hz
+    return {name: (r if r is not None else fallback) for name, r in rates.items()}
+
+
+def _synthesize_row_times(df: pd.DataFrame, rate_by_file: dict[str, float]) -> pd.DataFrame:
+    """Add a tz-aware UTC `__time` column: file_start + row_idx / file_rate.
+
+    File start is parsed from the filename. Per-row error budget is
+    1/(2*rate); at the observed ~5 Hz this is ±100 ms — well below the
+    boundary tolerance of multi-second attack windows.
+    """
+    file_starts: dict[str, dt.datetime] = {}
+    for fid in df["__file_id"].unique():
+        ts = _parse_csv_filename_ts(fid)
+        if ts is None:
+            raise ValueError(f"could not parse filename timestamp from {fid!r}")
+        file_starts[fid] = ts
+    fid_arr = df["__file_id"].to_numpy()
+    ridx_arr = df["__row_idx"].to_numpy()
+    starts_s = np.array([file_starts[f].timestamp() for f in fid_arr])
+    rates_arr = np.array([rate_by_file[f] for f in fid_arr])
+    offsets_s = ridx_arr / rates_arr
+    df["__time"] = pd.to_datetime(starts_s + offsets_s, unit="s", utc=True)
+    return df
+
+
+def _tag_attack_rows(df: pd.DataFrame, attacks: list[dict]) -> pd.DataFrame:
+    """Set `__attack_id` (string, '' if not in any window) and `__attack_window`."""
+    n = len(df)
+    if n == 0 or not attacks:
+        df["__attack_id"] = ""
+        df["__attack_window"] = False
+        return df
+    times = df["__time"].to_numpy()
+    ids = np.full(n, "", dtype=object)
+    flag = np.zeros(n, dtype=bool)
+    # Convert manifest start/end to numpy datetime64 for vectorised compare.
+    for a in attacks:
+        s = np.datetime64(a["start"].astimezone(dt.timezone.utc).replace(tzinfo=None))
+        e = np.datetime64(a["end"].astimezone(dt.timezone.utc).replace(tzinfo=None))
+        # times is tz-aware pd.Timestamp; convert to naive UTC ns for compare
+        times_ns = pd.to_datetime(times, utc=True).tz_convert(None).to_numpy()
+        in_win = (times_ns >= s) & (times_ns <= e)
+        ids[in_win] = a["id"]
+        flag[in_win] = True
+    df["__attack_id"] = ids
+    df["__attack_window"] = flag
+    return df
+
+
 def load_with_labels(
     csv_dir: str = DEFAULT_CSV_DIR,
     manifest: str | list[str] = None,
     *,
     drop_unlabeled: bool = True,
+    skip_warmup_rows: int = 0,
 ) -> tuple[pd.DataFrame, LoadStats]:
     """Load CSVs and attach a `__scenario` column based on the manifest(s).
 
@@ -190,16 +324,71 @@ def load_with_labels(
     if not manifest:
         raise ValueError("manifest is required for load_with_labels")
     scenarios = _load_manifests(manifest)
-    df, stats = load(csv_dir)
+    attacks = _load_attacks_all(manifest)
+    df, stats = load(csv_dir, skip_warmup_rows=skip_warmup_rows)
 
-    # File-level scenario assignment
-    file_to_scenario: dict[str, str] = {}
-    for fp in df["__file_id"].unique():
-        ts = _parse_csv_filename_ts(fp)
-        name = _scenario_for_file(ts, scenarios) if ts else None
-        file_to_scenario[fp] = name or "unlabeled"
+    # Step rate per file from chronological neighbours; uses pre-skip row
+    # count (max __row_idx + 1) so the rate reflects the true CSV cadence
+    # regardless of warmup trim. Files with no neighbour fall back to median.
+    # Computed across ALL files (not just labeled ones) because a labeled
+    # file's neighbour might itself be unlabeled but still inform its rate.
+    file_records: list[tuple[str, dt.datetime, int]] = []
+    pre_skip_counts = df.groupby("__file_id")["__row_idx"].max() + 1
+    for fid, n_pre in pre_skip_counts.items():
+        ts = _parse_csv_filename_ts(fid)
+        if ts is None:
+            continue
+        file_records.append((fid, ts, int(n_pre)))
+    rate_by_file = _compute_step_rates(file_records)
+    df = _synthesize_row_times(df, rate_by_file)
+    df = _tag_attack_rows(df, attacks)
 
-    df["__scenario"] = df["__file_id"].map(file_to_scenario)
+    # Per-row scenario assignment from __time. File-level assignment is
+    # fragile: if a file rotates mid-scenario its file_start may fall
+    # outside the window, dropping all its rows; conversely, a file whose
+    # file_start is in a window can extend far past the window's end and
+    # contaminate the labeled set. Per-row matching against scenario and
+    # attack windows is correct in both cases.
+    times_ns = df["__time"].dt.tz_convert(None).to_numpy()
+    scn_arr = np.full(len(df), "unlabeled", dtype=object)
+    for w in scenarios:
+        s = np.datetime64(w["start"].astimezone(dt.timezone.utc).replace(tzinfo=None))
+        e = np.datetime64(w["end"].astimezone(dt.timezone.utc).replace(tzinfo=None))
+        mask = (times_ns >= s) & (times_ns <= e)
+        scn_arr[mask] = w["name"]
+    # Attack windows: tag with the attack's `during_scenario` so attack
+    # rows route through the correct per-scenario IF at scoring time.
+    for a in attacks:
+        s = np.datetime64(a["start"].astimezone(dt.timezone.utc).replace(tzinfo=None))
+        e = np.datetime64(a["end"].astimezone(dt.timezone.utc).replace(tzinfo=None))
+        mask = (times_ns >= s) & (times_ns <= e)
+        # `during_scenario` was added to attack records by run_attack.py;
+        # older manifests without it leave attack rows tagged "unlabeled"
+        # and they get dropped — fall back to the row's existing scenario
+        # tag (if any) before defaulting to unlabeled.
+        scn_arr[mask] = "_keep_existing_"
+    # Resolve placeholder: if a row was tagged "_keep_existing_" but has
+    # no scenario assigned via the attack record, look up `during_scenario`
+    # from the originating attack manifest.
+    if attacks:
+        attack_id_arr = df["__attack_id"].to_numpy()
+        for a in attacks:
+            ds = None
+            for path in _resolve_manifest_paths(manifest):
+                with open(path) as f:
+                    m = json.load(f)
+                for amanif in m.get("attacks", []):
+                    if amanif.get("id") == a["id"]:
+                        ds = amanif.get("during_scenario")
+                        break
+                if ds:
+                    break
+            if not ds:
+                ds = "unlabeled"
+            mask = (attack_id_arr == a["id"]) & (scn_arr == "_keep_existing_")
+            scn_arr[mask] = ds
+
+    df["__scenario"] = scn_arr
     if drop_unlabeled:
         before = len(df)
         df = df[df["__scenario"] != "unlabeled"].reset_index(drop=True)
@@ -209,8 +398,17 @@ def load_with_labels(
             files_skipped_leaks=stats.files_skipped_leaks,
             files_skipped_alignment=stats.files_skipped_alignment,
             rows=len(df),
+            rows_skipped_warmup=stats.rows_skipped_warmup,
         )
-        print(f"  dropped {before - len(df)} unlabeled rows; kept {len(df)} labeled rows")
+        print(f"  dropped {before - len(df)} rows outside any scenario/attack window; "
+              f"kept {len(df)} labeled rows")
+    if skip_warmup_rows > 0:
+        print(f"  dropped {stats.rows_skipped_warmup} warmup rows (first {skip_warmup_rows} of each file)")
+
+    n_attack_rows = int(df["__attack_window"].sum())
+    if attacks:
+        print(f"  attack windows: {len(attacks)} from manifests; "
+              f"tagged {n_attack_rows} rows as __attack_window=True")
     return df, stats
 
 
