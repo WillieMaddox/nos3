@@ -239,7 +239,7 @@ if __name__ == "__main__":
     from loader import load
 
     p = argparse.ArgumentParser()
-    p.add_argument("--csv-dir", default="fsw/build/exe/cpu1/data/onair/csv")
+    p.add_argument("--csv-dir", default="data/onair/csv")
     args = p.parse_args()
     df, stats = load(args.csv_dir)
     print(f"loaded {stats.files_kept} files, {df.shape[0]} rows")

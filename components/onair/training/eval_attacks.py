@@ -36,7 +36,7 @@ from features import build_features  # noqa: E402
 from loader import load_with_labels  # noqa: E402
 
 DEFAULT_MODEL = "data/onair/models/iforest_per_scenario_v2_warmup30.pkl"
-DEFAULT_CSV_DIR = "fsw/build/exe/cpu1/data/onair/csv"
+DEFAULT_CSV_DIR = "data/onair/csv"
 DEFAULT_MANIFESTS = "data/onair/scenarios"
 
 

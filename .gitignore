@@ -48,6 +48,14 @@ logs
 data/onair/models/*.pkl
 data/onair/scenarios/*.log
 data/onair/scenarios/*_dryrun*.json
+# Training corpus written by the OnAIR csv_output plugin. Configured in
+# components/onair/nos3_security.ini OutputDir to land here (outside fsw/build/)
+# so the data survives a clean rebuild.
+data/onair/csv/
 # SPARTA attack-script per-run logs land in CWD by default
 ex_*_log_*.csv
 demo_*_log_*.csv
+imp_*_log_*.csv
+ia_*_log_*.csv
+per_*_log_*.csv
+rec_*_log_*.csv

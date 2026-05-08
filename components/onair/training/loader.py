@@ -23,7 +23,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-DEFAULT_CSV_DIR = "fsw/build/exe/cpu1/data/onair/csv"
+DEFAULT_CSV_DIR = "data/onair/csv"
 EXPECTED_COLS = 273
 _BYTE_REPR = re.compile(r"\bb'")
 # csv_out_2026-04-30T20-31-10-172666_pid8.csv

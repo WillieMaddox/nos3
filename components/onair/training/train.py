@@ -1,9 +1,8 @@
 """Train an Isolation Forest on nominal OnAIR security CSVs.
 
-Tier 1 of the AI anomaly detection plan. Reads CSVs from
-`fsw/build/exe/cpu1/data/onair/csv`, builds raw + delta features, fits an
-Isolation Forest, and pickles the model + feature schema to
-`data/onair/models/iforest_v1.pkl`.
+Tier 1 of the AI anomaly detection plan. Reads CSVs from `data/onair/csv`,
+builds raw + delta features, fits an Isolation Forest, and pickles the model +
+feature schema to `data/onair/models/iforest_v1.pkl`.
 
 The pickle contains everything the inference plugin needs to reproduce the
 exact same feature transformation at runtime.
@@ -289,7 +288,7 @@ def save(artifact: dict, path: str) -> None:
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--csv-dir", default="fsw/build/exe/cpu1/data/onair/csv")
+    p.add_argument("--csv-dir", default="data/onair/csv")
     p.add_argument("--out", default="data/onair/models/iforest_v1.pkl")
     p.add_argument("--n-estimators", type=int, default=200)
     p.add_argument("--contamination", type=float, default=0.01)
