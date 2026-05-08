@@ -200,7 +200,14 @@ def _scenario_for_file(file_ts: dt.datetime, scenarios: list[dict]) -> str | Non
 
 
 def _load_attacks(manifest_path: str) -> list[dict]:
-    """Read attack windows from one manifest. Empty list if `attacks` absent."""
+    """Read attack windows from one manifest. Empty list if `attacks` absent.
+
+    `corruption_end` extends the cmd-injection window (`start..end`) by the
+    attack's catalog dwell — for state-change attacks the detector signal
+    persists past the subprocess exit. Older manifests without the field
+    fall back to `end_utc`, making __corruption_window == __attack_window
+    (preserves old eval behavior).
+    """
     with open(manifest_path) as f:
         m = json.load(f)
     out = []
@@ -210,11 +217,17 @@ def _load_attacks(manifest_path: str) -> list[dict]:
             end = dt.datetime.fromisoformat(a["end_utc"]).replace(tzinfo=dt.timezone.utc)
         except (KeyError, ValueError):
             continue
+        try:
+            corr_end_raw = a.get("corruption_end_utc") or a["end_utc"]
+            corruption_end = dt.datetime.fromisoformat(corr_end_raw).replace(tzinfo=dt.timezone.utc)
+        except (KeyError, ValueError):
+            corruption_end = end
         out.append({
             "id": a.get("id", "unknown"),
             "script": a.get("script", ""),
             "level": a.get("level", 0),
             "start": start, "end": end,
+            "corruption_end": corruption_end,
         })
     return out
 
@@ -276,26 +289,38 @@ def _synthesize_row_times(df: pd.DataFrame, rate_by_file: dict[str, float]) -> p
 
 
 def _tag_attack_rows(df: pd.DataFrame, attacks: list[dict]) -> pd.DataFrame:
-    """Set `__attack_id` (string, '' if not in any window) and `__attack_window`."""
+    """Set `__attack_id`, `__attack_window`, and `__corruption_window`.
+
+    `__attack_window` covers the cmd-injection phase (attack.start..attack.end).
+    `__corruption_window` is a superset covering attack.start..corruption_end —
+    for state-change attacks the detector signal persists past subprocess exit
+    and the dwell extends the labeled window. With dwell=0 (drain-class or
+    pre-corruption-dwell manifests), the two windows are identical.
+    """
     n = len(df)
     if n == 0 or not attacks:
         df["__attack_id"] = ""
         df["__attack_window"] = False
+        df["__corruption_window"] = False
         return df
     times = df["__time"].to_numpy()
+    times_ns = pd.to_datetime(times, utc=True).tz_convert(None).to_numpy()
     ids = np.full(n, "", dtype=object)
     flag = np.zeros(n, dtype=bool)
+    corr = np.zeros(n, dtype=bool)
     # Convert manifest start/end to numpy datetime64 for vectorised compare.
     for a in attacks:
         s = np.datetime64(a["start"].astimezone(dt.timezone.utc).replace(tzinfo=None))
         e = np.datetime64(a["end"].astimezone(dt.timezone.utc).replace(tzinfo=None))
-        # times is tz-aware pd.Timestamp; convert to naive UTC ns for compare
-        times_ns = pd.to_datetime(times, utc=True).tz_convert(None).to_numpy()
+        ce = np.datetime64(a["corruption_end"].astimezone(dt.timezone.utc).replace(tzinfo=None))
         in_win = (times_ns >= s) & (times_ns <= e)
-        ids[in_win] = a["id"]
+        in_corr = (times_ns >= s) & (times_ns <= ce)
+        ids[in_corr] = a["id"]  # tag every row inside the broader window
         flag[in_win] = True
+        corr[in_corr] = True
     df["__attack_id"] = ids
     df["__attack_window"] = flag
+    df["__corruption_window"] = corr
     return df
 
 

@@ -97,9 +97,20 @@ def score_per_scenario(
     return out
 
 
-def report_per_scenario_fp(df: pd.DataFrame, scores: np.ndarray) -> None:
-    """Per-scenario nominal flag rate (rows with __attack_window=False)."""
-    nominal = ~df["__attack_window"].to_numpy()
+def report_per_scenario_fp(
+    df: pd.DataFrame, scores: np.ndarray,
+    *, window_col: str = "__corruption_window",
+) -> None:
+    """Per-scenario nominal flag rate (rows OUTSIDE the chosen attack window).
+
+    `window_col` controls what counts as "attack" — and therefore what counts
+    as nominal/FP. Default is __corruption_window (cmd-injection + dwell);
+    pass __attack_window for the cmd-injection-only view.
+    """
+    if window_col not in df.columns:
+        # Backward-compat: a pre-corruption-window manifest didn't emit it.
+        window_col = "__attack_window"
+    nominal = ~df[window_col].to_numpy()
     if not nominal.any():
         print("  (no nominal rows in this dataset — skipping per-scenario FP table)")
         return
@@ -118,32 +129,46 @@ def report_per_scenario_fp(df: pd.DataFrame, scores: np.ndarray) -> None:
             _fmt(d["min"]), _fmt(d["p1"]), _fmt(d["p5"]),
             _fmt(d["p25"]), _fmt(d["p50"]),
         ])
-    _row_table("per-scenario nominal score distribution (FP):",
+    _row_table(f"per-scenario nominal score distribution (FP, window={window_col}):",
                headers, rows)
 
 
 def report_per_attack_tp(df: pd.DataFrame, scores: np.ndarray) -> bool:
-    """Per-attack flag rate (rows with __attack_window=True). Returns True
-    if any attack rows existed."""
+    """Per-attack flag rate. For each attack, prints TP under both the
+    cmd-injection window (__attack_window) and the broader corruption window
+    (__attack_window + dwell). Returns True if any attack rows existed.
+
+    For old manifests without __corruption_window the columns are identical;
+    only the attack-window row is printed.
+    """
+    has_corr = "__corruption_window" in df.columns
     attack_mask = df["__attack_window"].to_numpy()
-    if not attack_mask.any():
+    corr_mask = df["__corruption_window"].to_numpy() if has_corr else attack_mask
+    if not corr_mask.any():
         return False
-    headers = ["attack_id", "scenario", "rows", "%flag@0",
-               "min", "p1", "p5", "p25", "p50"]
-    rows = []
     aid_arr = df["__attack_id"].to_numpy()
     scn_arr = df["__scenario"].to_numpy()
-    for aid in sorted(set(aid_arr[attack_mask])):
-        for scn in sorted(set(scn_arr[attack_mask & (aid_arr == aid)])):
-            mask = attack_mask & (aid_arr == aid) & (scn_arr == scn)
-            s = scores[mask]
-            n_flag = int((s < 0).sum())
-            d = _score_distribution(s)
-            rows.append([
-                aid, scn, len(s), _pct(n_flag, len(s)),
-                _fmt(d["min"]), _fmt(d["p1"]), _fmt(d["p5"]),
-                _fmt(d["p25"]), _fmt(d["p50"]),
-            ])
+    headers = ["attack_id", "scenario", "window", "rows", "%flag@0",
+               "min", "p1", "p5", "p25", "p50"]
+    rows = []
+    for aid in sorted(set(aid_arr[corr_mask])):
+        for scn in sorted(set(scn_arr[corr_mask & (aid_arr == aid)])):
+            for window_label, mask_src in (
+                ("attack", attack_mask),
+                ("corruption", corr_mask),
+            ):
+                if window_label == "corruption" and not has_corr:
+                    continue
+                mask = mask_src & (aid_arr == aid) & (scn_arr == scn)
+                if not mask.any():
+                    continue
+                s = scores[mask]
+                d = _score_distribution(s)
+                rows.append([
+                    aid, scn, window_label, len(s), _pct(int((s < 0).sum()), len(s)),
+                    _fmt(d["min"]), _fmt(d["p1"]), _fmt(d["p5"]),
+                    _fmt(d["p25"]), _fmt(d["p50"]),
+                ])
     _row_table("per-attack score distribution (TP):", headers, rows)
     return True
 
@@ -151,12 +176,17 @@ def report_per_attack_tp(df: pd.DataFrame, scores: np.ndarray) -> bool:
 def report_threshold_sweep(
     df: pd.DataFrame, scores: np.ndarray,
     thresholds: list[float] | None = None,
+    *, window_col: str = "__corruption_window",
 ) -> None:
     """For each threshold, report aggregate TP rate (attack rows flagged) and
-    FP rate (nominal rows flagged)."""
+    FP rate (nominal rows flagged). `window_col` defaults to __corruption_window
+    so post-attack residual is correctly counted as TP (not FP) for state-change
+    attacks. Falls back to __attack_window for old manifests."""
     if thresholds is None:
         thresholds = [-0.10, -0.05, -0.03, -0.02, -0.01, 0.0]
-    attack = df["__attack_window"].to_numpy()
+    if window_col not in df.columns:
+        window_col = "__attack_window"
+    attack = df[window_col].to_numpy()
     nominal = ~attack
     n_attack = int(attack.sum())
     n_nominal = int(nominal.sum())
@@ -171,7 +201,7 @@ def report_threshold_sweep(
             f"{t:+.3f}", tp, n_attack, _pct(tp, n_attack),
             fp, n_nominal, _pct(fp, n_nominal),
         ])
-    _row_table("threshold sweep (TP=attack_window, FP=nominal):",
+    _row_table(f"threshold sweep (TP={window_col}, FP=~{window_col}):",
                headers, rows)
 
     if n_attack and n_nominal:
@@ -230,11 +260,14 @@ def main() -> None:
     for name, n in df["__scenario"].value_counts().items():
         print(f"    {name}: {n}")
     n_attack = int(df["__attack_window"].sum())
+    n_corr = int(df.get("__corruption_window", df["__attack_window"]).sum())
     if n_attack:
-        print(f"  attack rows: {n_attack}")
+        print(f"  attack rows: {n_attack} (cmd-injection window)")
+        if "__corruption_window" in df.columns and n_corr != n_attack:
+            print(f"  corruption rows: {n_corr} (cmd-injection + post-attack dwell)")
         for aid in sorted(df.loc[df["__attack_window"], "__attack_id"].unique()):
             n = int((df["__attack_id"] == aid).sum())
-            print(f"    {aid}: {n}")
+            print(f"    {aid}: {n} (corruption-window total)")
     else:
         print("  attack rows: 0  (FP-only baseline — no attack manifests in this load)")
 
@@ -252,7 +285,15 @@ def main() -> None:
     had_attacks = report_per_attack_tp(df, scores)
     print()
     if had_attacks:
-        report_threshold_sweep(df, scores)
+        report_threshold_sweep(df, scores, window_col="__corruption_window")
+        # If the two windows differ on this dataset, also print the
+        # cmd-injection-only sweep so the gap closure is visible at a glance.
+        if (
+            "__corruption_window" in df.columns
+            and int(df["__corruption_window"].sum()) != int(df["__attack_window"].sum())
+        ):
+            print()
+            report_threshold_sweep(df, scores, window_col="__attack_window")
     else:
         print("(no attack rows — skipping threshold sweep)")
     print(f"\ntotal: {time.perf_counter()-t0:.1f}s")

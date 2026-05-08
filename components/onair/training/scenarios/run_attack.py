@@ -61,38 +61,49 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", 
 ATTACK_SCRIPTS_ROOT = os.path.join(REPO_ROOT, "gsw", "attack_scripts", "sparta")
 
 # Catalog of supported iter-0 attack scripts. Each entry maps a short ID to
-# the SPARTA technique code, the script's relative path, and the standard CLI
-# flags it accepts. Add entries here as new attacks are folded into the harness.
+# the SPARTA technique code, the script's relative path, the standard CLI
+# flags it accepts, and a `corruption_dwell_s` — the number of seconds after
+# the attack subprocess exits during which the spacecraft state remains in
+# detector-distinguishable corruption. The detection signal for state-change
+# attacks lives in this dwell, not in the brief cmd-injection phase.
+# Defaults are empirical (see project_phase2_attack_classification + the
+# Phase 2 iter-1 manifests). 0 = drain class (no residual, or undetectable).
+# Add entries here as new attacks are folded into the harness.
 ATTACK_CATALOG: dict[str, dict] = {
     "ex_0013_flooding": {
         "id": "EX-0013",
         "tactic": "execution",
         "path": "execution/ex_0013_flooding.py",
         "expected_runtime_s": 25,  # rough — depends on level
+        "corruption_dwell_s": 90,  # flood residual visible 60-90s post-attack
     },
     "ex_0014_spoofing": {
         "id": "EX-0014",
         "tactic": "execution",
         "path": "execution/ex_0014_spoofing.py",
         "expected_runtime_s": 20,
+        "corruption_dwell_s": 30,  # IF score false-recovers ~30s after attack
     },
     "ex_0001_replay": {
         "id": "EX-0001",
         "tactic": "execution",
         "path": "execution/ex_0001_replay.py",
         "expected_runtime_s": 30,
+        "corruption_dwell_s": 0,  # not yet characterized; conservative default
     },
     "ex_0012_modify_on_board_values": {
         "id": "EX-0012",
         "tactic": "execution",
         "path": "execution/ex_0012_modify_on_board_values.py",
         "expected_runtime_s": 15,
+        "corruption_dwell_s": 300,  # IF stays flagged ≥5min; lower bound
     },
     "imp_0004_degradation": {
         "id": "IMP-0004",
         "tactic": "impact",
         "path": "impact/imp_0004_degradation.py",
         "expected_runtime_s": 10,
+        "corruption_dwell_s": 0,  # undetectable, no residual signal
     },
 }
 
@@ -104,9 +115,15 @@ def find_scenario(name: str):
     raise SystemExit(f"unknown scenario: {name}; valid={[s[0] for s in SCENARIOS]}")
 
 
+def _corruption_end(end_utc: str, dwell_s: int) -> str:
+    """end_utc + dwell_s, ISO-formatted. dwell_s=0 ⇒ corruption_end == end."""
+    return (dt.datetime.fromisoformat(end_utc) + dt.timedelta(seconds=dwell_s)).isoformat()
+
+
 def run_attack_subprocess(
     script_path: str, fsw_host: str, attack_level: int,
     during_scenario: str, technique_id: str,
+    corruption_dwell_s: int,
     extra_args: list[str] | None = None,
     dry_run: bool = False,
 ) -> dict:
@@ -125,6 +142,8 @@ def run_attack_subprocess(
         return {
             "id": technique_id, "script": os.path.basename(script_path),
             "level": attack_level, "start_utc": start, "end_utc": end,
+            "corruption_dwell_s": corruption_dwell_s,
+            "corruption_end_utc": _corruption_end(end, corruption_dwell_s),
             "during_scenario": during_scenario, "exit_code": 0,
             "extra_args": extra_args, "dry_run": True,
         }
@@ -137,6 +156,8 @@ def run_attack_subprocess(
     return {
         "id": technique_id, "script": os.path.basename(script_path),
         "level": attack_level, "start_utc": start, "end_utc": end,
+        "corruption_dwell_s": corruption_dwell_s,
+        "corruption_end_utc": _corruption_end(end, corruption_dwell_s),
         "during_scenario": during_scenario, "exit_code": proc.returncode,
         "extra_args": extra_args,
         "stdout_lines": len(proc.stdout.splitlines()),
@@ -147,10 +168,13 @@ def run_attack_subprocess(
 def run_attack_session(
     fsw_host: str, *, dry_run: bool, attack_key: str, attack_level: int,
     during: str, pre_s: int, post_s: int, attack_extra_args: list[str] | None,
+    corruption_dwell_s: int | None = None,
 ) -> dict:
     if attack_key not in ATTACK_CATALOG:
         raise SystemExit(f"unknown attack: {attack_key}; valid={list(ATTACK_CATALOG)}")
     entry = ATTACK_CATALOG[attack_key]
+    if corruption_dwell_s is None:
+        corruption_dwell_s = entry.get("corruption_dwell_s", 0)
     script_path = os.path.join(ATTACK_SCRIPTS_ROOT, entry["path"])
     if not os.path.exists(script_path):
         raise SystemExit(f"attack script not found at {script_path}")
@@ -200,6 +224,7 @@ def run_attack_session(
         attack_level=attack_level,
         during_scenario=scn_name,
         technique_id=entry["id"],
+        corruption_dwell_s=corruption_dwell_s,
         extra_args=attack_extra_args,
         dry_run=dry_run,
     )
@@ -238,6 +263,12 @@ def main():
                         "90s) because flood-class attacks leave FSW residual "
                         "that takes 60-120s to dissipate; the longer window "
                         "lets us see the full recovery curve.")
+    p.add_argument("--corruption-dwell-s", type=int, default=None,
+                   help="Override the catalog's corruption_dwell_s for this "
+                        "attack. Detection signal for state-change attacks "
+                        "lives in attack_end + dwell, not in the brief "
+                        "subprocess window itself. Pass 0 to disable, or a "
+                        "positive integer to extend the corruption window.")
     p.add_argument("--attack-extra-args", nargs=argparse.REMAINDER, default=[],
                    help="Trailing args passed verbatim to the attack script "
                         "(e.g. -- --duration 3.0 --rate-low 5)")
@@ -259,6 +290,7 @@ def main():
         pre_s=args.pre_seconds,
         post_s=args.post_seconds,
         attack_extra_args=args.attack_extra_args,
+        corruption_dwell_s=args.corruption_dwell_s,
     )
 
     path = write_manifest(manifest, args.out_dir)
