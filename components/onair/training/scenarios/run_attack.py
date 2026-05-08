@@ -82,6 +82,18 @@ ATTACK_CATALOG: dict[str, dict] = {
         "path": "execution/ex_0001_replay.py",
         "expected_runtime_s": 30,
     },
+    "ex_0012_modify_on_board_values": {
+        "id": "EX-0012",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values.py",
+        "expected_runtime_s": 15,
+    },
+    "imp_0004_degradation": {
+        "id": "IMP-0004",
+        "tactic": "impact",
+        "path": "impact/imp_0004_degradation.py",
+        "expected_runtime_s": 10,
+    },
 }
 
 
