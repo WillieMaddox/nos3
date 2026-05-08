@@ -398,7 +398,7 @@ def main():
                    help="Number of full passes over all scenarios (default 1)")
     p.add_argument("--reset-between", action="store_true",
                    help="Tier 1.5 reset (kill core-cpu1 + restart sc01-onair) between loops")
-    p.add_argument("--csv-dir", default="fsw/build/exe/cpu1/data/onair/csv",
+    p.add_argument("--csv-dir", default="data/onair/csv",
                    help="OnAIR CSV output dir; used by --reset-between to detect "
                         "OnAIR resumed writing")
     p.add_argument("--out-dir", default="data/onair/scenarios")
