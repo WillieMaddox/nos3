@@ -46,6 +46,7 @@ logs
 # AI anomaly detection — derived/runtime artifacts
 #
 data/onair/models/*.pkl
+data/onair/models/*.calibration.json
 data/onair/scenarios/*.log
 data/onair/scenarios/*_dryrun*.json
 # Training corpus written by the OnAIR csv_output plugin. Configured in
