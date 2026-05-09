@@ -28,6 +28,9 @@ EXPECTED_COLS = 273
 _BYTE_REPR = re.compile(r"\bb'")
 # csv_out_2026-04-30T20-31-10-172666_pid8.csv
 _CSV_TS = re.compile(r"csv_out_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d+)_pid")
+_FILE_PID = re.compile(r"_pid(\d+)\.csv$")
+# iforest_out_2026-05-09T18-22-04-123456_pid8.csv
+_IFOREST_GLOB = "iforest_out_*_pid*.csv"
 
 
 @dataclass
@@ -55,7 +58,9 @@ def _file_is_clean(path: str) -> tuple[bool, str]:
 
 
 def list_clean_csvs(csv_dir: str) -> tuple[list[str], LoadStats]:
-    paths = sorted(glob.glob(os.path.join(csv_dir, "*.csv")))
+    # Limit to telemetry rotations; sibling iforest_out_*.csv side-files share
+    # the directory and would otherwise be flagged as "row_misalignment".
+    paths = sorted(glob.glob(os.path.join(csv_dir, "csv_out_*.csv")))
     kept: list[str] = []
     skip_leaks = 0
     skip_align = 0
@@ -435,6 +440,107 @@ def load_with_labels(
         print(f"  attack windows: {len(attacks)} from manifests; "
               f"tagged {n_attack_rows} rows as __attack_window=True")
     return df, stats
+
+
+def _file_pid(file_id: str) -> int | None:
+    m = _FILE_PID.search(file_id)
+    return int(m.group(1)) if m else None
+
+
+def attach_iforest_scores(
+    df: pd.DataFrame, csv_dir: str = DEFAULT_CSV_DIR,
+) -> pd.DataFrame:
+    """Merge sibling `iforest_out_*.csv` columns into a loaded telemetry frame.
+
+    The IF plugin writes one side-file per OnAIR process (named with the
+    process pid) containing one row per scored frame. Frames are joined to
+    `csv_out_*.csv` rows by (pid, cumulative_frame_idx) where:
+
+      - `pid` is parsed from `__file_id` (e.g. `csv_out_..._pid8.csv` → 8)
+      - `cumulative_frame_idx = sum(prior_file_lengths_for_same_pid) + __row_idx`
+        with prior files ordered by their filename timestamp; the prior-file
+        length is the *original* row count (max __row_idx + 1), so dropping
+        warmup rows in `load()` does not desync the join.
+
+    Adds columns: `if_score` (float), `if_threshold` (float), `if_is_anomaly`
+    (int 0/1), `if_alert` (int 0/1), `if_cleared` (int 0/1), `if_scenario`
+    (str). Rows with no matching side-file row keep NaN/0/'' (e.g. side-file
+    writer was disabled for that run, or file lost a tail flush).
+
+    Returns the input `df` unchanged when no side-files are found.
+    """
+    side_paths = sorted(glob.glob(os.path.join(csv_dir, _IFOREST_GLOB)))
+    if not side_paths:
+        return df
+    side_by_pid: dict[int, pd.DataFrame] = {}
+    for sp in side_paths:
+        m = _FILE_PID.search(sp)
+        if not m:
+            continue
+        side_by_pid[int(m.group(1))] = pd.read_csv(sp)
+
+    out = df.copy()
+    out["if_score"] = np.nan
+    out["if_threshold"] = np.nan
+    out["if_is_anomaly"] = 0
+    out["if_alert"] = 0
+    out["if_cleared"] = 0
+    out["if_scenario"] = ""
+
+    # Cumulative offset per __file_id, computed within each pid using the
+    # original (pre-warmup-skip) row count — preserved as `max(__row_idx)+1`.
+    file_pid: dict[str, int] = {}
+    file_orig_n: dict[str, int] = {}
+    grp = df.groupby("__file_id")["__row_idx"]
+    for fid, mx in grp.max().items():
+        pid = _file_pid(fid)
+        if pid is None:
+            continue
+        file_pid[fid] = pid
+        file_orig_n[fid] = int(mx) + 1
+
+    file_offset: dict[str, int] = {}
+    for pid in set(file_pid.values()):
+        same_pid_fids = [f for f, p in file_pid.items() if p == pid]
+        same_pid_fids.sort(
+            key=lambda f: _parse_csv_filename_ts(f)
+            or dt.datetime.min.replace(tzinfo=dt.timezone.utc)
+        )
+        offset = 0
+        for fid in same_pid_fids:
+            file_offset[fid] = offset
+            offset += file_orig_n[fid]
+
+    fid_arr = out["__file_id"].to_numpy()
+    ridx_arr = out["__row_idx"].to_numpy()
+    pid_per_row = np.array([file_pid.get(f, -1) for f in fid_arr])
+    cum_per_row = np.array(
+        [file_offset.get(f, 0) + r for f, r in zip(fid_arr, ridx_arr)]
+    )
+
+    for pid, sdf in side_by_pid.items():
+        sdf_indexed = sdf.set_index("frame_idx")
+        mask = pid_per_row == pid
+        if not mask.any():
+            continue
+        cum_subset = cum_per_row[mask]
+        matched = sdf_indexed.reindex(cum_subset)
+        idx = np.where(mask)[0]
+        out.iloc[idx, out.columns.get_loc("if_score")] = matched["score"].to_numpy()
+        out.iloc[idx, out.columns.get_loc("if_threshold")] = matched["threshold"].to_numpy()
+        out.iloc[idx, out.columns.get_loc("if_is_anomaly")] = (
+            matched["is_anomaly"].fillna(0).astype(int).to_numpy()
+        )
+        out.iloc[idx, out.columns.get_loc("if_alert")] = (
+            matched["alert"].fillna(0).astype(int).to_numpy()
+        )
+        out.iloc[idx, out.columns.get_loc("if_cleared")] = (
+            matched["cleared"].fillna(0).astype(int).to_numpy()
+        )
+        out.iloc[idx, out.columns.get_loc("if_scenario")] = (
+            matched["scenario"].fillna("").to_numpy()
+        )
+    return out
 
 
 if __name__ == "__main__":
