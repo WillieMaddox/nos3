@@ -272,7 +272,10 @@ def main() -> None:
         print("  attack rows: 0  (FP-only baseline — no attack manifests in this load)")
 
     t1 = time.perf_counter()
-    X, _ = build_features(df, include_deltas=True)
+    # Pin feature classification to the trained schema so column-type drift
+    # at scoring time (e.g. a CFE_TBL.LastFileDumped string showing up during
+    # a long-uptime run) can't change the feature count and break the model.
+    X, _ = build_features(df, include_deltas=True, schema=art.get("schema"))
     print(f"\nfeature build: {time.perf_counter()-t1:.1f}s ({X.shape})")
 
     t2 = time.perf_counter()

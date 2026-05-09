@@ -177,14 +177,32 @@ def _explode_list_column(df: pd.DataFrame, col: str, paths: list[tuple[int, ...]
 
 
 def build_features(
-    df: pd.DataFrame, *, include_deltas: bool = True
+    df: pd.DataFrame, *, include_deltas: bool = True,
+    schema: dict | FeatureSchema | None = None,
 ) -> tuple[np.ndarray, FeatureSchema]:
     """Transform the loaded DataFrame into a numeric feature matrix.
 
     Returns (X, schema) where X has shape (n_rows, n_features) and dtype float64.
+
+    If `schema` is provided (the dict from a saved model pickle, or a
+    FeatureSchema instance), use its frozen column classification instead of
+    re-classifying from the dataframe. Required for inference: a column whose
+    values include a non-numeric string in the scoring data (e.g.
+    CFE_TBL.LastFileDumped picking up a filename during long-uptime runs)
+    would otherwise be reclassified as 'text' and dropped, mismatching the
+    trained model's input dimension.
     """
+    schema_in = schema
     schema = FeatureSchema()
-    classification = _classify_columns(df)
+    if schema_in is not None:
+        sch = schema_in if isinstance(schema_in, dict) else asdict(schema_in)
+        classification = {c: "numeric" for c in sch.get("scalar_columns", [])}
+        for c in sch.get("list_columns", {}):
+            classification[c] = "list"
+        for c in sch.get("dropped_text_columns", []):
+            classification[c] = "text"
+    else:
+        classification = _classify_columns(df)
 
     # Two-pass layout to match the inference plugin's invariant:
     #   raw = [all scalars in original CSV order, then all list-col leaves in
