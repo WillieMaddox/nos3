@@ -61,8 +61,10 @@ def synthetic_dir(tmp_path, monkeypatch):
         ["13", "14", "15"],
     ])
 
-    # Side-file: 5 frames matching the cumulative index 0..4 across both csvs.
-    side = tmp_path / "iforest_out_2026-05-09T10-00-00-000001_pid8.csv"
+    # Side-file ts MUST precede the first csv_out — the IF plugin __init__
+    # records its filename before csv_output's first rotation lands on disk.
+    # 5 frames matching the cumulative index 0..4 across both csvs.
+    side = tmp_path / "iforest_out_2026-05-09T09-59-59-999999_pid8.csv"
     _write_side_file(side, [
         [0, "nominal_ops", "0.10", "0.00", 0, 0, 0],
         [1, "nominal_ops", "-0.05", "0.00", 1, 1, 0],   # alert
@@ -122,6 +124,78 @@ def test_attach_no_side_files_returns_input(tmp_path, monkeypatch):
     # Function returned df unchanged (no side-files to merge).
     assert "if_score" not in out.columns
     assert out is df
+
+
+def test_attach_two_sessions_same_pid_join_independently(tmp_path, monkeypatch):
+    """OnAIR's container PID namespace assigns the same pid (e.g. 11) to every
+    new launch, so consecutive sessions in one csv_dir share the side-file pid.
+    Cumulative offsets must accumulate per side-file, not per pid, or the
+    second session's rows would be looked up under the first session's
+    frame indices — yielding wrong scores or out-of-range NaNs."""
+    monkeypatch.setattr("loader.EXPECTED_COLS", 2)
+    headers = ["a", "b"]
+
+    # Session 1: pid 11, 3 csv_out rows + side-file with frame_idx 0..2.
+    s1_csv = tmp_path / "csv_out_2026-05-10T08-00-00-000000_pid11.csv"
+    _write_csv_out(s1_csv, headers, [["1", "2"], ["3", "4"], ["5", "6"]])
+    s1_side = tmp_path / "iforest_out_2026-05-10T07-59-59-999000_pid11.csv"
+    _write_side_file(s1_side, [
+        [0, "nominal_ops", "0.10", "0.00", 0, 0, 0],
+        [1, "nominal_ops", "0.20", "0.00", 0, 0, 0],
+        [2, "nominal_ops", "0.30", "0.00", 0, 0, 0],
+    ])
+
+    # Session 2: SAME pid 11, started later. 2 csv_out rows + side-file with
+    # frame_idx 0..1. If the join were per-pid (the old behavior), session 2's
+    # row 0 would look up cumulative_idx 3 in either side-file — missing the
+    # session-1 side (only goes to 2) and absent from the session-2 side.
+    s2_csv = tmp_path / "csv_out_2026-05-10T09-00-00-000000_pid11.csv"
+    _write_csv_out(s2_csv, headers, [["7", "8"], ["9", "10"]])
+    s2_side = tmp_path / "iforest_out_2026-05-10T08-59-59-999000_pid11.csv"
+    _write_side_file(s2_side, [
+        [0, "quiescent", "-0.10", "0.00", 1, 1, 0],
+        [1, "quiescent", "0.05", "0.00", 0, 0, 1],
+    ])
+
+    df, _ = load(str(tmp_path))
+    assert len(df) == 5
+    out = attach_iforest_scores(df, str(tmp_path))
+
+    # Session 1 rows route through session-1 side-file scores.
+    np.testing.assert_array_equal(
+        out["if_score"].to_numpy()[:3],
+        np.array([0.10, 0.20, 0.30]),
+    )
+    assert list(out["if_scenario"].iloc[:3]) == ["nominal_ops"] * 3
+
+    # Session 2 rows route through session-2 side-file scores — NOT continuing
+    # from cumulative_idx 3 into a missing slot.
+    np.testing.assert_array_equal(
+        out["if_score"].to_numpy()[3:],
+        np.array([-0.10, 0.05]),
+    )
+    assert list(out["if_scenario"].iloc[3:]) == ["quiescent", "quiescent"]
+    assert list(out["if_alert"].iloc[3:]) == [1, 0]
+    assert list(out["if_cleared"].iloc[3:]) == [0, 1]
+
+
+def test_attach_csv_predating_all_side_files_gets_defaults(tmp_path, monkeypatch):
+    """A csv_out whose ts is before every same-pid side-file (e.g. an orphan
+    from a session whose side-file was deleted) must get default NaN/0/''
+    rather than be mis-attributed to a later session."""
+    monkeypatch.setattr("loader.EXPECTED_COLS", 2)
+    # csv_out with ts 08:00; only side-file is at 09:00 (later).
+    csv1 = tmp_path / "csv_out_2026-05-10T08-00-00-000000_pid11.csv"
+    _write_csv_out(csv1, ["a", "b"], [["1", "2"], ["3", "4"]])
+    side = tmp_path / "iforest_out_2026-05-10T09-00-00-000000_pid11.csv"
+    _write_side_file(side, [[0, "nominal_ops", "0.5", "0.0", 0, 0, 0]])
+
+    df, _ = load(str(tmp_path))
+    out = attach_iforest_scores(df, str(tmp_path))
+
+    # Orphan csv_out → no IF data. No mis-attribution into later session.
+    assert out["if_score"].isna().all()
+    assert (out["if_is_anomaly"] == 0).all()
 
 
 def test_attach_pid_mismatch_keeps_defaults(tmp_path, monkeypatch):

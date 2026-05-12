@@ -31,6 +31,7 @@ _CSV_TS = re.compile(r"csv_out_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d+)_pid")
 _FILE_PID = re.compile(r"_pid(\d+)\.csv$")
 # iforest_out_2026-05-09T18-22-04-123456_pid8.csv
 _IFOREST_GLOB = "iforest_out_*_pid*.csv"
+_IFOREST_TS = re.compile(r"iforest_out_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d+)_pid")
 
 
 @dataclass
@@ -447,37 +448,67 @@ def _file_pid(file_id: str) -> int | None:
     return int(m.group(1)) if m else None
 
 
+def _parse_iforest_filename_ts(path: str) -> dt.datetime | None:
+    """Extract the IF plugin's init timestamp from an iforest_out_<ts>_pid<N>.csv name."""
+    m = _IFOREST_TS.search(os.path.basename(path))
+    if not m:
+        return None
+    raw = m.group(1)
+    head, micro = raw.rsplit("-", 1)
+    try:
+        when = dt.datetime.strptime(head, "%Y-%m-%dT%H-%M-%S")
+        return when.replace(microsecond=int(micro)).replace(tzinfo=dt.timezone.utc)
+    except ValueError:
+        return None
+
+
 def attach_iforest_scores(
     df: pd.DataFrame, csv_dir: str = DEFAULT_CSV_DIR,
 ) -> pd.DataFrame:
     """Merge sibling `iforest_out_*.csv` columns into a loaded telemetry frame.
 
-    The IF plugin writes one side-file per OnAIR process (named with the
-    process pid) containing one row per scored frame. Frames are joined to
-    `csv_out_*.csv` rows by (pid, cumulative_frame_idx) where:
+    The IF plugin writes one side-file per OnAIR process. The container PID
+    namespace deterministically assigns the same pid (e.g. 11) to every
+    OnAIR launch, so multiple sessions in one directory share a pid — pid
+    alone is not a session key. Each csv_out is therefore routed to the
+    side-file whose timestamp is the **latest one ≤ the csv_out's
+    timestamp** (same pid). Cumulative offsets accumulate per side-file,
+    so two same-pid sessions in one dir join independently.
 
-      - `pid` is parsed from `__file_id` (e.g. `csv_out_..._pid8.csv` → 8)
-      - `cumulative_frame_idx = sum(prior_file_lengths_for_same_pid) + __row_idx`
-        with prior files ordered by their filename timestamp; the prior-file
-        length is the *original* row count (max __row_idx + 1), so dropping
-        warmup rows in `load()` does not desync the join.
+    Join semantics:
+      - `pid` is parsed from `__file_id` (e.g. `csv_out_..._pid8.csv` → 8).
+      - For each csv_out file, pick `assigned_side` = max(ts) over
+        side-files with same pid and ts ≤ csv_out's ts.
+      - `cumulative_frame_idx = sum(prior_file_lengths_with_same_assigned_side)
+        + __row_idx`. Prior-file length uses `max(__row_idx) + 1` (the
+        original row count), so `load(skip_warmup_rows=N)` does not desync.
 
     Adds columns: `if_score` (float), `if_threshold` (float), `if_is_anomaly`
     (int 0/1), `if_alert` (int 0/1), `if_cleared` (int 0/1), `if_scenario`
     (str). Rows with no matching side-file row keep NaN/0/'' (e.g. side-file
-    writer was disabled for that run, or file lost a tail flush).
+    writer was disabled for that run, csv_out predates every side-file, or
+    file lost a tail flush).
 
     Returns the input `df` unchanged when no side-files are found.
     """
     side_paths = sorted(glob.glob(os.path.join(csv_dir, _IFOREST_GLOB)))
     if not side_paths:
         return df
-    side_by_pid: dict[int, pd.DataFrame] = {}
+
+    side_records: list[tuple[dt.datetime, int, str]] = []
     for sp in side_paths:
+        ts = _parse_iforest_filename_ts(sp)
         m = _FILE_PID.search(sp)
-        if not m:
+        if ts is None or not m:
             continue
-        side_by_pid[int(m.group(1))] = pd.read_csv(sp)
+        side_records.append((ts, int(m.group(1)), sp))
+    if not side_records:
+        return df
+    sides_by_pid: dict[int, list[tuple[dt.datetime, str]]] = {}
+    for ts, pid, sp in side_records:
+        sides_by_pid.setdefault(pid, []).append((ts, sp))
+    for pid in sides_by_pid:
+        sides_by_pid[pid].sort()
 
     out = df.copy()
     out["if_score"] = np.nan
@@ -487,42 +518,49 @@ def attach_iforest_scores(
     out["if_cleared"] = 0
     out["if_scenario"] = ""
 
-    # Cumulative offset per __file_id, computed within each pid using the
-    # original (pre-warmup-skip) row count — preserved as `max(__row_idx)+1`.
-    file_pid: dict[str, int] = {}
-    file_orig_n: dict[str, int] = {}
+    # Build per-file metadata: (ts, fid, pid, n_orig). n_orig preserves the
+    # original (pre-warmup-skip) row count via max(__row_idx)+1.
+    file_meta: list[tuple[dt.datetime, str, int, int]] = []
     grp = df.groupby("__file_id")["__row_idx"]
     for fid, mx in grp.max().items():
         pid = _file_pid(fid)
-        if pid is None:
+        ts = _parse_csv_filename_ts(fid)
+        if pid is None or ts is None:
             continue
-        file_pid[fid] = pid
-        file_orig_n[fid] = int(mx) + 1
+        file_meta.append((ts, fid, pid, int(mx) + 1))
 
+    # Walk csv_outs chronologically; assign each to the most-recent side-file
+    # whose ts ≤ csv_out's ts (same pid), and accumulate offsets per side-file
+    # so each session brackets its own contiguous frame index space.
+    file_side: dict[str, str | None] = {}
     file_offset: dict[str, int] = {}
-    for pid in set(file_pid.values()):
-        same_pid_fids = [f for f, p in file_pid.items() if p == pid]
-        same_pid_fids.sort(
-            key=lambda f: _parse_csv_filename_ts(f)
-            or dt.datetime.min.replace(tzinfo=dt.timezone.utc)
-        )
-        offset = 0
-        for fid in same_pid_fids:
-            file_offset[fid] = offset
-            offset += file_orig_n[fid]
+    offset_acc: dict[str, int] = {}
+    for ts, fid, pid, n_orig in sorted(file_meta):
+        sides_list = sides_by_pid.get(pid, [])
+        assigned: str | None = None
+        for s_ts, sp in sides_list:
+            if s_ts <= ts:
+                assigned = sp
+            else:
+                break
+        file_side[fid] = assigned
+        if assigned is None:
+            continue
+        file_offset[fid] = offset_acc.get(assigned, 0)
+        offset_acc[assigned] = offset_acc.get(assigned, 0) + n_orig
 
     fid_arr = out["__file_id"].to_numpy()
     ridx_arr = out["__row_idx"].to_numpy()
-    pid_per_row = np.array([file_pid.get(f, -1) for f in fid_arr])
+    side_per_row = np.array([file_side.get(f) for f in fid_arr], dtype=object)
     cum_per_row = np.array(
         [file_offset.get(f, 0) + r for f, r in zip(fid_arr, ridx_arr)]
     )
 
-    for pid, sdf in side_by_pid.items():
-        sdf_indexed = sdf.set_index("frame_idx")
-        mask = pid_per_row == pid
+    for _ts, _pid, sp in side_records:
+        mask = side_per_row == sp
         if not mask.any():
             continue
+        sdf_indexed = pd.read_csv(sp).set_index("frame_idx")
         cum_subset = cum_per_row[mask]
         matched = sdf_indexed.reindex(cum_subset)
         idx = np.where(mask)[0]
