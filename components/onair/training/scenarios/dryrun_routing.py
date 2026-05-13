@@ -115,13 +115,19 @@ def precheck() -> None:
             f"`make launch-quiet` first.")
 
 
-def list_pickle_scenarios() -> list[str]:
-    """Read the pickle's `models` keys so we can echo the valid scenario
-    names back to the operator alongside the observed-mode histogram."""
+def list_pickle_scenarios() -> tuple[list[str], str]:
+    """Read the pickle's `models` keys + the `label_column` it was trained on.
+
+    `label_column` distinguishes v3 (scenario-keyed) from v4 (mode-keyed)
+    pickles. v3 pickles predate the field; `art.get("label_column", "__scenario")`
+    keeps them working without changes.
+    """
     import pickle  # imported here to keep precheck fast on broken pickles
     with open(DEFAULT_PICKLE, "rb") as f:
         art = pickle.load(f)
-    return sorted(art.get("models", {}).keys())
+    keys = sorted(art.get("models", {}).keys())
+    label_column = art.get("label_column", "__scenario")
+    return keys, label_column
 
 
 def backup_and_patch_ini(report_every: int) -> None:
@@ -258,14 +264,29 @@ def fetch_histogram() -> tuple[Counter[str], list[tuple]]:
     return latest, all_matches
 
 
-def print_suggested_map(observed: Counter[str], scenarios: list[str]) -> None:
+_V4_IDENTITY_MAP = {
+    "0": "MODE_PASSIVE",
+    "1": "MODE_BDOT",
+    "2": "MODE_SUNSAFE",
+    "3": "MODE_INERTIAL",
+}
+
+
+def print_suggested_map(
+    observed: Counter[str], scenarios: list[str], label_column: str = "__scenario",
+) -> None:
     """Emit a JSON skeleton for RoutingModeMap + a guidance block.
 
-    Operator fills in scenario names by inspecting their own ADCS mode
-    enum semantics (e.g., from `cfg/spacecraft/sc-mission-config.xml` or
-    the cFS ADCS_GNC source). We refuse to guess — a wrong guess silently
-    mis-routes every frame at that mode value with up to −0.086 per-frame
-    cost (see project_iforest_quiescent_pathology memory).
+    Behaviour depends on which `label_column` the loaded pickle was trained
+    on:
+    - `__scenario` (v3): operator fills in scenario names by hand from
+      mission-specific ADCS mode enum semantics. We refuse to guess — a
+      wrong guess silently mis-routes every frame at that mode value with
+      up to −0.086 per-frame cost (see project_iforest_quiescent_pathology).
+    - `__adcs_mode` (v4): the mapping is identity-by-construction
+      (`0 → MODE_PASSIVE`, etc.). We pre-fill the template; operator just
+      needs to confirm the observed mode values match the four supported
+      modes before pasting.
     """
     print()
     print("=" * 72)
@@ -282,10 +303,25 @@ def print_suggested_map(observed: Counter[str], scenarios: list[str]) -> None:
         pct = 100.0 * count / total if total else 0.0
         print(f"  ADCS_GNC.Mode={value:>4}  {count:>6} frames  ({pct:5.1f}%)")
     print()
+    print(f"pickle label_column: {label_column!r}")
     print(f"available pickle scenarios: {scenarios}")
     print()
-    print("Suggested RoutingModeMap template (FILL IN scenario names):")
-    template = {value: "<scenario>" for value in observed.keys()}
+    if label_column == "__adcs_mode":
+        # Identity-by-construction: every observed mode value maps to its
+        # canonical MODE_<NAME>. Drop any observed value that isn't a known
+        # mode (the operator probably wants to investigate it separately).
+        template = {
+            value: _V4_IDENTITY_MAP[value]
+            for value in observed.keys() if value in _V4_IDENTITY_MAP
+        }
+        print("Suggested RoutingModeMap (v4 identity-by-construction):")
+        unknown = [v for v in observed.keys() if v not in _V4_IDENTITY_MAP]
+        if unknown:
+            print(f"  WARNING: observed mode values not in identity map: {unknown}")
+            print("  Inspect those values; they will fall back to the static scenario.")
+    else:
+        print("Suggested RoutingModeMap template (FILL IN scenario names):")
+        template = {value: "<scenario>" for value in observed.keys()}
     print("  " + json.dumps(template))
     print()
     print("Once you've filled in the map:")
@@ -346,8 +382,8 @@ def main() -> int:
 
     _say("precheck")
     precheck()
-    scenarios = list_pickle_scenarios()
-    _say(f"pickle scenarios: {scenarios}")
+    scenarios, label_column = list_pickle_scenarios()
+    _say(f"pickle scenarios: {scenarios} (label_column={label_column!r})")
 
     _say("backup + patch deployed ini")
     backup_and_patch_ini(report_every=args.report_every)
@@ -369,7 +405,7 @@ def main() -> int:
                      "reporting whatever histogram was captured")
 
         observed, _ = fetch_histogram()
-        print_suggested_map(observed, scenarios)
+        print_suggested_map(observed, scenarios, label_column=label_column)
     finally:
         if args.restore_on_exit:
             _say("--restore-on-exit: reverting")
