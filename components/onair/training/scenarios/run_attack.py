@@ -77,26 +77,124 @@ ATTACK_CATALOG: dict[str, dict] = {
         "expected_runtime_s": 25,  # rough — depends on level
         "corruption_dwell_s": 90,  # flood residual visible 60-90s post-attack
     },
-    "ex_0014_spoofing": {
-        "id": "EX-0014",
+    # EX-0001 replay: split into .01 (command packets) and .02 markdown-only.
+    "ex_0001_01_command_packets": {
+        "id": "EX-0001.01",
         "tactic": "execution",
-        "path": "execution/ex_0014_spoofing.py",
-        "expected_runtime_s": 20,
-        "corruption_dwell_s": 30,  # IF score false-recovers ~30s after attack
+        "path": "execution/ex_0001_replay/ex_0001_01_command_packets.py",
+        "expected_runtime_s": 8,
+        "corruption_dwell_s": 0,  # replay leaves no state residual
     },
-    "ex_0001_replay": {
-        "id": "EX-0001",
+    # EX-0008 time-sync: split into .01 ATS and .02 RTS.
+    "ex_0008_01_absolute_time_sequences": {
+        "id": "EX-0008.01",
         "tactic": "execution",
-        "path": "execution/ex_0001_replay.py",
-        "expected_runtime_s": 30,
-        "corruption_dwell_s": 0,  # not yet characterized; conservative default
+        "path": "execution/ex_0008_time_synchronized_execution/ex_0008_01_absolute_time_sequences.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 300,
     },
-    "ex_0012_modify_on_board_values": {
-        "id": "EX-0012",
+    "ex_0008_02_relative_time_sequences": {
+        "id": "EX-0008.02",
         "tactic": "execution",
-        "path": "execution/ex_0012_modify_on_board_values.py",
+        "path": "execution/ex_0008_time_synchronized_execution/ex_0008_02_relative_time_sequences.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 300,
+    },
+    # EX-0009 code flaws: .01 FSW implementable; .02 OS and .03 COTS markdown-only.
+    "ex_0009_01_flight_software": {
+        "id": "EX-0009.01",
+        "tactic": "execution",
+        "path": "execution/ex_0009_exploit_code_flaws/ex_0009_01_flight_software.py",
         "expected_runtime_s": 15,
-        "corruption_dwell_s": 300,  # IF stays flagged ≥5min; lower bound
+        "corruption_dwell_s": 0,  # error counters increment, no state corruption
+    },
+    # EX-0014 spoofing: .01 time, .03 sensor, .04 PNT implementable; .02 and .05 md-only.
+    "ex_0014_01_time_spoof": {
+        "id": "EX-0014.01",
+        "tactic": "execution",
+        "path": "execution/ex_0014_spoofing/ex_0014_01_time_spoof.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 600,  # same as EX-0012.12 — clock jam persists
+    },
+    "ex_0014_03_sensor_data": {
+        "id": "EX-0014.03",
+        "tactic": "execution",
+        "path": "execution/ex_0014_spoofing/ex_0014_03_sensor_data.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 300,
+    },
+    "ex_0014_04_pnt_spoofing": {
+        "id": "EX-0014.04",
+        "tactic": "execution",
+        "path": "execution/ex_0014_spoofing/ex_0014_04_pnt_spoofing.py",
+        "expected_runtime_s": 8,
+        "corruption_dwell_s": 300,
+    },
+    # EX-0012 split into per-sub-technique scripts (see entries below).
+    # Legacy ex_0012_modify_on_board_values.py was deleted; existing
+    # attack manifests that reference it remain as historical records.
+    "ex_0012_09_eps_subsystem": {
+        "id": "EX-0012.09",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values/ex_0012_09_eps_subsystem.py",
+        "expected_runtime_s": 12,
+        # Level 4 (full cleanup) → dwell 0; level 2 (no restore) → 300+
+        # The harness defaults to the conservative value; override via
+        # --corruption-dwell-s when invoking at attack-level 4.
+        "corruption_dwell_s": 300,
+    },
+    "ex_0012_07_propulsion_subsystem": {
+        "id": "EX-0012.07",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values/ex_0012_07_propulsion_subsystem.py",
+        "expected_runtime_s": 12,
+        "corruption_dwell_s": 300,
+    },
+    "ex_0012_08_adcs_subsystem": {
+        "id": "EX-0012.08",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values/ex_0012_08_adcs_subsystem.py",
+        "expected_runtime_s": 10,
+        # FSW autonomy may revert mode within ~60s; dwell-window labeling
+        # should capture the period during which the commanded mode is
+        # actually reported in `ADCS_GNC.Mode`.
+        "corruption_dwell_s": 60,
+    },
+    "ex_0012_12_system_clock": {
+        "id": "EX-0012.12",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values/ex_0012_12_system_clock.py",
+        "expected_runtime_s": 10,
+        # Clock jam persists indefinitely; downstream scheduler effects
+        # (mistimed SC/SCH activities) can manifest hours later.
+        "corruption_dwell_s": 600,
+    },
+    "ex_0012_03_memory_write": {
+        "id": "EX-0012.03",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values/ex_0012_03_memory_write.py",
+        "expected_runtime_s": 10,
+        # Tables are not restorable from script alone; full corruption
+        # persists until a known-good file is re-uploaded.
+        "corruption_dwell_s": 600,
+    },
+    "ex_0012_04_app_subscriber_tables": {
+        "id": "EX-0012.04",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values/ex_0012_04_app_subscriber_tables.py",
+        "expected_runtime_s": 10,
+        # RTS/ATS payloads may fire at any future trigger time; dwell
+        # bound is generous to cover next scheduled trigger.
+        "corruption_dwell_s": 600,
+    },
+    "ex_0012_05_scheduling_algorithm": {
+        "id": "EX-0012.05",
+        "tactic": "execution",
+        "path": "execution/ex_0012_modify_on_board_values/ex_0012_05_scheduling_algorithm.py",
+        "expected_runtime_s": 10,
+        # Schedule corruption persists until table is reloaded; downstream
+        # app-counter freeze is a continuous absence signal.
+        "corruption_dwell_s": 600,
     },
     "imp_0004_degradation": {
         "id": "IMP-0004",
