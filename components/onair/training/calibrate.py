@@ -129,7 +129,8 @@ def main() -> None:
         raise SystemExit(f"{args.model} is not a per-scenario pickle "
                          f"(top-level keys: {list(art.keys())})")
     models = art["models"]
-    print(f"loaded model: {len(models)} per-scenario IFs from {args.model}")
+    label_column = art.get("label_column", "__scenario")
+    print(f"loaded model: {len(models)} per-{label_column} IFs from {args.model}")
 
     manifest = args.manifest.split(",") if "," in args.manifest else args.manifest
     df, _ = load_with_labels(
@@ -145,7 +146,13 @@ def main() -> None:
             print(f"  excluded {n_attack} attack/corruption rows")
 
     print(f"\ncalibration corpus: {len(df)} nominal rows")
-    for name, n in df["__scenario"].value_counts().items():
+    if label_column not in df.columns:
+        raise SystemExit(
+            f"pickle was trained with label_column={label_column!r} but that "
+            f"column is missing from the loaded frame. Available bookkeeping "
+            f"cols: {[c for c in df.columns if c.startswith('__')]}"
+        )
+    for name, n in df[label_column].value_counts().items():
         print(f"  {name}: {n}")
     if len(df) == 0:
         raise SystemExit("no nominal rows to calibrate against — check the manifest list")
@@ -155,7 +162,7 @@ def main() -> None:
     print(f"\nfeature build: {time.perf_counter()-t1:.1f}s ({X.shape})")
 
     t2 = time.perf_counter()
-    scenarios = df["__scenario"].to_numpy()
+    scenarios = df[label_column].to_numpy()
     scores = np.full(len(df), np.nan)
     for scn, m in models.items():
         mask = (scenarios == scn)

@@ -201,17 +201,36 @@ def train_per_scenario(
     include_deltas: bool = True,
     manifest: str | list[str] | None = None,
     skip_warmup_rows: int = 0,
+    label_column: str = "__scenario",
+    mode_transient_skip: int = 0,
+    min_rows_per_label: int = 100,
+    exclude_labels: list[str] | None = None,
 ) -> dict:
-    """Train one IsolationForest per __scenario; share the feature schema."""
+    """Train one IsolationForest per label group; share the feature schema.
+
+    `label_column` selects which loader-attached column drives the grouping
+    (default `__scenario`; pass `__adcs_mode` for v4 per-ADCS-mode IFs).
+    Label groups with fewer than `min_rows_per_label` rows are skipped with
+    a warning — catches `MODE_UNKNOWN` placeholder rows without forcing
+    callers to remember the magic exclude.
+    """
+    exclude_labels = list(exclude_labels or [])
     if not manifest:
         raise ValueError("--per-scenario requires --manifest")
     t0 = time.perf_counter()
     df, stats = load_with_labels(csv_dir, manifest, drop_unlabeled=True,
-                                 skip_warmup_rows=skip_warmup_rows)
+                                 skip_warmup_rows=skip_warmup_rows,
+                                 mode_transient_skip=mode_transient_skip)
     print(f"loaded {stats.files_kept}/{stats.files_total} files, {df.shape[0]} rows "
           f"(skipped: leaks={stats.files_skipped_leaks} align={stats.files_skipped_alignment})")
-    print("  scenario distribution:")
-    for name, n in df["__scenario"].value_counts().items():
+    if label_column not in df.columns:
+        raise ValueError(
+            f"--label-column {label_column!r} not present in loaded frame. "
+            f"Available bookkeeping cols: {[c for c in df.columns if c.startswith('__')]}"
+        )
+    print(f"  grouping on {label_column!r}")
+    print("  label distribution:")
+    for name, n in df[label_column].value_counts().items():
         print(f"    {name}: {n}")
 
     t1 = time.perf_counter()
@@ -220,14 +239,34 @@ def train_per_scenario(
           f"list-cols={len(schema.list_columns)}, dropped-text={len(schema.dropped_text_columns)})")
     print(f"  feature build: {time.perf_counter()-t1:.2f}s")
 
-    scenarios = sorted(df["__scenario"].unique())
+    all_labels = sorted(df[label_column].unique())
+    counts = df[label_column].value_counts().to_dict()
+    skipped: list[tuple[str, str]] = []
+    scenarios: list[str] = []
+    for lbl in all_labels:
+        if lbl in exclude_labels:
+            skipped.append((lbl, "explicit --exclude"))
+            continue
+        if counts[lbl] < min_rows_per_label:
+            skipped.append((lbl, f"only {counts[lbl]} rows < min_rows_per_label={min_rows_per_label}"))
+            continue
+        scenarios.append(lbl)
+    if skipped:
+        print("  skipped label groups:")
+        for lbl, why in skipped:
+            print(f"    {lbl}: {why}")
+    if not scenarios:
+        raise ValueError(
+            "no label groups large enough to train. Check --label-column and --min-rows-per-label."
+        )
+
     models: dict[str, IsolationForest] = {}
     fit_sizes: dict[str, int] = {}
     score_stats: dict[str, dict] = {}
 
     t2 = time.perf_counter()
     for scn in scenarios:
-        mask = (df["__scenario"].to_numpy() == scn)
+        mask = (df[label_column].to_numpy() == scn)
         Xs = X[mask]
         m = IsolationForest(
             n_estimators=n_estimators,
@@ -239,21 +278,21 @@ def train_per_scenario(
         models[scn] = m
         fit_sizes[scn] = int(Xs.shape[0])
         score_stats[scn] = _summarize_scores(m.decision_function(Xs))
-    print(f"  IF fit (5 models): {time.perf_counter()-t2:.2f}s "
+    print(f"  IF fit ({len(scenarios)} models): {time.perf_counter()-t2:.2f}s "
           f"({n_estimators} trees each, contamination={contamination})")
 
-    print("  per-scenario diagonal (each IF scored on its OWN scenario):")
+    print(f"  per-{label_column} diagonal (each IF scored on its OWN group):")
     header = (f"{'scenario':<20}{'rows':>7} {'%flag':>6} "
               f"{'min':>9} {'p1':>9} {'p5':>9} {'p25':>9} {'p50':>9} {'mean':>9}")
     print(header)
     print("-" * len(header))
     for scn in scenarios:
-        mask = (df["__scenario"].to_numpy() == scn)
+        mask = (df[label_column].to_numpy() == scn)
         s = models[scn].decision_function(X[mask])
         _print_scenario_row(scn, s)
 
     print("  cross-mode min (rows=train, cols=score; values=min decision_function):")
-    matrix = _cross_mode_min(models, X, df["__scenario"], scenarios)
+    matrix = _cross_mode_min(models, X, df[label_column], scenarios)
     _print_min_matrix(matrix, scenarios)
 
     print(f"  total: {time.perf_counter()-t0:.2f}s")
@@ -268,6 +307,7 @@ def train_per_scenario(
             scenarios[i]: {scenarios[j]: float(matrix[i, j]) for j in range(len(scenarios))}
             for i in range(len(scenarios))
         },
+        "label_column": label_column,
         "config": {
             "n_estimators": n_estimators,
             "contamination": contamination,
@@ -275,6 +315,10 @@ def train_per_scenario(
             "include_deltas": include_deltas,
             "per_scenario": True,
             "skip_warmup_rows": skip_warmup_rows,
+            "label_column": label_column,
+            "mode_transient_skip": mode_transient_skip,
+            "exclude_labels": list(exclude_labels),
+            "min_rows_per_label": min_rows_per_label,
         },
     }
 
@@ -310,6 +354,20 @@ def main():
     p.add_argument("--skip-warmup-rows", type=int, default=30,
                    help="Drop the first N rows of each CSV file at load time. Removes "
                         "MID-arrival transients (huge first-arrival deltas). 0 disables.")
+    p.add_argument("--label-column", default="__scenario",
+                   help="Loader-attached column to group --per-scenario IFs on "
+                        "(default __scenario; v4 per-ADCS-mode IFs use __adcs_mode).")
+    p.add_argument("--mode-transient-skip", type=int, default=0,
+                   help="When grouping on __adcs_mode, drop the first N rows after "
+                        "each mode change (per file). Removes FSW state-propagation "
+                        "transients the same way --skip-warmup-rows removes SBN ones.")
+    p.add_argument("--min-rows-per-label", type=int, default=100,
+                   help="Per-scenario IFs: skip any label group with fewer rows than "
+                        "this. Catches MODE_UNKNOWN placeholder rows automatically.")
+    p.add_argument("--exclude-labels", default="",
+                   help="Comma-separated label values to skip when --per-scenario "
+                        "groups by --label-column. Mode-flavoured analog of "
+                        "--exclude-scenarios.")
     args = p.parse_args()
 
     manifest = args.manifest
@@ -318,6 +376,7 @@ def main():
     if args.per_scenario:
         if args.balance or args.exclude_scenarios:
             raise SystemExit("--per-scenario is incompatible with --balance / --exclude-scenarios")
+        exclude_labels = [s.strip() for s in args.exclude_labels.split(",") if s.strip()]
         art = train_per_scenario(
             args.csv_dir,
             n_estimators=args.n_estimators,
@@ -325,6 +384,10 @@ def main():
             include_deltas=not args.no_deltas,
             manifest=manifest,
             skip_warmup_rows=args.skip_warmup_rows,
+            label_column=args.label_column,
+            mode_transient_skip=args.mode_transient_skip,
+            min_rows_per_label=args.min_rows_per_label,
+            exclude_labels=exclude_labels,
         )
     else:
         exclude = [s.strip() for s in args.exclude_scenarios.split(",") if s.strip()]

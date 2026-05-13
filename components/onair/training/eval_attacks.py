@@ -74,49 +74,55 @@ def _pct(num: int, den: int) -> str:
 
 
 def score_per_scenario(
-    df: pd.DataFrame, X: np.ndarray, models: dict[str, object]
+    df: pd.DataFrame, X: np.ndarray, models: dict[str, object],
+    *, label_column: str = "__scenario",
 ) -> np.ndarray:
-    """Route each row through models[__scenario], return a flat scores array.
+    """Route each row through models[label_column], return a flat scores array.
 
-    Rows whose scenario has no matching model (shouldn't happen in practice)
-    get NaN so they're visible downstream.
+    Rows whose label has no matching model (e.g. MODE_UNKNOWN in a v4 corpus
+    where the trainer skipped that group) get NaN so they're visible
+    downstream rather than silently falling through with a stale score.
     """
-    scenarios = df["__scenario"].to_numpy()
+    labels = df[label_column].to_numpy()
     out = np.full(len(df), np.nan, dtype=np.float64)
     for scn, model in models.items():
-        mask = (scenarios == scn)
+        mask = (labels == scn)
         n = int(mask.sum())
         if n == 0:
             continue
         out[mask] = model.decision_function(X[mask])
     n_unmatched = int(np.isnan(out).sum())
     if n_unmatched:
-        present = sorted(set(scenarios) - set(models))
-        print(f"  WARNING: {n_unmatched} rows had no matching scenario model "
-              f"(scenarios not in pickle: {present})")
+        present = sorted(set(labels) - set(models))
+        print(f"  WARNING: {n_unmatched} rows had no matching {label_column} model "
+              f"({label_column} values not in pickle: {present})")
     return out
 
 
 def report_per_scenario_fp(
     df: pd.DataFrame, scores: np.ndarray,
     *, window_col: str = "__corruption_window",
+    label_column: str = "__scenario",
 ) -> None:
-    """Per-scenario nominal flag rate (rows OUTSIDE the chosen attack window).
+    """Per-label nominal flag rate (rows OUTSIDE the chosen attack window).
 
     `window_col` controls what counts as "attack" — and therefore what counts
     as nominal/FP. Default is __corruption_window (cmd-injection + dwell);
     pass __attack_window for the cmd-injection-only view.
+
+    `label_column` selects which bookkeeping column groups the rows
+    (default `__scenario`; v4 pickles set `__adcs_mode`).
     """
     if window_col not in df.columns:
         # Backward-compat: a pre-corruption-window manifest didn't emit it.
         window_col = "__attack_window"
     nominal = ~df[window_col].to_numpy()
     if not nominal.any():
-        print("  (no nominal rows in this dataset — skipping per-scenario FP table)")
+        print("  (no nominal rows in this dataset — skipping per-label FP table)")
         return
-    headers = ["scenario", "rows", "%flag@0", "min", "p1", "p5", "p25", "p50"]
+    headers = [label_column.lstrip("_"), "rows", "%flag@0", "min", "p1", "p5", "p25", "p50"]
     rows = []
-    scn_arr = df["__scenario"].to_numpy()
+    scn_arr = df[label_column].to_numpy()
     for scn in sorted(set(scn_arr)):
         mask = nominal & (scn_arr == scn)
         s = scores[mask]
@@ -129,11 +135,14 @@ def report_per_scenario_fp(
             _fmt(d["min"]), _fmt(d["p1"]), _fmt(d["p5"]),
             _fmt(d["p25"]), _fmt(d["p50"]),
         ])
-    _row_table(f"per-scenario nominal score distribution (FP, window={window_col}):",
+    _row_table(f"per-{label_column} nominal score distribution (FP, window={window_col}):",
                headers, rows)
 
 
-def report_per_attack_tp(df: pd.DataFrame, scores: np.ndarray) -> bool:
+def report_per_attack_tp(
+    df: pd.DataFrame, scores: np.ndarray,
+    *, label_column: str = "__scenario",
+) -> bool:
     """Per-attack flag rate. For each attack, prints TP under both the
     cmd-injection window (__attack_window) and the broader corruption window
     (__attack_window + dwell). Returns True if any attack rows existed.
@@ -147,8 +156,8 @@ def report_per_attack_tp(df: pd.DataFrame, scores: np.ndarray) -> bool:
     if not corr_mask.any():
         return False
     aid_arr = df["__attack_id"].to_numpy()
-    scn_arr = df["__scenario"].to_numpy()
-    headers = ["attack_id", "scenario", "window", "rows", "%flag@0",
+    scn_arr = df[label_column].to_numpy()
+    headers = ["attack_id", label_column.lstrip("_"), "window", "rows", "%flag@0",
                "min", "p1", "p5", "p25", "p50"]
     rows = []
     for aid in sorted(set(aid_arr[corr_mask])):
@@ -243,7 +252,8 @@ def main() -> None:
         raise SystemExit(f"{args.model} doesn't look per-scenario "
                          f"(top-level keys: {list(art.keys())})")
     models = art["models"]
-    print(f"loaded model: {len(models)} per-scenario IFs from {args.model}")
+    label_column = art.get("label_column", "__scenario")
+    print(f"loaded model: {len(models)} per-{label_column} IFs from {args.model}")
     print(f"  config: {art.get('config', {})}")
 
     manifest = args.manifest
@@ -256,8 +266,13 @@ def main() -> None:
         skip_warmup_rows=args.skip_warmup_rows,
     )
     print(f"\nloaded dataset: {df.shape[0]} rows")
-    print("  scenario distribution:")
-    for name, n in df["__scenario"].value_counts().items():
+    if label_column not in df.columns:
+        raise SystemExit(
+            f"pickle was trained with label_column={label_column!r} but that "
+            f"column is missing from the loaded frame."
+        )
+    print(f"  {label_column} distribution:")
+    for name, n in df[label_column].value_counts().items():
         print(f"    {name}: {n}")
     n_attack = int(df["__attack_window"].sum())
     n_corr = int(df.get("__corruption_window", df["__attack_window"]).sum())
@@ -279,13 +294,13 @@ def main() -> None:
     print(f"\nfeature build: {time.perf_counter()-t1:.1f}s ({X.shape})")
 
     t2 = time.perf_counter()
-    scores = score_per_scenario(df, X, models)
+    scores = score_per_scenario(df, X, models, label_column=label_column)
     print(f"scoring: {time.perf_counter()-t2:.1f}s")
 
     print()
-    report_per_scenario_fp(df, scores)
+    report_per_scenario_fp(df, scores, label_column=label_column)
     print()
-    had_attacks = report_per_attack_tp(df, scores)
+    had_attacks = report_per_attack_tp(df, scores, label_column=label_column)
     print()
     if had_attacks:
         report_threshold_sweep(df, scores, window_col="__corruption_window")
