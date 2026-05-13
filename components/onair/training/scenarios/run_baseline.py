@@ -12,14 +12,15 @@ Usage:
     # Dry-run without sending packets:
     python3 components/onair/training/scenarios/run_baseline.py --dry-run
 
-Scenario durations (v0):
+Scenario durations (v0 + v4 mode_dwell):
     quiescent          5 min   no commands
-    nominal_ops       10 min   ADCS pointing cycle + routine HK
+    nominal_ops        5 min   ADCS mode 60s-cycling + routine HK
     maneuvers          5 min   Thruster fires + attitude slews
     comm_passes        5 min   RADIO commanding
     mode_transitions   5 min   EPS switch toggles
+    mode_dwell        15 min   PASSIVE→BDOT→SUNSAFE, 5 min each (v4 corpus)
                       ─────
-                      30 min   ~150-200 commands total
+                      40 min   ~200-250 commands total
 """
 
 from __future__ import annotations
@@ -154,6 +155,56 @@ def scenario_comm_passes(c: Commander, duration_s: int) -> None:
         time.sleep(5 if not c.dry_run else 0)
 
 
+def scenario_mode_dwell(c: Commander, duration_s: int) -> None:
+    """Camp in each non-INERTIAL ADCS mode long enough to collect ≥1K rows/mode.
+
+    The v3 corpus is INERTIAL-saturated (~83% of labeled rows). PASSIVE,
+    BDOT, and SUNSAFE each get well under 5K rows across the existing
+    multi-uptime manifests because nominal_ops cycles modes every 60s.
+    To train per-ADCS-mode IsolationForests (v4), we need each non-default
+    mode held for a contiguous block.
+
+    Three phases of `duration_s/3` seconds each: PASSIVE → BDOT → SUNSAFE.
+    Inside each phase: re-issue `adcs_set_mode(target)` every 30s to override
+    any autonomous mode-transition logic in the FSW (eclipse → SUNSAFE,
+    high-rate → BDOT), and rotate HK polls every 8s through the same
+    subsystem list as `scenario_nominal_ops` so the operational signal looks
+    realistic. INERTIAL is intentionally skipped — the other four scenarios
+    already drive plenty of INERTIAL-tagged rows into the training corpus.
+    """
+    hk_targets = [
+        (ADCS_HK_REQ_MID, "ADCS"),
+        (IMU_HK_REQ_MID, "IMU"),
+        (CSS_HK_REQ_MID, "CSS"),
+        (FSS_HK_REQ_MID, "FSS"),
+        (MAG_HK_REQ_MID, "MAG"),
+        (ST_HK_REQ_MID, "ST"),
+        (TORQUER_HK_REQ_MID, "TORQUER"),
+    ]
+    phases = [
+        ("PASSIVE", ADCS_MODE_PASSIVE),
+        ("BDOT", ADCS_MODE_BDOT),
+        ("SUNSAFE", ADCS_MODE_SUNSAFE),
+    ]
+    per_phase = max(10, duration_s // len(phases))
+    hk_idx = 0
+
+    for phase_name, mode in phases:
+        print(f"  [mode_dwell] entering {phase_name} for {per_phase}s")
+        c.adcs_set_mode(mode)
+        phase_end = time.monotonic() + per_phase
+        next_recmd = time.monotonic() + 30
+        while time.monotonic() < phase_end:
+            mid, name = hk_targets[hk_idx % len(hk_targets)]
+            c.req_hk(mid, name)
+            hk_idx += 1
+            if time.monotonic() >= next_recmd:
+                c.adcs_set_mode(mode)
+                next_recmd = time.monotonic() + 30
+            sleep_left = max(0.0, 8.0 - 0.2)
+            time.sleep(sleep_left if not c.dry_run else 0)
+
+
 def scenario_mode_transitions(c: Commander, duration_s: int) -> None:
     """Legitimate EPS switch toggles + EPS HK polls.
 
@@ -186,6 +237,10 @@ SCENARIOS = [
     ("maneuvers", 300, scenario_maneuvers),
     ("comm_passes", 300, scenario_comm_passes),
     ("mode_transitions", 300, scenario_mode_transitions),
+    # v4 mode-dwell capture: 3 phases (PASSIVE, BDOT, SUNSAFE) × 5 min each.
+    # INERTIAL is covered by every other scenario; this one targets the
+    # under-represented modes so per-ADCS-mode IFs can be trained (v4).
+    ("mode_dwell", 900, scenario_mode_dwell),
 ]
 
 
