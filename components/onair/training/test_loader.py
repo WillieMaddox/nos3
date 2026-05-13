@@ -15,7 +15,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from loader import attach_iforest_scores, load
+from loader import (
+    _derive_adcs_mode,
+    _mode_transient_mask,
+    attach_iforest_scores,
+    load,
+)
 
 
 def _write_csv_out(path, headers, rows):
@@ -196,6 +201,49 @@ def test_attach_csv_predating_all_side_files_gets_defaults(tmp_path, monkeypatch
     # Orphan csv_out → no IF data. No mis-attribution into later session.
     assert out["if_score"].isna().all()
     assert (out["if_is_anomaly"] == 0).all()
+
+
+def test_derive_adcs_mode_maps_known_values():
+    df = pd.DataFrame({"ADCS_GNC.Mode": ["0", "1", "2", "3", "[0]", "", "nan", "9"]})
+    modes = _derive_adcs_mode(df)
+    assert list(modes) == [
+        "MODE_PASSIVE", "MODE_BDOT", "MODE_SUNSAFE", "MODE_INERTIAL",
+        "MODE_UNKNOWN",  # placeholder
+        "MODE_UNKNOWN",  # empty string
+        "MODE_UNKNOWN",  # 'nan' literal
+        "MODE_UNKNOWN",  # out-of-range int
+    ]
+
+
+def test_derive_adcs_mode_missing_column_returns_unknown():
+    df = pd.DataFrame({"some_other_col": ["a", "b", "c"]})
+    modes = _derive_adcs_mode(df)
+    assert list(modes) == ["MODE_UNKNOWN"] * 3
+
+
+def test_mode_transient_mask_marks_post_change_frames():
+    # File A: PASSIVE PASSIVE BDOT BDOT BDOT  → change at idx 2, next 2 are transient
+    # File B: BDOT INERTIAL INERTIAL          → change at idx 1, next 2 transient
+    # Cross-file boundary (A→B) NOT counted as a mode change.
+    modes = np.array([
+        "MODE_PASSIVE", "MODE_PASSIVE", "MODE_BDOT", "MODE_BDOT", "MODE_BDOT",
+        "MODE_BDOT", "MODE_INERTIAL", "MODE_INERTIAL",
+    ])
+    fids = np.array(["A", "A", "A", "A", "A", "B", "B", "B"])
+    mask = _mode_transient_mask(modes, fids, skip_frames=2)
+    # idx 2: change inside A → True; idx 3: still within window → True; idx 4: outside.
+    # idx 5: cross-file (A→B) → not a change, False.
+    # idx 6: change in B → True; idx 7: within window → True.
+    assert list(mask) == [
+        False, False, True, True, False, False, True, True,
+    ]
+
+
+def test_mode_transient_mask_skip_zero_returns_all_false():
+    modes = np.array(["MODE_PASSIVE", "MODE_BDOT", "MODE_INERTIAL"])
+    fids = np.array(["A", "A", "A"])
+    mask = _mode_transient_mask(modes, fids, skip_frames=0)
+    assert not mask.any()
 
 
 def test_attach_pid_mismatch_keeps_defaults(tmp_path, monkeypatch):

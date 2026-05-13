@@ -33,6 +33,20 @@ _FILE_PID = re.compile(r"_pid(\d+)\.csv$")
 _IFOREST_GLOB = "iforest_out_*_pid*.csv"
 _IFOREST_TS = re.compile(r"iforest_out_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d+)_pid")
 
+# v4: ADCS mode labeling. ADCS_GNC.Mode stores the integer-valued mode the FSW
+# reports (0=PASSIVE, 1=BDOT, 2=SUNSAFE, 3=INERTIAL); anything that does not
+# parse to one of those (the `[0]` placeholder for "never received", empty
+# strings, etc.) is bucketed as MODE_UNKNOWN. Trainers wanting per-ADCS-mode
+# IFs should filter on `__adcs_mode in {MODE_PASSIVE,…INERTIAL}` to exclude
+# MODE_UNKNOWN rows.
+ADCS_MODE_COLUMN = "ADCS_GNC.Mode"
+_ADCS_MODE_NAMES = {
+    0: "MODE_PASSIVE",
+    1: "MODE_BDOT",
+    2: "MODE_SUNSAFE",
+    3: "MODE_INERTIAL",
+}
+
 
 @dataclass
 class LoadStats:
@@ -330,12 +344,55 @@ def _tag_attack_rows(df: pd.DataFrame, attacks: list[dict]) -> pd.DataFrame:
     return df
 
 
+def _derive_adcs_mode(df: pd.DataFrame) -> pd.Series:
+    """Map `ADCS_GNC.Mode` → MODE_PASSIVE/BDOT/SUNSAFE/INERTIAL/MODE_UNKNOWN.
+
+    The CSV column stores either a numeric string (e.g. `'2'`) or the `'[0]'`
+    placeholder for "never received yet". Anything that does not parse to
+    one of {0,1,2,3} → MODE_UNKNOWN. Returns a string Series aligned with
+    `df.index`; falls back to all-MODE_UNKNOWN if the column is absent so
+    diagnostic loaders don't blow up on incompatible CSV schemas.
+    """
+    if ADCS_MODE_COLUMN not in df.columns:
+        return pd.Series(["MODE_UNKNOWN"] * len(df), index=df.index)
+    nums = pd.to_numeric(df[ADCS_MODE_COLUMN].astype(str), errors="coerce")
+    return nums.map(_ADCS_MODE_NAMES).fillna("MODE_UNKNOWN")
+
+
+def _mode_transient_mask(
+    modes: np.ndarray, file_ids: np.ndarray, skip_frames: int,
+) -> np.ndarray:
+    """True for rows within `skip_frames` of a mode-change inside the same file.
+
+    File boundaries are not treated as mode transitions — the file-ID mismatch
+    is itself a discontinuity that `build_features` already masks against. The
+    inner loop is O(n) but n ≤ ~200K rows for the full corpus, so vectorising
+    isn't worth the additional complexity here.
+    """
+    n = len(modes)
+    out = np.zeros(n, dtype=bool)
+    if skip_frames <= 0 or n < 2:
+        return out
+    active = 0
+    for i in range(1, n):
+        if file_ids[i] != file_ids[i - 1]:
+            active = 0
+            continue
+        if modes[i] != modes[i - 1]:
+            active = skip_frames
+        if active > 0:
+            out[i] = True
+            active -= 1
+    return out
+
+
 def load_with_labels(
     csv_dir: str = DEFAULT_CSV_DIR,
     manifest: str | list[str] = None,
     *,
     drop_unlabeled: bool = True,
     skip_warmup_rows: int = 0,
+    mode_transient_skip: int = 0,
 ) -> tuple[pd.DataFrame, LoadStats]:
     """Load CSVs and attach a `__scenario` column based on the manifest(s).
 
@@ -351,6 +408,14 @@ def load_with_labels(
     cFS state during uncontrolled time is operationally ambiguous (autonomous
     SCH ticks, residual transients from prior runs, etc.), so calling it
     "nominal" injects a label-by-assumption into training.
+
+    Adds `__adcs_mode` (MODE_PASSIVE/BDOT/SUNSAFE/INERTIAL/MODE_UNKNOWN) from
+    each row's `ADCS_GNC.Mode`. v4 per-ADCS-mode IF training groups on this
+    column instead of `__scenario`. With `mode_transient_skip > 0`, rows
+    within that many frames of a mode change (per file) are filtered out —
+    these rows show the FSW state-propagation transient and contaminate
+    per-mode training the same way SBN first-arrival deltas contaminate
+    warmup (mirrors the `skip_warmup_rows` rationale).
     """
     if not manifest:
         raise ValueError("manifest is required for load_with_labels")
@@ -420,6 +485,20 @@ def load_with_labels(
             scn_arr[mask] = ds
 
     df["__scenario"] = scn_arr
+    df["__adcs_mode"] = _derive_adcs_mode(df).to_numpy()
+
+    if mode_transient_skip > 0:
+        transient = _mode_transient_mask(
+            df["__adcs_mode"].to_numpy(),
+            df["__file_id"].to_numpy(),
+            mode_transient_skip,
+        )
+        n_transient = int(transient.sum())
+        if n_transient:
+            df = df[~transient].reset_index(drop=True)
+            print(f"  dropped {n_transient} mode-transient rows "
+                  f"(skip_frames={mode_transient_skip})")
+
     if drop_unlabeled:
         before = len(df)
         df = df[df["__scenario"] != "unlabeled"].reset_index(drop=True)
@@ -605,4 +684,8 @@ if __name__ == "__main__":
     if "__scenario" in df.columns:
         print("  scenario distribution:")
         for name, n in df["__scenario"].value_counts().items():
+            print(f"    {name}: {n} rows")
+    if "__adcs_mode" in df.columns:
+        print("  adcs mode distribution:")
+        for name, n in df["__adcs_mode"].value_counts().items():
             print(f"    {name}: {n} rows")
