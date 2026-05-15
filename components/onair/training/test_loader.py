@@ -48,10 +48,9 @@ def _write_side_file(path, rows):
 def synthetic_dir(tmp_path, monkeypatch):
     """Build a CSV directory with two pid8 files (3+2 rows) + matching side-file.
 
-    EXPECTED_COLS in loader is 273 — `_file_is_clean` enforces that. We
-    monkey-patch it down to the synthetic width so a tiny fixture is workable
-    without standing up the full telemetry schema."""
-    monkeypatch.setattr("loader.EXPECTED_COLS", 3)
+    `_file_is_clean` derives the expected column count from each file's
+    header row, so a 3-wide synthetic fixture self-validates without any
+    monkey-patching needed."""
     headers = ["a", "b", "c"]
 
     f1 = tmp_path / "csv_out_2026-05-09T10-00-00-000000_pid8.csv"
@@ -119,7 +118,6 @@ def test_attach_survives_warmup_skip(synthetic_dir):
 
 
 def test_attach_no_side_files_returns_input(tmp_path, monkeypatch):
-    monkeypatch.setattr("loader.EXPECTED_COLS", 2)
     f1 = tmp_path / "csv_out_2026-05-09T10-00-00-000000_pid8.csv"
     _write_csv_out(f1, ["a", "b"], [["1", "2"], ["3", "4"]])
 
@@ -137,7 +135,6 @@ def test_attach_two_sessions_same_pid_join_independently(tmp_path, monkeypatch):
     Cumulative offsets must accumulate per side-file, not per pid, or the
     second session's rows would be looked up under the first session's
     frame indices — yielding wrong scores or out-of-range NaNs."""
-    monkeypatch.setattr("loader.EXPECTED_COLS", 2)
     headers = ["a", "b"]
 
     # Session 1: pid 11, 3 csv_out rows + side-file with frame_idx 0..2.
@@ -188,7 +185,6 @@ def test_attach_csv_predating_all_side_files_gets_defaults(tmp_path, monkeypatch
     """A csv_out whose ts is before every same-pid side-file (e.g. an orphan
     from a session whose side-file was deleted) must get default NaN/0/''
     rather than be mis-attributed to a later session."""
-    monkeypatch.setattr("loader.EXPECTED_COLS", 2)
     # csv_out with ts 08:00; only side-file is at 09:00 (later).
     csv1 = tmp_path / "csv_out_2026-05-10T08-00-00-000000_pid11.csv"
     _write_csv_out(csv1, ["a", "b"], [["1", "2"], ["3", "4"]])
@@ -249,7 +245,6 @@ def test_mode_transient_mask_skip_zero_returns_all_false():
 def test_attach_pid_mismatch_keeps_defaults(tmp_path, monkeypatch):
     """A side-file from a different OnAIR run (different pid) must not bleed
     into rows it doesn't own."""
-    monkeypatch.setattr("loader.EXPECTED_COLS", 2)
     f1 = tmp_path / "csv_out_2026-05-09T10-00-00-000000_pid8.csv"
     _write_csv_out(f1, ["a", "b"], [["1", "2"], ["3", "4"]])
     # Side-file from a different run, pid=99

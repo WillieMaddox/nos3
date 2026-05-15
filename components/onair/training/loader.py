@@ -24,7 +24,12 @@ import numpy as np
 import pandas as pd
 
 DEFAULT_CSV_DIR = "data/onair/csv"
-EXPECTED_COLS = 273
+# Each CSV is self-describing: its first row is the header. The number of
+# data columns is derived per-file from that header; mis-aligned data rows
+# (a row whose len() != header len()) flag the file as unloadable. We
+# previously hard-coded 273 here, but the writer now supports column
+# exclusion (csv_output_plugin's ExcludeColumns) so the legitimate count
+# varies by deployment + can drift across major schema edits.
 _BYTE_REPR = re.compile(r"\bb'")
 # csv_out_2026-04-30T20-31-10-172666_pid8.csv
 _CSV_TS = re.compile(r"csv_out_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d+)_pid")
@@ -65,9 +70,12 @@ def _file_is_clean(path: str) -> tuple[bool, str]:
         return False, "byte_repr_leak"
     with open(path) as f:
         r = csv.reader(f)
-        next(r, None)
+        header = next(r, None)
+        if header is None:
+            return False, "empty_file"
+        expected = len(header)
         for row in r:
-            if len(row) != EXPECTED_COLS:
+            if len(row) != expected:
                 return False, "row_misalignment"
     return True, "ok"
 
