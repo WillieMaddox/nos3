@@ -86,12 +86,19 @@ ATTACK_CATALOG: dict[str, dict] = {
         "corruption_dwell_s": 0,  # replay leaves no state residual
     },
     # EX-0008 time-sync: split into .01 ATS and .02 RTS.
+    # Both require a malicious ATS/RTS table to be pre-loaded — typically via
+    # EX-0012.04. Without the prerequisite, SC_START_ATS / SC_START_RTS are
+    # rejected at the SC app boundary and the declared footprint
+    # (AtsNumber/AtpState/RtsNumber transitions) is unreachable. The harness
+    # supports --chain to auto-run the requires-attack at level 2 (no cleanup)
+    # before the main attack.
     "ex_0008_01_absolute_time_sequences": {
         "id": "EX-0008.01",
         "tactic": "execution",
         "path": "execution/ex_0008_time_synchronized_execution/ex_0008_01_absolute_time_sequences.py",
         "expected_runtime_s": 10,
         "corruption_dwell_s": 300,
+        "requires": ["ex_0012_04_app_subscriber_tables"],
     },
     "ex_0008_02_relative_time_sequences": {
         "id": "EX-0008.02",
@@ -99,6 +106,7 @@ ATTACK_CATALOG: dict[str, dict] = {
         "path": "execution/ex_0008_time_synchronized_execution/ex_0008_02_relative_time_sequences.py",
         "expected_runtime_s": 10,
         "corruption_dwell_s": 300,
+        "requires": ["ex_0012_04_app_subscriber_tables"],
     },
     # EX-0009 code flaws: .01 FSW implementable; .02 OS and .03 COTS markdown-only.
     "ex_0009_01_flight_software": {
@@ -195,6 +203,32 @@ ATTACK_CATALOG: dict[str, dict] = {
         # Schedule corruption persists until table is reloaded; downstream
         # app-counter freeze is a continuous absence signal.
         "corruption_dwell_s": 600,
+        # Cadence-shift on SCH counters is a rate change, not a step transition.
+        # 90s post-window doesn't expose enough samples for a rate diff to clear
+        # the noise floor; 300s is the minimum for the absence-of-delta signal
+        # to be visible. See [[project_attack_footprint_validation_wave2_2026-05-15]].
+        "recommended_post_seconds_s": 300,
+    },
+    "imp_0001_deception": {
+        "id": "IMP-0001",
+        "tactic": "impact",
+        "path": "impact/imp_0001_deception.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 120,  # EVS events + counter manipulations persist briefly
+    },
+    "imp_0002_disruption": {
+        "id": "IMP-0002",
+        "tactic": "impact",
+        "path": "impact/imp_0002_disruption.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 120,
+    },
+    "imp_0003_denial": {
+        "id": "IMP-0003",
+        "tactic": "impact",
+        "path": "impact/imp_0003_denial.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 120,
     },
     "imp_0004_degradation": {
         "id": "IMP-0004",
@@ -202,6 +236,84 @@ ATTACK_CATALOG: dict[str, dict] = {
         "path": "impact/imp_0004_degradation.py",
         "expected_runtime_s": 10,
         "corruption_dwell_s": 0,  # undetectable, no residual signal
+    },
+    "imp_0005_destruction": {
+        "id": "IMP-0005",
+        "tactic": "impact",
+        "path": "impact/imp_0005_destruction.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 300,  # destruction effects persist
+    },
+    "imp_0006_theft": {
+        "id": "IMP-0006",
+        "tactic": "impact",
+        "path": "impact/imp_0006_theft.py",
+        "expected_runtime_s": 10,
+        "corruption_dwell_s": 120,  # theft = downlink reads, brief residual
+    },
+    # DE-0003 obfuscate on-board values (12 sub-techniques). Like EX-0012 these
+    # modify on-board state, but the intent is evasion (hide adversary activity)
+    # rather than direct effect. Many have only level 1 (recon-only) — those
+    # exercise the command path but produce no state delta.
+    "de_0003_01_vehicle_command_counter": {
+        "id": "DE-0003.01", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_01_vehicle_command_counter.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 60,
+    },
+    "de_0003_02_rejected_command_counter": {
+        "id": "DE-0003.02", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_02_rejected_command_counter.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 60,
+    },
+    "de_0003_03_command_receiver_mode": {
+        "id": "DE-0003.03", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_03_command_receiver_mode.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 60,
+    },
+    "de_0003_04_command_receiver_rssi": {
+        "id": "DE-0003.04", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_04_command_receiver_rssi.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 0,  # level-1-only, recon-only
+    },
+    "de_0003_05_command_receiver_lock_modes": {
+        "id": "DE-0003.05", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_05_command_receiver_lock_modes.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 0,
+    },
+    "de_0003_06_telemetry_downlink_modes": {
+        "id": "DE-0003.06", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_06_telemetry_downlink_modes.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 60,
+    },
+    "de_0003_07_cryptographic_modes": {
+        "id": "DE-0003.07", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_07_cryptographic_modes.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 0,
+    },
+    "de_0003_08_received_commands": {
+        "id": "DE-0003.08", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_08_received_commands.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 60,
+    },
+    "de_0003_09_system_clock_for_evasion": {
+        "id": "DE-0003.09", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_09_system_clock_for_evasion.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 600,  # clock evasion ≈ EX-0012.12
+    },
+    "de_0003_10_gps_ephemeris": {
+        "id": "DE-0003.10", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_10_gps_ephemeris.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 300,
+    },
+    "de_0003_11_watchdog_timer_for_evasion": {
+        "id": "DE-0003.11", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_11_watchdog_timer_for_evasion.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 60,
+    },
+    "de_0003_12_poison_ai_ml_training": {
+        "id": "DE-0003.12", "tactic": "defense_evasion",
+        "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_12_poison_ai_ml_training.py",
+        "expected_runtime_s": 8, "corruption_dwell_s": 0,
     },
 }
 
@@ -265,14 +377,37 @@ def run_attack_subprocess(
 
 def run_attack_session(
     fsw_host: str, *, dry_run: bool, attack_key: str, attack_level: int,
-    during: str, pre_s: int, post_s: int, attack_extra_args: list[str] | None,
+    during: str, pre_s: int, post_s: int | None, attack_extra_args: list[str] | None,
     corruption_dwell_s: int | None = None,
+    run_prereqs: bool = False,
 ) -> dict:
     if attack_key not in ATTACK_CATALOG:
         raise SystemExit(f"unknown attack: {attack_key}; valid={list(ATTACK_CATALOG)}")
     entry = ATTACK_CATALOG[attack_key]
+    requires = entry.get("requires", [])
+    if requires and not run_prereqs:
+        msg = (
+            f"\nERROR: {attack_key} requires the following prerequisite "
+            f"attacks to be run first:\n"
+        )
+        for r in requires:
+            msg += f"  - {r}\n"
+        msg += (
+            "The declared telemetry footprint will NOT manifest without them.\n"
+            "Re-invoke with --chain to auto-run prerequisites at level 2 "
+            "(setup, no cleanup) before the main attack, or manually fire "
+            "the prerequisites against the same FSW first.\n"
+        )
+        raise SystemExit(msg)
     if corruption_dwell_s is None:
         corruption_dwell_s = entry.get("corruption_dwell_s", 0)
+    # If caller passed post_s=None, honor the catalog's recommendation
+    # (set per-attack when 180s isn't long enough to expose the signal),
+    # else fall back to 180s.
+    if post_s is None:
+        post_s = entry.get("recommended_post_seconds_s", 180)
+        if "recommended_post_seconds_s" in entry:
+            print(f"  [catalog] using recommended post_seconds_s={post_s} for {attack_key}")
     script_path = os.path.join(ATTACK_SCRIPTS_ROOT, entry["path"])
     if not os.path.exists(script_path):
         raise SystemExit(f"attack script not found at {script_path}")
@@ -314,7 +449,29 @@ def run_attack_session(
     # 1. Pre-attack scenario
     _run_block(f"{scn_name}_pre", pre_s)
 
-    # 2. Attack injection
+    # 2a. Prerequisite chain (each at level 2 = setup only, no cleanup).
+    # These run BEFORE the main attack and inside the pre block window so the
+    # main attack's labeled window stays isolated. Each prereq is logged to
+    # the manifest as a separate attack record.
+    for req_key in requires:
+        if req_key not in ATTACK_CATALOG:
+            raise SystemExit(f"chain references unknown prereq: {req_key}")
+        req_entry = ATTACK_CATALOG[req_key]
+        req_script = os.path.join(ATTACK_SCRIPTS_ROOT, req_entry["path"])
+        print(f"\n──── chain prereq: {req_key} (level=2, setup) ────")
+        req_rec = run_attack_subprocess(
+            script_path=req_script,
+            fsw_host=fsw_host,
+            attack_level=2,
+            during_scenario=scn_name,
+            technique_id=req_entry["id"] + " [prereq]",
+            corruption_dwell_s=req_entry.get("corruption_dwell_s", 0),
+            extra_args=None,
+            dry_run=dry_run,
+        )
+        manifest["attacks"].append(req_rec)
+
+    # 2b. Main attack injection
     print(f"\n──── attack: {attack_key} (level={attack_level}) ────")
     rec = run_attack_subprocess(
         script_path=script_path,
@@ -356,11 +513,10 @@ def main():
                         "near-zero-counter state).")
     p.add_argument("--pre-seconds", type=int, default=90,
                    help="Pre-attack scenario duration")
-    p.add_argument("--post-seconds", type=int, default=180,
-                   help="Post-attack scenario duration. Default 180s (vs prior "
-                        "90s) because flood-class attacks leave FSW residual "
-                        "that takes 60-120s to dissipate; the longer window "
-                        "lets us see the full recovery curve.")
+    p.add_argument("--post-seconds", type=int, default=None,
+                   help="Post-attack scenario duration. If omitted, uses the "
+                        "attack catalog's recommended_post_seconds_s (or 180 "
+                        "as the floor). Pass explicitly to override.")
     p.add_argument("--corruption-dwell-s", type=int, default=None,
                    help="Override the catalog's corruption_dwell_s for this "
                         "attack. Detection signal for state-change attacks "
@@ -370,6 +526,12 @@ def main():
     p.add_argument("--attack-extra-args", nargs=argparse.REMAINDER, default=[],
                    help="Trailing args passed verbatim to the attack script "
                         "(e.g. -- --duration 3.0 --rate-low 5)")
+    p.add_argument("--chain", action="store_true",
+                   help="If the chosen attack declares 'requires' in the "
+                        "catalog, automatically run each prerequisite at "
+                        "level 2 (setup, no cleanup) before the main attack. "
+                        "Without --chain, an attack with unmet prereqs aborts "
+                        "with a clear error.")
     p.add_argument("--out-dir", default="data/onair/scenarios")
     args = p.parse_args()
 
@@ -389,6 +551,7 @@ def main():
         post_s=args.post_seconds,
         attack_extra_args=args.attack_extra_args,
         corruption_dwell_s=args.corruption_dwell_s,
+        run_prereqs=args.chain,
     )
 
     path = write_manifest(manifest, args.out_dir)
