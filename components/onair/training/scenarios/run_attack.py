@@ -249,6 +249,10 @@ ATTACK_CATALOG: dict[str, dict] = {
         "tactic": "impact",
         "path": "impact/imp_0006_theft.py",
         "expected_runtime_s": 10,
+        # Target TO_DEBUG (MID 0x18E8). TO HK is NOT subscribed by OnAIR
+        # security_tlm — level-1 cmd-injection bar is confirmable only via
+        # subprocess exit_code=0, not on-board telemetry ack. Verified
+        # 2026-05-28 against csv_out_2026-05-16T05-21-42.
         "corruption_dwell_s": 120,  # theft = downlink reads, brief residual
     },
     # DE-0003 obfuscate on-board values (12 sub-techniques). Like EX-0012 these
@@ -268,6 +272,8 @@ ATTACK_CATALOG: dict[str, dict] = {
     "de_0003_03_command_receiver_mode": {
         "id": "DE-0003.03", "tactic": "defense_evasion",
         "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_03_command_receiver_mode.py",
+        # Target CI_DEBUG (MID 0x18E0). CI HK NOT subscribed by OnAIR.
+        # Level-1 cmd-injection bar via subprocess exit_code only.
         "expected_runtime_s": 8, "corruption_dwell_s": 60,
     },
     "de_0003_04_command_receiver_rssi": {
@@ -283,6 +289,9 @@ ATTACK_CATALOG: dict[str, dict] = {
     "de_0003_06_telemetry_downlink_modes": {
         "id": "DE-0003.06", "tactic": "defense_evasion",
         "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_06_telemetry_downlink_modes.py",
+        # CFE_EVS DISABLE_EVENT_TYPE (subscribed) + TO_DEBUG (not
+        # subscribed). EVS-side cmd observable via CFE_EVS_HK; TO-side
+        # confirmable via subprocess exit_code only.
         "expected_runtime_s": 8, "corruption_dwell_s": 60,
     },
     "de_0003_07_cryptographic_modes": {
@@ -298,7 +307,14 @@ ATTACK_CATALOG: dict[str, dict] = {
     "de_0003_09_system_clock_for_evasion": {
         "id": "DE-0003.09", "tactic": "defense_evasion",
         "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_09_system_clock_for_evasion.py",
-        "expected_runtime_s": 8, "corruption_dwell_s": 600,  # clock evasion ≈ EX-0012.12
+        # 2026-05-28 (Track-2 offline-validator): script at level 2 sends a
+        # CFE_TIME NOOP only, not SET_TIME — confirmed by inspection +
+        # csv_out_2026-05-16T06-47-23 showing CFE_TIME.CommandCounter +1 with
+        # SecondsSTCF/ClockStateFlags untouched. Reduced dwell from 600 s
+        # (the EX-0012.12 SET_TIME comparison) to 60 s to match the
+        # NOOP-only impl. Upgrade dwell back to 600 only if the script
+        # is upgraded to actually issue SET_TIME.
+        "expected_runtime_s": 8, "corruption_dwell_s": 60,
     },
     "de_0003_10_gps_ephemeris": {
         "id": "DE-0003.10", "tactic": "defense_evasion",
@@ -308,6 +324,8 @@ ATTACK_CATALOG: dict[str, dict] = {
     "de_0003_11_watchdog_timer_for_evasion": {
         "id": "DE-0003.11", "tactic": "defense_evasion",
         "path": "defense_evasion/de_0003_onboard_values_obfuscation/de_0003_11_watchdog_timer_for_evasion.py",
+        # Target HS app (MID 0x18AE). HS HK NOT subscribed by OnAIR.
+        # Level-1 cmd-injection bar via subprocess exit_code only.
         "expected_runtime_s": 8, "corruption_dwell_s": 60,
     },
     "de_0003_12_poison_ai_ml_training": {
