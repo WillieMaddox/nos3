@@ -1,6 +1,7 @@
 # Sprint 2 — "Frame → Incident" 🛰️
 
-**Component:** `OnAIR-Security` · **Duration:** 1 week · **Capacity:** ~13–16 pts
+**Component:** `OnAIR-Security` · **Duration:** 1 week
+**Capacity:** ~13–16 E-pts / ~3.5–4 T-pts (solo) · **Status:** delivered 2026-06-10
 **Created:** 2026-06-10 · **Context:** Week-2 of the "harden & communicate" plan,
 following the completed Week-1 work (cluster re-score, 6.6h drift soak,
 `V5_DETECTOR_COVERAGE.md`).
@@ -9,19 +10,31 @@ following the completed Week-1 work (cluster re-score, 6.6h drift soak,
 **incident-reporting** monitor with a **live demo**, so stakeholders see real
 per-attack results instead of raw frame scores.
 
+## Points — two metrics
+
+- **E — effort points** (Fibonacci 1·2·3·5·8): relative effort × **uncertainty**
+  × coordination. Comparative, not time.
+- **T — time points** (**8 h = 1 point = 1 ideal engineering day**): estimated
+  hands-on-keyboard hours ÷ 8. Pure duration; excludes the risk premium and
+  unattended wall-clock (soak / collection), noted separately.
+
+`T < E` ⇒ sized up for risk, not length; `T ≈ E` ⇒ just big-but-known.
+
 ---
 
 ## Index
 
-| Key | Type | Pri | Pts | Summary |
-|---|---|---|--:|---|
-| NOS3-200 | Epic | — | — | Incident-level security alerting |
-| NOS3-201 | Story | Highest | 8 | One alert per attack, not a stream of per-frame flags |
-| NOS3-202 | Task | High | 3 | Wire cluster reporting into the live classifier plugin |
-| NOS3-203 | Task | High | 5 | Re-score the corpus at incident granularity |
-| NOS3-210 | Epic | — | — | SPARTA demo app |
-| NOS3-211 | Story | Medium | 5 | Demo app Tier A shows real per-technique status |
-| NOS3-150 | Spike | — | — | (Resolved) SUNSAFE-only pivot decision |
+| Key | Type | Pri | E | T | Summary |
+|---|---|---|--:|--:|---|
+| NOS3-200 | Epic | — | — | — | Incident-level security alerting |
+| NOS3-201 | Story | Highest | 8 | 2.25 | One alert per attack, not a stream of per-frame flags |
+| NOS3-202 | Task | High | 3 | 0.5 | Wire cluster reporting into the live classifier plugin |
+| NOS3-203 | Task | High | 5 | 1.0 | Re-score the corpus at incident granularity |
+| NOS3-210 | Epic | — | — | — | SPARTA demo app |
+| NOS3-211 | Story | Medium | 5 | 1.25 | Demo app Tier A shows real per-technique status |
+| NOS3-150 | Spike | — | — | — | (Resolved) SUNSAFE-only pivot decision |
+
+**Totals (delivered tickets):** E = 21 · T = 5.0 (≈ 40 ideal hours).
 
 ---
 
@@ -34,7 +47,7 @@ anomalous frames into a single incident — with a start time, duration, attack
 cluster, and accumulated confidence — and re-baselines the project's headline
 metrics on incidents rather than frames.
 
-### NOS3-201 — One alert per attack · `Story` · Highest · 8 pts
+### NOS3-201 — One alert per attack · `Story` · Highest · E 8 · T 2.25 (~18h)
 **Summary:** As an operator, I want one alert per attack (start, duration,
 cluster, confidence) instead of a stream of per-frame flags.
 **Description:** Build an incident-aggregation layer on top of the existing
@@ -54,7 +67,7 @@ incident-level calls.
 accumulation ▫ incident side-file schema ▫ unit tests on a labeled window.
 **Depends on:** NOS3-202.
 
-### NOS3-202 — Wire cluster reporting into the plugin · `Task` · High · 3 pts
+### NOS3-202 — Wire cluster reporting into the plugin · `Task` · High · E 3 · T 0.5 (~4h)
 **Summary:** Wire cluster reporting (`cluster_taxonomy.json`) into the live
 `xgb_classifier_plugin.py` → emit `cluster + top sub-technique`.
 **Description:** Week-1 produced `cluster_taxonomy.json` (the τ=0.10 mutual-
@@ -68,7 +81,7 @@ the incident-label format in NOS3-201.
   `cluster` field.
 - ini synced to `fsw/build/exe/cpu1/cf/onair/`.
 
-### NOS3-203 — Incident-granularity corpus re-score · `Task` · High · 5 pts
+### NOS3-203 — Incident-granularity corpus re-score · `Task` · High · E 5 · T 1.0 (~8h)
 **Summary:** Re-score the 75-manifest corpus at incident granularity; publish
 incident TP/FP as the new headline metric.
 **Description:** Run the incident-aggregation logic over the existing 3-instance
@@ -89,7 +102,7 @@ numbers as the project's headline metrics and feed the coverage doc.
 epic wires it to the validated detection/classification data and builds out the
 sketched A/B/C interaction ladder, starting with Tier A.
 
-### NOS3-211 — Demo app Tier A with real results · `Story` · Medium · 5 pts
+### NOS3-211 — Demo app Tier A with real results · `Story` · Medium · E 5 · T 1.25 (~10h)
 **Summary:** As a stakeholder, I want the demo app to show real detection status
 per SPARTA technique (Tier A of the A/B/C ladder).
 **Description:** Implement Tier A of the May-15 demo-feedback ladder and drive
@@ -105,7 +118,7 @@ out of scope (see NOS3-223).
 
 ## ✅ Resolved — no work this sprint
 
-### NOS3-150 — SUNSAFE-only pivot decision · `Spike` · Resolved
+### NOS3-150 — SUNSAFE-only pivot decision · `Spike` · Resolved · E — · T —
 **Summary:** Decide whether to pivot to a SUNSAFE-only detector if other modes
 are too noisy or v5 drifts.
 **Description:** The Week-1 6.6h drift soak (0.01% FP, no drift) and the
@@ -117,18 +130,17 @@ planned; the SUNSAFE-routed detection caveat stays documented, not "fixed."
 
 ## 📋 Backlog (deferred — pulled in only if capacity frees up)
 
-### NOS3-220 — Recover nominal-ambiguous DEAD classes · `Story` · 8 pts
+### NOS3-220 — Recover nominal-ambiguous DEAD classes · `Story` · E 8 · T 2.5 (~20h)
 **Summary:** Subscribe extra MIDs so the nominal-ambiguous DEAD classes become
-detectable/classifiable.
+detectable/classifiable. *(Promoted to Sprint 3 as NOS3-321.)*
 **Description:** Week-1 showed `DE-0003.03/.08/.09` and `EX-0014.03` are
 *nominal-ambiguous* — their attack frames are indistinguishable from nominal in
 the current 894-feature space because the discriminating MIDs
 (`CFE_TBL.LastFileLoaded`/`LastUpdatedTable`, CryptoLib SA state, etc.) were
 pruned by csv-format-v2. Add those MIDs to `nos3_security_tlm.json`,
-re-collect + retrain, and measure whether these classes separate. Scope is
-unbounded; gated behind the incident layer.
+re-collect + retrain, and measure whether these classes separate.
 
-### NOS3-221 — TCN-as-feature for EX-0008 ATS/RTS · `Story` · 5 pts
+### NOS3-221 — TCN-as-feature for EX-0008 ATS/RTS · `Story` · E 5 · T 1.5 (~12h)
 **Summary:** Add TCN reconstruction-error as an XGBoost feature scoped to the
 EX-0008 family.
 **Description:** The Phase-4 spike found a global TCN reaches 0.96 recall on
@@ -137,14 +149,14 @@ limited to the EX-0008 family (the prior global v4-TCN-feature net-regressed
 DE-0003.10). Goal: lift `EX-0008.01` out of HIGH-VARIANCE without harming the
 ROBUST classes.
 
-### NOS3-222 — 4th corpus instance · `Task` · 3 pts
+### NOS3-222 — 4th corpus instance · `Task` · E 3 · T 0.75 (~6h active; ~5h wall-clock)
 **Summary:** Collect a 4th corpus instance to tighten LOIO variance.
 **Description:** Run `run_attack_batch.py` once more (~5h wallclock) to add a
 4th LOIO fold. Low value — LOIO variance is already characterized at ±3.6% — so
 this is a Task, and stays in backlog unless a specific class's confidence
 interval needs tightening.
 
-### NOS3-223 — Demo app Tier B/C · `Story` · 3 pts
+### NOS3-223 — Demo app Tier B/C · `Story` · E 3 · T 1.0 (~8h)
 **Summary:** Implement Tier B/C of the demo-app A/B/C ladder.
 **Description:** Extends NOS3-211 (Tier A) with the deeper interactive layers
 sketched in the May-15 demo. Deferred until Tier A is validated with
@@ -163,12 +175,12 @@ stakeholders.
 
 ## Capacity note
 
-Committed points (8 + 3 + 5 + 5 = **21**) exceed a solo 1-week velocity.
-Recommend **NOS3-201 / 202 / 203 as the sprint commitment (16 pts)** and treating
-**NOS3-211 as a stretch goal**, since the incident layer is the higher-value
-epic and NOS3-211 depends on it for live data.
+Committed E (8 + 3 + 5 + 5 = **21**) / committed T (**5.0** ≈ 40 ideal hours)
+both exceed a solo 1-week velocity (~13–16 E / ~3.5–4 T). Actual commitment was
+**NOS3-201 / 202 / 203 (E 16 / T 3.75)** with **NOS3-211 as stretch** — all four
+ultimately delivered.
 
-## Suggested execution order
+## Suggested execution order (as run)
 
 1. **NOS3-202** (smallest, unblocks the rest) — plugin cluster reporting.
 2. **NOS3-201** — incident aggregation layer.
