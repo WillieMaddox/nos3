@@ -226,6 +226,22 @@ IF-gated frames.
   attack's actual footprint from the SPARTA validation).
 **Estimate note:** E carries risk that aggregated attributions are unstable
 across an incident and need a second approach.
+**Progress (2026-06-30) — offline core done + validated:**
+- Explainer fork resolved: `shap.TreeExplainer` supports the v3
+  `HistGradientBoostingClassifier` (shap 0.49.1; output `(frames, 894, 26)`),
+  path-dependent so cheap. shap added to the `~/.virtualenvs/nos3` dev env only,
+  NOT the OnAIR flight runtime.
+- `attribution.py` — TreeExplainer wrapper + per-frame target-class SHAP
+  (handles 3-D multiclass and 2-D binary) + `aggregate_incident()` ranking
+  operator-readable telemetry fields (collapses `d_` deltas + `[i_j]` array
+  elements; flags delta-dominant). `test_attribution.py` = 10 passing tests.
+- `validate_attribution.py` — real-corpus footprints. 3/4 ROBUST-tier attacks
+  match their catalog target cleanly: EX-0008.02→SC.CmdCtr (RTS),
+  IMP-0005→THRUSTER.CommandCount (destruction), DE-0003.10→NOVATEL_HK.CommandCount
+  (gps_ephemeris). DE-0003.01 partial. **Acceptance criterion 2 (≥3 attacks) met.**
+**Remaining:** (a) width-normalize / EVS-downweight the array-element bias
+(CFE_EVS_HK.AppData over-ranks); (b) attach `top_features` to the Incident record
+(criterion 1) — this is the bridge into NOS3-312.
 
 ### NOS3-312 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h)
 **Summary:** Show the per-incident explanation in the incident record and the

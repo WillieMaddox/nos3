@@ -1,0 +1,103 @@
+"""Tests for attribution.py (NOS3-311 per-incident feature attribution)."""
+import numpy as np
+import pytest
+
+from attribution import aggregate_incident, base_field, explain_incident
+
+
+# ── base_field name normalization ────────────────────────────────────────────
+def test_base_field_scalar():
+    assert base_field("CFE_EVS.Spare1") == ("CFE_EVS.Spare1", False)
+
+
+def test_base_field_array_element_collapses_to_parent():
+    assert base_field("CFE_EVS_HK.AppData[0_0]") == ("CFE_EVS_HK.AppData", False)
+
+
+def test_base_field_delta():
+    assert base_field("d_ADCS_GNC.Mode") == ("ADCS_GNC.Mode", True)
+
+
+def test_base_field_delta_of_array():
+    assert base_field("d_ADCS_GNC.bvb[0_1]") == ("ADCS_GNC.bvb", True)
+
+
+# ── aggregate_incident ───────────────────────────────────────────────────────
+def _names():
+    # two array elements of EPS.Switch, one scalar, and a delta of the scalar
+    return [
+        "EPS.DeviceHK.Switch[0_0]",
+        "EPS.DeviceHK.Switch[0_1]",
+        "ADCS_GNC.Mode",
+        "d_ADCS_GNC.Mode",
+    ]
+
+
+def test_aggregate_groups_array_elements_and_ranks():
+    names = _names()
+    # frame SHAP: EPS two elements dominate (0.4+0.4=0.8 grouped); Mode value 0.1, delta 0.05
+    shap = np.array([[0.4, 0.4, 0.1, 0.05]])
+    out = aggregate_incident(shap, names, top_n=8)
+    assert [r["field"] for r in out] == ["EPS.DeviceHK.Switch", "ADCS_GNC.Mode"]
+    eps, mode = out
+    assert eps["score"] == pytest.approx(0.8)
+    # frac is share of total (0.8 + 0.15 = 0.95)
+    assert eps["frac"] == pytest.approx(0.8 / 0.95)
+    # Mode: value part 0.1 > delta part 0.05 → not delta-dominant
+    assert mode["delta_dominant"] is False
+
+
+def test_aggregate_flags_delta_dominant():
+    names = ["ADCS_GNC.Mode", "d_ADCS_GNC.Mode"]
+    shap = np.array([[0.02, 0.30]])  # the *change* drove it
+    out = aggregate_incident(shap, names, top_n=8)
+    assert out[0]["field"] == "ADCS_GNC.Mode"
+    assert out[0]["delta_dominant"] is True
+
+
+def test_aggregate_top_n_truncates():
+    names = [f"F{i}" for i in range(10)]
+    shap = np.abs(np.arange(10, 0, -1)).reshape(1, -1).astype(float)
+    out = aggregate_incident(shap, names, top_n=3)
+    assert len(out) == 3
+    assert [r["field"] for r in out] == ["F0", "F1", "F2"]  # descending by score
+
+
+def test_aggregate_averages_over_frames():
+    names = ["A", "B"]
+    # two frames; A mean|shap| = (0.2+0.4)/2 = 0.3 ; B = (0.1+0.1)/2 = 0.1
+    shap = np.array([[0.2, 0.1], [-0.4, -0.1]])
+    out = aggregate_incident(shap, names, top_n=8)
+    assert out[0]["field"] == "A"
+    assert out[0]["score"] == pytest.approx(0.3)
+
+
+def test_aggregate_rejects_shape_mismatch():
+    with pytest.raises(ValueError):
+        aggregate_incident(np.zeros((1, 3)), ["A", "B"], top_n=2)
+
+
+# ── end-to-end shap path on a small synthetic HistGB ─────────────────────────
+def test_explain_incident_real_shap_path():
+    shap = pytest.importorskip("shap")  # noqa: F841
+    from sklearn.ensemble import HistGradientBoostingClassifier
+
+    rng = np.random.default_rng(0)
+    n_feat = 6
+    X = rng.standard_normal((200, n_feat))
+    # make class depend mostly on feature 2 so attribution should surface it
+    y = (X[:, 2] + 0.1 * rng.standard_normal(200) > 0).astype(int)
+    clf = HistGradientBoostingClassifier(max_iter=40, random_state=0).fit(X, y)
+
+    feature_names = ["f0", "f1", "TARGET.field", "f3", "d_TARGET.field", "f5"]
+    # explain frames predicted as class 1, w.r.t. class 1
+    frames = X[clf.predict(X) == 1][:10]
+    out = explain_incident(clf, feature_names, frames, target_class_id=1, top_n=4)
+
+    assert 1 <= len(out) <= 4
+    assert all({"field", "score", "frac", "delta_dominant"} <= set(r) for r in out)
+    # scores descending
+    scores = [r["score"] for r in out]
+    assert scores == sorted(scores, reverse=True)
+    # the driving field (feature index 2 → "TARGET.field") should rank #1
+    assert out[0]["field"] == "TARGET.field"
