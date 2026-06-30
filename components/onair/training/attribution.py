@@ -68,27 +68,44 @@ def frame_class_shap(explainer, X: np.ndarray, class_ids: np.ndarray) -> np.ndar
     raise ValueError(f"unexpected shap_values ndim {sv.ndim} (shape {sv.shape})")
 
 
+def _field_score(vals: list[float], agg: str) -> float:
+    if not vals:
+        return 0.0
+    if agg == "max":
+        return float(max(vals))
+    if agg == "mean":
+        return float(sum(vals) / len(vals))
+    if agg == "sum":
+        return float(sum(vals))
+    raise ValueError(f"unknown agg {agg!r} (use 'max', 'mean', or 'sum')")
+
+
 def aggregate_incident(
     per_frame_shap: np.ndarray,
     feature_names: list[str],
     top_n: int = 8,
     group_arrays: bool = True,
+    agg: str = "max",
 ) -> list[dict]:
-    """Rank telemetry fields by mean-|SHAP| over an incident's frames.
+    """Rank telemetry fields by per-frame mean-|SHAP| over an incident.
 
-    Score for a field = sum over its columns (array elements + raw + delta) of
-    the per-feature mean |SHAP| across frames. Returns top-N as dicts:
-      {field, score, frac, delta_dominant}
-    where ``frac`` is the field's share of total attribution and
-    ``delta_dominant`` flags fields whose *change* (delta) drove the call more
-    than the absolute value.
+    A field's columns (array elements + raw + delta) are combined per ``agg``:
+      - ``"max"`` (default): the field's strongest single telemetry component.
+        Scale-comparable to scalars, so a wide array does not out-rank a scalar
+        just by having more elements.
+      - ``"mean"``: width-normalized (average per element).
+      - ``"sum"``: total contribution (theoretically the field's additive SHAP
+        share, but biases toward wide arrays — see below).
 
-    KNOWN BIAS (NOS3-311 follow-up): scores are *summed* across a field's array
-    elements, so wide arrays (e.g. CFE_EVS_HK.AppData, 64 elements) accumulate
-    more total |SHAP| than scalars and tend to top the list even when the
-    discriminating signal is a lower-ranked subsystem-specific scalar. Validation
-    showed the correct subsystem field still surfaces beneath it. A width-
-    normalized (mean-per-element) or EVS-downweighted mode is the planned refine.
+    Returns top-N dicts: {field, score, frac, delta_dominant, n_components},
+    where ``frac`` is the field's share of summed scores, ``delta_dominant``
+    flags fields whose *change* (delta) drove the call more than the value, and
+    ``n_components`` is how many feature columns the field spans (1 = scalar).
+
+    ARRAY-WIDTH NOTE: ``"sum"`` over-ranks wide arrays (CFE_EVS_HK.AppData has 64
+    elements), so EVS app-data tops nearly every alert even when the
+    discriminating field is a subsystem scalar. The default ``"max"`` removes
+    that bias; ``"sum"`` is kept for callers that want true additive shares.
     """
     per_frame_shap = np.atleast_2d(np.asarray(per_frame_shap, dtype=float))
     if per_frame_shap.shape[1] != len(feature_names):
@@ -98,26 +115,36 @@ def aggregate_incident(
         )
     mean_abs = np.abs(per_frame_shap).mean(axis=0)  # (n_features,)
 
-    agg: dict[str, list[float]] = {}  # field -> [total, value_part, delta_part]
+    cols: dict[str, dict[str, list[float]]] = {}  # field -> {all, value, delta}
     for j, fname in enumerate(feature_names):
         if group_arrays:
             field, is_delta = base_field(fname)
         else:
             field, is_delta = fname, fname.startswith("d_")
-        slot = agg.setdefault(field, [0.0, 0.0, 0.0])
-        slot[0] += mean_abs[j]
-        slot[2 if is_delta else 1] += mean_abs[j]
+        slot = cols.setdefault(field, {"all": [], "value": [], "delta": []})
+        slot["all"].append(mean_abs[j])
+        slot["delta" if is_delta else "value"].append(mean_abs[j])
 
-    total = sum(v[0] for v in agg.values()) or 1.0
-    ranked = sorted(agg.items(), key=lambda kv: kv[1][0], reverse=True)[:top_n]
+    scored = {
+        field: (
+            _field_score(c["all"], agg),
+            _field_score(c["value"], agg),
+            _field_score(c["delta"], agg),
+            len(c["all"]),
+        )
+        for field, c in cols.items()
+    }
+    total = sum(s[0] for s in scored.values()) or 1.0
+    ranked = sorted(scored.items(), key=lambda kv: kv[1][0], reverse=True)[:top_n]
     return [
         {
             "field": field,
             "score": float(tot),
             "frac": float(tot / total),
             "delta_dominant": bool(dlt > val),
+            "n_components": int(ncomp),
         }
-        for field, (tot, val, dlt) in ranked
+        for field, (tot, val, dlt, ncomp) in ranked
     ]
 
 

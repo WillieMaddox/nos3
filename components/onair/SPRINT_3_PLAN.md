@@ -239,9 +239,25 @@ across an incident and need a second approach.
   match their catalog target cleanly: EX-0008.02→SC.CmdCtr (RTS),
   IMP-0005→THRUSTER.CommandCount (destruction), DE-0003.10→NOVATEL_HK.CommandCount
   (gps_ephemeris). DE-0003.01 partial. **Acceptance criterion 2 (≥3 attacks) met.**
-**Remaining:** (a) width-normalize / EVS-downweight the array-element bias
-(CFE_EVS_HK.AppData over-ranks); (b) attach `top_features` to the Incident record
-(criterion 1) — this is the bridge into NOS3-312.
+**Update 2 (2026-06-30) — width-bias hypothesis REFUTED + incident wiring done:**
+- Added configurable aggregation (`agg=max|mean|sum`, default `max`) to
+  `aggregate_incident` + a regression test proving it fixes a *genuine* wide-array
+  bias. BUT on the real corpus `max ≈ sum` (EX-0008.02 AppData 89.9% vs 89.4%;
+  IMP-0005 CFE_ES.CommandCounter 72.5% vs 72.0%). So `CFE_EVS_HK.AppData` /
+  `CFE_ES.CommandCounter` dominance is NOT a summing artifact — the model
+  genuinely leans on generic high-traffic counters. They are high-IMPORTANCE but
+  low-DISCRIMINATION (they top many attacks); the attack-specific field
+  (SC.CmdCtr / THRUSTER.CommandCount / NOVATEL_HK.CommandCount) ranks just below.
+- `incident_attribution.py` + 4 tests: `enrich_incident_record()` attaches
+  `top_features` + `top_features_str` to a real `IncidentAggregator` Incident,
+  OFFLINE (no submodule/runtime change). **Criterion 1 met** (incidents carry
+  ranked top-N fields).
+**Remaining (decision needed):** operator *discrimination* — make the ranking
+surface what's distinctive about THIS attack, not the always-on counters.
+Options: contrastive/specificity ranking (down-weight fields that contribute to
+the average attack), keep EVS-AppData array elements un-collapsed (the element =
+which app emitted events, the discriminating bit), or interventional/background
+SHAP. This is a real method fork, separate from the (now-done) wiring.
 
 ### NOS3-312 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h)
 **Summary:** Show the per-incident explanation in the incident record and the

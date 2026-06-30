@@ -35,16 +35,40 @@ def _names():
 
 def test_aggregate_groups_array_elements_and_ranks():
     names = _names()
-    # frame SHAP: EPS two elements dominate (0.4+0.4=0.8 grouped); Mode value 0.1, delta 0.05
     shap = np.array([[0.4, 0.4, 0.1, 0.05]])
-    out = aggregate_incident(shap, names, top_n=8)
+    out = aggregate_incident(shap, names, top_n=8)  # default agg="max"
     assert [r["field"] for r in out] == ["EPS.DeviceHK.Switch", "ADCS_GNC.Mode"]
     eps, mode = out
-    assert eps["score"] == pytest.approx(0.8)
-    # frac is share of total (0.8 + 0.15 = 0.95)
-    assert eps["frac"] == pytest.approx(0.8 / 0.95)
+    # default "max": EPS score is its strongest element (0.4), not the 0.8 sum
+    assert eps["score"] == pytest.approx(0.4)
+    assert eps["n_components"] == 2  # two array elements grouped
     # Mode: value part 0.1 > delta part 0.05 → not delta-dominant
     assert mode["delta_dominant"] is False
+
+
+def test_aggregate_sum_mode_reports_additive_total():
+    names = _names()
+    shap = np.array([[0.4, 0.4, 0.1, 0.05]])
+    out = aggregate_incident(shap, names, top_n=8, agg="sum")
+    eps = out[0]
+    assert eps["field"] == "EPS.DeviceHK.Switch"
+    assert eps["score"] == pytest.approx(0.8)  # 0.4 + 0.4
+
+
+def test_width_bias_fixed_by_default_max():
+    # A wide 8-element array (each 0.1) vs a scalar with one strong value (0.5).
+    names = [f"WIDE.arr[0_{i}]" for i in range(8)] + ["NARROW.scalar"]
+    shap = np.array([[0.1] * 8 + [0.5]])
+
+    # default "max": the strong scalar wins (bias removed)
+    out_max = aggregate_incident(shap, names, top_n=2)
+    assert out_max[0]["field"] == "NARROW.scalar"
+    assert out_max[0]["score"] == pytest.approx(0.5)
+
+    # "sum": the wide array (0.8) out-ranks the scalar (0.5) — the old bias
+    out_sum = aggregate_incident(shap, names, top_n=2, agg="sum")
+    assert out_sum[0]["field"] == "WIDE.arr"
+    assert out_sum[0]["n_components"] == 8
 
 
 def test_aggregate_flags_delta_dominant():
