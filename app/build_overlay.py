@@ -40,7 +40,10 @@ def main():
 
     pat = re.compile(re.escape(START) + r".*?" + re.escape(END), re.DOTALL)
     if pat.search(html):
-        html = pat.sub(block, html)
+        # Replacement passed as a function so backslash sequences in `block`
+        # (e.g. Δ from JSON-escaped non-ASCII in the coverage data) are
+        # inserted literally, not parsed as regex template escapes.
+        html = pat.sub(lambda _m: block, html)
         action = "replaced"
     else:
         idx = html.rfind("</body>")

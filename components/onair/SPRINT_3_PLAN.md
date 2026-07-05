@@ -44,7 +44,7 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 | NOS3-312 | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
 | NOS3-320 | Epic | — | — | — | Coverage gaps & stakeholder rollout |
 | NOS3-321 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
-| NOS3-322 | Task | High | 2 | 0.5 | Present coverage doc + demo to stakeholders |
+| NOS3-322 | Task | High | 2 | 0.5 | ◑ READY — rollout materials + current demo prepared; owner presents |
 | NOS3-330 | Spike | Medium | 3 | 0.75 | Decide the next big-ML bet (Phase 5 VAE vs Phase 6 graph) |
 
 **Totals (all tickets):** E = 41 · T = 12.0 (≈ 96 ideal hours).
@@ -339,14 +339,22 @@ retrain, and measure whether the classes separate.
 **Estimate note:** ~5h of corpus-collection wall-clock excluded from T; E
 carries risk the classes stay dead even with the new MIDs.
 
-### NOS3-322 — Stakeholder rollout · `Task` · High · E 2 · T 0.5 (~3h)
+### NOS3-322 — Stakeholder rollout · `Task` · High · E 2 · T 0.5 (~3h) · ◑ READY (owner presents)
 **Summary:** Present `V5_DETECTOR_COVERAGE.md` + the demo overlay to stakeholders
 and capture feedback.
 **Description:** The coverage doc and demo overlay exist but haven't been shown.
 Walk stakeholders through "what it catches / what it doesn't," demo the live
 matrix overlay, and log the feedback as backlog candidates.
+**Materials prepared 2026-07-05:**
+- `STAKEHOLDER_ROLLOUT.md` — presenter's 5-min flow + a feedback-capture table.
+- Demo made current: regenerated `nos3_coverage.js` and rebuilt the inlined
+  overlay in `app/sparta-standalone 1.html` (now shows the NOS3-312 "Top fields
+  (why)" column). **Fixed a `build_overlay.py` bug** (`re.sub` mis-parsed `\u`
+  escapes from the JSON-escaped `Δ` in explanations — now uses a function repl).
 **Acceptance criteria:**
-- Doc + demo presented; feedback captured as tickets.
+- Doc + demo presented — ⏳ **owner action** (cannot be automated).
+- Feedback captured as tickets — ⏳ fill the `STAKEHOLDER_ROLLOUT.md` table, then
+  file rows as backlog tickets.
 
 ---
 
