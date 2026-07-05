@@ -34,8 +34,8 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 |---|---|---|--:|--:|---|
 | NOS3-300 | Epic | — | — | — | Classification trust (close the mode gap) |
 | NOS3-301 | Story | Highest | 8 | 3.0 | ✅ CLOSED (negative result) — PASSIVE labeling is an info limit, not modeling; keep v3 |
-| NOS3-302 | Task | High | 5 | 1.25 | Out-of-fold incident-label accuracy |
-| NOS3-303 | Task | Medium | 3 | 1.0 | Mode-switch warmup tuning / operator guidance |
+| NOS3-302 | Task | High | 5 | 1.25 | ✅ DONE (2026-06-29) — out-of-fold incident-label accuracy = 34.6% |
+| NOS3-303 | Task | Medium | 3 | 1.0 | ✅ DONE — warmup transient measured (~26s) ≪ 600f/124s; guidance + recommend 600→200 |
 | NOS3-304 | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
 | NOS3-305 | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
 | NOS3-310 | Epic | — | — | — | Explainability (Phase 7 start) |
@@ -136,18 +136,30 @@ accuracy per mode and per cluster.
 - Coverage doc updated to replace the in-sample caveat with the real number.
 **Estimate note:** ~80 min of LOIO retrain wall-clock is excluded from T.
 
-### NOS3-303 — Mode-switch warmup tuning / guidance · `Task` · Medium · E 3 · T 1.0 (~8h)
+### NOS3-303 — Mode-switch warmup tuning / guidance · `Task` · Medium · E 3 · T 1.0 (~8h) · ✅ DONE 2026-07-05
 **Summary:** Stop the 600-frame mode-switch warmup from blinding detection in
 transient modes (or document the operational guidance).
-**Description:** The IF re-arms a ~143s warmup on every mode change, so an attack
-in a briefly-held mode is never flagged (it falls through to whatever mode the
-FSW parks in). Evaluate a shorter/decaying warmup or a per-mode warmup, measure
-the FP cost, and either tune it or document "detection is reliable only in a
-mode held > ~2.5 min" for operators.
-**Acceptance criteria:**
-- FP-vs-warmup tradeoff measured; a recommended setting or a documented
-  operational limit committed.
-**Estimate note:** soak wall-clock for the FP measurement excluded from T.
+**Description:** The IF re-arms a 600-frame (~124 s @ 4.83 fps) warmup on every
+routing switch (`ModeSwitchWarmupFrames`, `isolation_forest_plugin.py`),
+suppressing ALERT/CLEAR. An attack in a mode held < that window is never flagged.
+NOS3-304 makes this MORE relevant (modes do switch reliably/often).
+**Measured (`analyze_mode_switch_warmup.py`, live IF side-file, 9 switches):**
+the post-switch transient anomaly rate is 19% at 0-5 s, ~9-11% through 16 s, and
+**settles to ≤3% by ~frame 125 (~26 s)**, ~0% by ~200 f. Steady-state baseline
+0.0%. So the warmup is **~5× longer than the transient it suppresses** — ~98 s
+of the 124 s blind window per switch is avoidable.
+**Recommendation:** reduce `ModeSwitchWarmupFrames` 600 → **200** (~41 s, margin
+over the ~26-36 s settle), cutting the blind window by ~2/3 and restoring
+detection in briefly-held modes at negligible FP cost.
+**Operational limit (committed to `V5_DETECTOR_COVERAGE.md`):** with the current
+600-frame setting, detection is reliable only in a mode held > ~124 s.
+**Acceptance criteria — met:** FP-vs-warmup tradeoff measured (decay curve);
+operational limit documented + a recommended setting given.
+**GATE before changing the live ini:** 9 switches in one session (one dwell
+attack-contaminated) is suggestive, not definitive — per evaluation-provenance,
+re-run `analyze_mode_switch_warmup.py` over a dedicated nominal mode-cycling soak
+(≥30 switches) before deploying 600→200. Live ini left unchanged.
+**Estimate note:** soak wall-clock for the confirmatory measurement excluded.
 
 ### NOS3-304 — "FSW idle mode-lock" was a CSV-parsing artifact · `Bug` · High · E 2 · T 0.5 (~4h) · ✅ RESOLVED 2026-06-29
 **Summary:** The long-held belief that a long-idle FSW silently rejects

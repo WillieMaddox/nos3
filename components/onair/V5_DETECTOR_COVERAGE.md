@@ -92,7 +92,7 @@ corpus at this granularity:
 |---|---|
 | Incident recall — genuinely detectable state-change attacks | **92.8 % (77/83)** |
 | Incident recall — all SPARTA techniques (incl. undetectable-by-design) | 67.8 % (78/115) |
-| Incident label accuracy (of detected; in-sample caveat) | 76.9 % |
+| Incident label accuracy (of detected; **out-of-fold**) | **34.6 %** (in-sample was 76.9 %) |
 
 **The jump from ~61 % (frame) to ~93 % (incident) is the whole point of the
 incident layer:** even a brief burst of flagged frames during an attack raises
@@ -184,20 +184,75 @@ By design, the monitor only sees the MIDs in `nos3_security_tlm.json`. A
 UNSUBSCRIBED and CONCEPTUAL attacks are **out of scope** for telemetry-based
 detection by construction, not by failure.
 
-### D. Incident aggregation — now built, label still per-frame-trained
+### D. Incident aggregation — built; label accuracy now measured out-of-fold
 
-The monitor now aggregates flagged frames into **incidents** (Section 3) — start,
+The monitor aggregates flagged frames into **incidents** (Section 3) — start,
 duration, cluster, accumulated confidence — using the same hysteresis the IF
 plugin uses for alerts. This lifted effective detection from ~61 % (frame) to
-~93 % (incident). The remaining honesty note: the incident's *label* still comes
-from the per-frame classifier (voted across the incident), which is in-sample on
-the current corpus; out-of-fold incident-label accuracy is the next measurement.
+~93 % (incident).
+
+Incident **detection** is IF-gate-driven and already honest (the threshold is
+calibrated on held-out nominal). Incident **labelling** had only ever been
+measured in-sample. Re-scoring the same `csv_corpus_v3stage` corpus with
+leave-one-instance-out, out-of-fold predictions (NOS3-302) gives the honest
+figure: **34.6 % label accuracy of detected attacks, versus 76.9 % in-sample** —
+the in-sample number was more than 2× optimistic. Incident detection recall is
+identical either way (78/115), exactly as expected: only the label source
+changed, not the IF gate.
+
+The label collapse is tier- and mode-dependent:
+- **By tier** (coherent with §4): ROBUST clusters keep their labels out-of-fold
+  (`EX-0008.02` 100 %, `IMP-0005` 100 %, the `IMP-0001/2/3/6` family ~67 %);
+  HIGH-VARIANCE and DEAD clusters collapse (`EX-0012.08/.09`, `EX-0014.03/.04`
+  → 0 %). The aggregate is dragged down by the many always-*detected*-but-not-
+  *labelable* HIGH-VAR attacks.
+- **By mode** — two views that must not be confused:
+  - *Incident-level* (attack attributed to its **first** corruption-frame's
+    mode): PASSIVE 48 % (26/54), INERTIAL 4 % (1/23), no SUNSAFE attacks. This
+    view is **misleading**: the corpus uses `scenario_all_modes_dwell`, so one
+    attack's window spans every mode and is attributed to wherever it *started*
+    (mostly PASSIVE, where the FSW boots/locks), and incident voting then
+    recovers the label from the *good* frames in other modes.
+  - *Frame-level* (each frame's actual mode — the operationally real "attacked
+    while persistently in mode X" question): **PASSIVE 0.148 cluster-acc is the
+    WORST**, vs INERTIAL 0.341, SUNSAFE 0.395, BDOT 0.419. This **confirms** the
+    original NOS3-301 premise (PASSIVE is the weak mode). It is **intrinsic, not
+    compositional**: the same cluster labels worse in PASSIVE (e.g.
+    `EX-0012.{03,04,05}` 0.29 PASSIVE vs 0.44/0.50/0.52 elsewhere) — a single
+    global classifier underfits PASSIVE's quiescent telemetry regime.
+
+**NOS3-301 (closed — negative result):** all three mode-aware approaches were
+evaluated by LOIO over the frozen corpus and **none** raise PASSIVE label
+accuracy (PASSIVE cluster-acc: baseline 0.148 → mode-feature 0.146, per-mode
+heads 0.120, mode-rebalanced 0.150). A PASSIVE-only specialist scoring *below*
+the global model shows the global 0.148 is propped up by cross-mode transfer:
+PASSIVE labeling is an **information limit, not a modeling one**, so no
+mode-aware architecture on the current 894 features closes it. The real fix must
+add *signal* (extra discriminating MIDs — NOS3-321 — or temporal features), not
+rearrange the model. Per-mode heads *do* help the higher-signal modes
+(INERTIAL +0.06, SUNSAFE +0.06, ROBUST +0.07, overall +0.01); that upside is
+filed as **NOS3-305** (selective hybrid, backlog).
+
+Bottom line: today, trust an incident's *existence* far more than its *label*,
+and treat **PASSIVE labels as low-confidence regardless of model**. (Source:
+`data/onair/models/cluster_rescore/incident_rescore_oof.json`; out-of-fold
+predictions in `cluster_rescore/loio_predictions_oof_v3stage.npz`; mode-aware
+sweep in `data/onair/models/mode_aware/`.)
 
 ### E. Stage 2 sharpens, it does not widen
 
 The classifier runs **only** on frames Stage 1 already flagged (it skips ~89 %
 of frames this way). It therefore **cannot** detect an attack the anomaly
 detector missed. The detection net is Stage 1; Stage 2 only attaches a label.
+
+### F. Blind window after every ADCS mode switch (NOS3-303)
+
+The detector suppresses alerts for **~124 s (600 frames) after each mode
+switch**, to ride out the switch transient. So **detection is reliable only in a
+mode held longer than ~124 s** — an attack confined to a briefly-held mode may
+raise no alert. Measured, the transient itself settles in **~26 s**, so most of
+that blind window is avoidable; reducing the warmup to ~200 frames (~41 s) is
+recommended pending a confirmatory nominal-soak measurement.
 
 ---
 
