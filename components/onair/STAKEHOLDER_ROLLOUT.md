@@ -12,6 +12,9 @@ backlog tickets. The two artifacts to present are already prepared:
   detection status and, in the coverage panel, a **"Top fields (why)"** column
   (the SHAP-derived telemetry drivers, NOS3-311/312). Rebuilt 2026-07-05 so it
   reflects the current model + explanations.
+  > The HTML is a **local build artifact** (git-ignored; regenerated from the
+  > tracked `nos3_coverage.js` + `nos3_overlay.js`). If it's missing or stale,
+  > rebuild: `python3 app/gen_nos3_coverage.py && python3 app/build_overlay.py`.
 
 ## Suggested 5-minute flow
 
