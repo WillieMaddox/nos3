@@ -96,44 +96,6 @@ temporal features add *information*; they don't rearrange the model).
 hybrid), tracked separately because it's plugin work for a benefit that is *not*
 what NOS3-301 was for.
 
-### NOS3-305 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · `Backlog`
-**Summary:** Bank the INERTIAL/SUNSAFE/ROBUST gains from per-mode heads without
-the BDOT/PASSIVE regressions, via mode-routed classification.
-**Description:** NOS3-301 showed full `per_mode` routing helps the two signal-rich
-dynamic **modes** (INERTIAL +0.058, SUNSAFE +0.061, overall +0.012) and the
-cross-mode ROBUST **tier** (+0.068) but regresses the signal-poor modes
-(BDOT −0.047, PASSIVE −0.028). A **selective hybrid** — route INERTIAL/SUNSAFE
-frames to per-mode heads, keep the global v3 head for PASSIVE/BDOT — should
-capture the dynamic-mode upside while leaving the weak modes on the model that
-serves them best. Requires classifier mode-routing in the plugin + per-mode
-probability calibration so confidences stay comparable across heads.
-**NOTE — ROBUST is a tier, not a routed mode:** the ROBUST tier is a set of four
-attack clusters that span *all* ADCS modes, so its accuracy is a downstream
-*consequence* of routing, not a routing target. The full +0.068 came from
-routing every mode; under selective (INERTIAL/SUNSAFE-only) routing, only the
-portion of ROBUST-tier frames that fall in INERTIAL/SUNSAFE benefits — the
-realized ROBUST-tier gain is **to be measured**, not assumed.
-**Acceptance criteria:**
-- LOIO shows the INERTIAL/SUNSAFE mode gains retained and **no** BDOT/PASSIVE
-  regression vs deployed v3.
-- ROBUST-tier accuracy **measured** under the hybrid and shown not to regress vs
-  v3 (any gain is upside, not a requirement).
-- Per-mode calibration validated (confidences comparable across heads).
-- Model + routing + calibration deployed; ini updated; build tree synced.
-**Estimate note:** E carries integration risk (routing + multi-head calibration
-in the live plugin). Independent of NOS3-301's outcome; pull in only after the
-explainability epic (NOS3-310) if capacity is tight.
-
-### NOS3-306 — Audit classifier reliance on activity counters · `Spike` · Low · E 3 · T 0.75 · `Backlog`
-**Summary:** NOS3-311 attribution showed v3 keys heavily on generic high-traffic
-counters (`CFE_EVS_HK.AppData`, `CFE_ES.CommandCounter`, `CFE_TBL.*`) across many
-attacks. Audit whether these are genuine discriminative signal or an
-activity-level shortcut, and whether regularizing/dropping them would improve
-per-attack discrimination without hurting LOIO accuracy. Deferred — informational,
-not blocking; any model change interacts with NOS3-301's "keep v3" decision.
-**Placement:** spun off from the NOS3-311 finding but it's a classification-trust
-concern (model behaviour), so it lives under EPIC NOS3-300, not Explainability.
-
 ### NOS3-302 — Out-of-fold incident-label accuracy · `Task` · High · E 5 · T 1.25 (~10h)
 **Summary:** Measure incident-label accuracy out-of-fold, not in-sample.
 **Description:** `eval_incident_rescore.py` currently labels incidents with the
@@ -225,6 +187,44 @@ is unnecessary at this scale and can be dropped from `run_attack` /
 `run_baseline` mode-baseline collection. (Only the exact ~11 h condition of the
 original 2026-05-16 observation remains formally un-reproduced, but the handler
 has no time-based gate, so 11 h is expected to behave identically.)
+
+### NOS3-305 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · `Backlog`
+**Summary:** Bank the INERTIAL/SUNSAFE/ROBUST gains from per-mode heads without
+the BDOT/PASSIVE regressions, via mode-routed classification.
+**Description:** NOS3-301 showed full `per_mode` routing helps the two signal-rich
+dynamic **modes** (INERTIAL +0.058, SUNSAFE +0.061, overall +0.012) and the
+cross-mode ROBUST **tier** (+0.068) but regresses the signal-poor modes
+(BDOT −0.047, PASSIVE −0.028). A **selective hybrid** — route INERTIAL/SUNSAFE
+frames to per-mode heads, keep the global v3 head for PASSIVE/BDOT — should
+capture the dynamic-mode upside while leaving the weak modes on the model that
+serves them best. Requires classifier mode-routing in the plugin + per-mode
+probability calibration so confidences stay comparable across heads.
+**NOTE — ROBUST is a tier, not a routed mode:** the ROBUST tier is a set of four
+attack clusters that span *all* ADCS modes, so its accuracy is a downstream
+*consequence* of routing, not a routing target. The full +0.068 came from
+routing every mode; under selective (INERTIAL/SUNSAFE-only) routing, only the
+portion of ROBUST-tier frames that fall in INERTIAL/SUNSAFE benefits — the
+realized ROBUST-tier gain is **to be measured**, not assumed.
+**Acceptance criteria:**
+- LOIO shows the INERTIAL/SUNSAFE mode gains retained and **no** BDOT/PASSIVE
+  regression vs deployed v3.
+- ROBUST-tier accuracy **measured** under the hybrid and shown not to regress vs
+  v3 (any gain is upside, not a requirement).
+- Per-mode calibration validated (confidences comparable across heads).
+- Model + routing + calibration deployed; ini updated; build tree synced.
+**Estimate note:** E carries integration risk (routing + multi-head calibration
+in the live plugin). Independent of NOS3-301's outcome; pull in only after the
+explainability epic (NOS3-310) if capacity is tight.
+
+### NOS3-306 — Audit classifier reliance on activity counters · `Spike` · Low · E 3 · T 0.75 · `Backlog`
+**Summary:** NOS3-311 attribution showed v3 keys heavily on generic high-traffic
+counters (`CFE_EVS_HK.AppData`, `CFE_ES.CommandCounter`, `CFE_TBL.*`) across many
+attacks. Audit whether these are genuine discriminative signal or an
+activity-level shortcut, and whether regularizing/dropping them would improve
+per-attack discrimination without hurting LOIO accuracy. Deferred — informational,
+not blocking; any model change interacts with NOS3-301's "keep v3" decision.
+**Placement:** spun off from the NOS3-311 finding but it's a classification-trust
+concern (model behaviour), so it lives under EPIC NOS3-300, not Explainability.
 
 ---
 
