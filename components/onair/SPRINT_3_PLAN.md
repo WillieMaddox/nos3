@@ -35,7 +35,7 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 | NOS3-300 | Epic | — | — | — | Classification trust (close the mode gap) |
 | NOS3-301 | Story | Highest | 8 | 3.0 | ✅ CLOSED (negative result) — PASSIVE labeling is an info limit, not modeling; keep v3 |
 | NOS3-302 | Task | High | 5 | 1.25 | ✅ DONE (2026-06-29) — out-of-fold incident-label accuracy = 34.6% |
-| NOS3-303 | Task | Medium | 3 | 1.0 | ✅ DONE — 36-switch soak: transient settles ~36s ≪ 600f/124s; recommend 600→250 (deploy pending go) |
+| NOS3-303 | Task | Medium | 3 | 1.0 | ✅ DONE + DEPLOYED — 36-switch soak: transient ~36s; ModeSwitchWarmupFrames 600→250 live (blind window 124s→52s) |
 | NOS3-304 | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
 | NOS3-305 | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
 | NOS3-306 | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
@@ -130,10 +130,11 @@ aggressive floor — tighter margin.)
 600-frame setting, detection is reliable only in a mode held > ~124 s.
 **Acceptance criteria — met:** FP-vs-warmup tradeoff measured (36-switch decay
 curve); operational limit documented + a recommended setting given.
-**GATE satisfied:** the confirmatory ≥30-switch nominal soak is done (36 clean
-switches, 0.0% baseline — no uptime drift). Deploying 600→250 (edit
-`nos3_security.ini` + sync runtime + restart OnAIR) is now justified; **left for
-an explicit go** since it changes a live detection safety parameter.
+**DEPLOYED 2026-07-05 — live-verified.** After the confirmatory 36-switch soak
+(0.0% baseline) satisfied the gate, set `ModeSwitchWarmupFrames = 250` in
+`nos3_security.ini`, synced to the runtime build tree, restarted OnAIR; startup
+log confirms `[iforest] mode-switch warmup=250 frames`. Per-switch blind window
+now ~52 s (was ~124 s).
 **Estimate note:** soak wall-clock for the confirmatory measurement excluded.
 
 ### NOS3-304 — "FSW idle mode-lock" was a CSV-parsing artifact · `Bug` · High · E 2 · T 0.5 (~4h) · ✅ RESOLVED 2026-06-29
