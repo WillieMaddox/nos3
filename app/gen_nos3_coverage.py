@@ -23,6 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 RESCORE = os.path.join(ROOT, "data/onair/models/cluster_rescore/incident_rescore.json")
 TAXONOMY = os.path.join(ROOT, "data/onair/models/cluster_rescore/cluster_taxonomy.json")
+CATALOG = os.path.join(ROOT, "data/onair/models/explanation_catalog.json")  # NOS3-312
 
 # Source of truth from V5_DETECTOR_COVERAGE.md coverage matrix.
 # tier:  ROBUST | STABLE-MID | HIGH-VAR | SIBLING | LOW-STABLE | DEAD | OUT-OF-SCOPE
@@ -74,6 +75,11 @@ def main():
         for m in members:
             cluster_of[m] = rep
 
+    # NOS3-312: per-class explanation (top telemetry fields) from the catalog.
+    catalog = json.load(open(CATALOG)) if os.path.exists(CATALOG) else {}
+    explain_of = {tid: e.get("top_features_str", "")
+                  for tid, e in (catalog.get("classes") or {}).items()}
+
     coverage = {}
     for tid, (tier, signal, frame_rate, label) in ENRICH.items():
         pa = per_attack.get(tid, {})
@@ -88,11 +94,12 @@ def main():
             "incident_recall": pa.get("recall"),
             "label_ok": pa.get("label_ok"),
             "cluster": cluster_of.get(tid),
+            "explanation": explain_of.get(tid, ""),  # NOS3-312
         }
 
     meta = {
         "generated_from": ["V5_DETECTOR_COVERAGE.md", "incident_rescore.json",
-                           "cluster_taxonomy.json"],
+                           "cluster_taxonomy.json", "explanation_catalog.json"],
         "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3",
         "incident_recall_headline": rescore.get("incident_detection_recall"),
         "n_techniques": len(coverage),

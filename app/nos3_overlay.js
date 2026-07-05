@@ -84,7 +84,9 @@
         "</td><td><span class='nos3-pill " + st.cls + "'>" + st.label + "</span></td>" +
         "<td>" + c.tier + "</td><td>" + c.signal + "</td>" +
         "<td>" + (c.frame_rate != null ? Math.round(c.frame_rate * 100) + "%" : "—") + "</td>" +
-        "<td>" + rec + lab + "</td></tr>"
+        "<td>" + rec + lab + "</td>" +
+        "<td class='nos3-expl' title='" + (c.explanation || "") + "'>" +
+        (c.explanation || "—") + "</td></tr>"
       );
     }).join("");
     const div = document.createElement("div");
@@ -97,6 +99,8 @@
       "<th>Sub-technique</th><th>Name</th><th>Status</th><th>Classifier tier</th>" +
       "<th>Signal class</th><th title='frame-level SUNSAFE catch rate'>Frame catch</th>" +
       "<th title='incident-level recall across corpus instances'>Incident</th>" +
+      "<th title='top telemetry fields that drive this classification (SHAP, NOS3-311/312)'>" +
+      "Top fields (why)</th>" +
       "</tr></thead><tbody>" + rows + "</tbody></table>" +
       "<div class='nos3-foot'>Status = incident-level detection on the labeled corpus " +
       "(an attack counts as caught if it raised ≥1 alert). \"Frame catch\" is the per-frame " +

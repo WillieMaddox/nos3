@@ -41,7 +41,7 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 | NOS3-310 | Epic | — | — | — | Explainability (Phase 7 start) |
 | NOS3-306 | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
 | NOS3-311 | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
-| NOS3-312 | Story | Medium | 3 | 0.5 | Surface explanations in incident record + demo |
+| NOS3-312 | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
 | NOS3-320 | Epic | — | — | — | Coverage gaps & stakeholder rollout |
 | NOS3-321 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
 | NOS3-322 | Task | High | 2 | 0.5 | Present coverage doc + demo to stakeholders |
@@ -276,13 +276,28 @@ activity-level shortcut, and whether regularizing/dropping them would improve
 per-attack discrimination without hurting LOIO accuracy. Deferred — informational,
 not blocking; any model change interacts with NOS3-301's "keep v3" decision.
 
-### NOS3-312 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h)
+### NOS3-312 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h) · ✅ DONE 2026-07-04
 **Summary:** Show the per-incident explanation in the incident record and the
 demo app.
 **Description:** Add the top-N fields to `incident_*.csv` / the plugin reasoning,
-and render them in the demo app's modal coverage panel.
-**Acceptance criteria:**
-- Explanation visible in the incident side-file and the demo modal.
+and render them in the demo app's coverage panel.
+**Design:** live runtime has no shap → a precomputed per-class **explanation
+catalog** (`data/onair/models/explanation_catalog.json`, built offline by
+`build_explanation_catalog.py`) is loaded by the plugin and the demo generator.
+**Delivered:**
+- `build_explanation_catalog.py` → 25-class catalog (class → top-N telemetry
+  fields via offline SHAP; faithful ranking per NOS3-311).
+- Plugin (`xgb_classifier_plugin.py`, submodule): loads the catalog (sibling of
+  the classifier pickle, so it resolves at runtime with no ini change),
+  `_explanation_for()` looks it up by winning sub-technique→cluster, and
+  `_handle_incident` appends an `explanation` column to the incident side-file +
+  console line. Missing catalog ⇒ column omitted (backward compatible).
+- Demo: `gen_nos3_coverage.py` reads the catalog and adds `explanation` per
+  technique; `nos3_overlay.js` renders a "Top fields (why)" column;
+  `nos3_coverage.js` regenerated.
+**Acceptance criteria — met:** explanation in the incident side-file (plugin) +
+the demo panel. (Full live end-to-end incident run pending a stack session; the
+catalog load + lookup are verified against the real artifact.)
 **Depends on:** NOS3-311.
 
 ---

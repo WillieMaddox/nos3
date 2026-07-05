@@ -3,7 +3,8 @@ window.NOS3_COVERAGE_META = {
   "generated_from": [
     "V5_DETECTOR_COVERAGE.md",
     "incident_rescore.json",
-    "cluster_taxonomy.json"
+    "cluster_taxonomy.json",
+    "explanation_catalog.json"
   ],
   "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3",
   "incident_recall_headline": 0.6783,
@@ -19,7 +20,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 2,
-    "cluster": "EX-0008.01"
+    "cluster": "EX-0008.01",
+    "explanation": "CFE_EVS_HK.AppData:77%|CFE_TBL.CommandErrorCounter:13%|CFE_TBL.CommandCounter\u0394:3%|ADCS_DI.Payload.Mag.bvb:2%|SC.CmdCtr\u0394:1%|CFE_EVS.PacketID.EventID\u0394:1%"
   },
   "EX-0008.02": {
     "name": "RTS",
@@ -30,7 +32,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "EX-0008.02"
+    "cluster": "EX-0008.02",
+    "explanation": "CFE_EVS_HK.AppData:89%|CFE_TBL.CommandErrorCounter:8%|SC.CmdCtr:1%|ADCS_GNC.bvb:1%|ADCS_DI.Payload.Imu.acc:0%|ADCS_GNC.HwhlB:0%"
   },
   "EX-0012.03": {
     "name": "Memory write",
@@ -41,7 +44,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 6,
     "incident_recall": 1.0,
     "label_ok": 5,
-    "cluster": "EX-0012.{03,04,05}"
+    "cluster": "EX-0012.{03,04,05}",
+    "explanation": "CFE_EVS_HK.AppData:24%|CFE_SB.UnmarkedMem:23%|SCH.UnexpectedMajorFrameCount:7%|SCH.SameSlotCount:7%|ADCS_GNC.bvb:5%|SCH.ScheduleActivitySuccessCount:5%"
   },
   "EX-0012.04": {
     "name": "App subscriber tables",
@@ -52,7 +56,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 6,
     "incident_recall": 0.8333,
     "label_ok": 4,
-    "cluster": "EX-0012.{03,04,05}"
+    "cluster": "EX-0012.{03,04,05}",
+    "explanation": "CFE_SB.UnmarkedMem:42%|SCH.MultipleSlotsCount:11%|SCH.SameSlotCount:9%|ADCS_GNC.svb:8%|RW.DeviceCount_RW2:5%|RW.DeviceCount_RW0:5%"
   },
   "EX-0012.05": {
     "name": "Scheduling algorithm",
@@ -63,7 +68,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 6,
     "incident_recall": 1.0,
     "label_ok": 4,
-    "cluster": "EX-0012.{03,04,05}"
+    "cluster": "EX-0012.{03,04,05}",
+    "explanation": "CFE_EVS_HK.AppData:38%|SCH.SameSlotCount:22%|ADCS_GNC.bvb:6%|CFE_SB.MemInUse:5%|SCH.UnexpectedMajorFrameCount:3%|SCH.MultipleSlotsCount:3%"
   },
   "EX-0012.07": {
     "name": "Propulsion subsystem",
@@ -74,7 +80,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 4,
     "incident_recall": 1.0,
     "label_ok": 2,
-    "cluster": "EX-0012.07"
+    "cluster": "EX-0012.07",
+    "explanation": "SCH.SameSlotCount:30%|CFE_EVS_HK.AppData:18%|ADCS_DI.Payload.Imu.wbn:18%|ADCS_GNC.wbn:6%|EPS.DeviceCount:6%|CFE_EVS_HK.MessageSendCounter:4%"
   },
   "EX-0012.08": {
     "name": "ADCS subsystem",
@@ -85,7 +92,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.6667,
     "label_ok": 2,
-    "cluster": "EX-0012.08"
+    "cluster": "EX-0012.08",
+    "explanation": "ADCS_GNC.Tcmd:46%|ADCS_GNC.bvb:22%|CFE_EVS_HK.MessageSendCounter:13%|ADCS_DI.Payload.Css.Sensor:8%|ADCS_GNC.wbn:4%|CFE_SB.NoSubscribersCounter\u0394:2%"
   },
   "EX-0012.09": {
     "name": "EPS subsystem",
@@ -96,7 +104,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "EX-0012.09"
+    "cluster": "EX-0012.09",
+    "explanation": "CFE_EVS_HK.MessageSendCounter:57%|EPS.DeviceCount:42%|SCH.UnexpectedMajorFrameCount:1%|ADCS_GNC.bvb:0%|RW.data.momentum:0%|ADCS_DI.Payload.Rw.HwhlB:0%"
   },
   "EX-0012.12": {
     "name": "System clock",
@@ -107,7 +116,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 6,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "EX-0012.12/EX-0014.01"
+    "cluster": "EX-0012.12/EX-0014.01",
+    "explanation": "CFE_EVS_HK.AppData:45%|CFE_SB.MsgSendErrorCounter:14%|SCH.SameSlotCount:13%|SCH.UnexpectedMajorFrameCount:6%|RW.DeviceCount_RW1:5%|ADCS_DI.Payload.Mag.bvb:3%"
   },
   "EX-0014.01": {
     "name": "Time spoof",
@@ -118,7 +128,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 6,
     "incident_recall": 1.0,
     "label_ok": 5,
-    "cluster": "EX-0012.12/EX-0014.01"
+    "cluster": "EX-0012.12/EX-0014.01",
+    "explanation": "CFE_EVS_HK.AppData:33%|CFE_SB.MsgSendErrorCounter:16%|SCH.SameSlotCount:9%|RADIO_HK.DeviceErrorCount:6%|SCH.UnexpectedMajorFrameCount:5%|CFE_EVS_HK.MessageSendCounter:4%"
   },
   "EX-0014.03": {
     "name": "Sensor data spoof",
@@ -129,7 +140,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 2,
-    "cluster": "EX-0014.03"
+    "cluster": "EX-0014.03",
+    "explanation": "ADCS_GNC.bvb:16%|SCH.SameSlotCount:16%|CFE_EVS_HK.AppData:12%|CFE_EVS_HK.MessageSendCounter:9%|EPS.DeviceCount:8%|RW.DeviceCount_RW2:5%"
   },
   "EX-0014.04": {
     "name": "PNT spoof",
@@ -140,7 +152,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "EX-0014.04"
+    "cluster": "EX-0014.04",
+    "explanation": "CFE_SB.MemInUse:50%|CFE_EVS_HK.MessageSendCounter:9%|CFE_SB.MsgSendErrorCounter:7%|EPS.DeviceCount:6%|SCH.SameSlotCount:6%|CFE_EVS_HK.AppData:5%"
   },
   "IMP-0001": {
     "name": "Deception",
@@ -151,7 +164,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 2,
-    "cluster": "IMP-0001"
+    "cluster": "IMP-0001",
+    "explanation": "CFE_EVS_HK.MessageSendCounter:34%|CFE_EVS_HK.AppData:28%|EPS.CommandErrorCount:10%|ADCS_GNC.HwhlB:10%|ADCS_GNC.svb:4%|ADCS_GNC.wbn:3%"
   },
   "IMP-0002": {
     "name": "Disruption",
@@ -162,7 +176,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "IMP-0002"
+    "cluster": "IMP-0002",
+    "explanation": "CFE_EVS_HK.CommandCounter:47%|CFE_EVS_HK.MessageSendCounter:23%|RW.DeviceCount_RW0:18%|CFE_EVS_HK.AppData:10%|ADCS_DI.Payload.Imu.wbn\u0394:1%|ADCS_GNC.svb:1%"
   },
   "IMP-0003": {
     "name": "Denial",
@@ -173,7 +188,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "IMP-0003"
+    "cluster": "IMP-0003",
+    "explanation": "CFE_EVS_HK.CommandCounter:32%|RW.CommandCounter:12%|CFE_SB.MsgSendErrorCounter:10%|CFE_EVS_HK.AppData:10%|RW.DeviceCount_RW1:10%|CFE_SB.UnmarkedMem:5%"
   },
   "IMP-0005": {
     "name": "Destruction",
@@ -184,7 +200,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "IMP-0005"
+    "cluster": "IMP-0005",
+    "explanation": "CFE_ES.CommandCounter:72%|THRUSTER.CommandCount:18%|CFE_TBL.CommandCounter:7%|CFE_EVS_HK.AppData:1%|ADCS_DI.Payload.Rw.HwhlB:0%|ADCS_GNC.bvb:0%"
   },
   "IMP-0006": {
     "name": "Theft",
@@ -195,7 +212,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "IMP-0006"
+    "cluster": "IMP-0006",
+    "explanation": "CFE_EVS_HK.AppData:75%|RW.DeviceCount_RW0:12%|ADCS_GNC.HwhlB:2%|ADCS_DI.Payload.Mag.bvb:2%|ADCS_GNC.svb:2%|NOVATEL.Novatel_oem615.ECEFZ\u0394:2%"
   },
   "DE-0003.01": {
     "name": "Vehicle command counter",
@@ -206,7 +224,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": "DE-0003.01"
+    "cluster": "DE-0003.01",
+    "explanation": "CFE_EVS_HK.AppData:46%|EPS.DeviceCount:14%|CFE_EVS_HK.MessageSendCounter:9%|SCH.ScheduleActivitySuccessCount:8%|ADCS_GNC.wbn:7%|ADCS_DI.Payload.Imu.wbn:5%"
   },
   "DE-0003.02": {
     "name": "Rejected command counter",
@@ -217,7 +236,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": "DE-0003.02"
+    "cluster": "DE-0003.02",
+    "explanation": "ADCS_DI.Payload.Css.Sensor:78%|EPS.DeviceCount\u0394:7%|ADCS_GNC.wbn:7%|CFE_EVS_HK.AppData:4%|CFE_EVS.PacketID.EventID:2%|SCH.UnexpectedMajorFrame\u0394:0%"
   },
   "DE-0003.03": {
     "name": "Command receiver mode",
@@ -228,7 +248,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.3333,
     "label_ok": 0,
-    "cluster": "DE-0003.03"
+    "cluster": "DE-0003.03",
+    "explanation": "ADCS_DI.Payload.Imu.wbn:22%|CFE_EVS_HK.AppData:17%|ADCS_DI.Payload.Fss.svb:9%|ADCS_DI.Payload.Css.Sensor\u0394:8%|ADCS_GNC.bvb\u0394:6%|CFE_SB.NoSubscribersCounter:6%"
   },
   "DE-0003.06": {
     "name": "Telemetry downlink modes",
@@ -239,7 +260,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": "DE-0003.06"
+    "cluster": "DE-0003.06",
+    "explanation": "RADIO_HK.DeviceErrorCount\u0394:30%|ADCS_GNC.wbn:22%|ADCS_DI.Payload.Imu.acc:12%|ADCS_GNC.Mode\u0394:8%|CFE_SB.NoSubscribersCounter\u0394:8%|ADCS_GNC.bvb\u0394:5%"
   },
   "DE-0003.08": {
     "name": "Received commands",
@@ -250,7 +272,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": "DE-0003.08"
+    "cluster": "DE-0003.08",
+    "explanation": "CFE_EVS_HK.MessageSendCounter:42%|ADCS_DI.Payload.Fss.svb:23%|ADCS_GNC.bvb:9%|SCH.MultipleSlotsCount:8%|CFE_EVS_HK.LogOverflowCounter:5%|ADCS_GNC.svb:3%"
   },
   "DE-0003.09": {
     "name": "System clock for evasion",
@@ -261,7 +284,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 4,
     "incident_recall": 0.75,
     "label_ok": 3,
-    "cluster": "DE-0003.09"
+    "cluster": "DE-0003.09",
+    "explanation": "CFE_TIME.CommandCounter:58%|SCH.MultipleSlotsCount:35%|SCH.UnexpectedMajorFrameCount:1%|ADCS_DI.Payload.Imu.wbn:1%|SCH.UnexpectedMajorFrame:1%|ADCS_DI.Payload.Css.svb:1%"
   },
   "DE-0003.10": {
     "name": "GPS ephemeris",
@@ -272,7 +296,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 3,
-    "cluster": "DE-0003.10"
+    "cluster": "DE-0003.10",
+    "explanation": "NOVATEL_HK.CommandCount:86%|CFE_SB.MsgSendErrorCounter:11%|SCH.MultipleSlotsCount:1%|SCH.UnexpectedMajorFrameCount:0%|NOVATEL.Novatel_oem615.ECEFX\u0394:0%|CFE_SB.MemInUse:0%"
   },
   "EX-0001.01": {
     "name": "Command packets",
@@ -283,7 +308,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   },
   "EX-0009.01": {
     "name": "Flight software",
@@ -294,7 +320,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   },
   "IMP-0004": {
     "name": "Degradation",
@@ -305,7 +332,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   },
   "DE-0003.04": {
     "name": "Command receiver RSSI",
@@ -316,7 +344,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   },
   "DE-0003.05": {
     "name": "Command receiver lock modes",
@@ -327,7 +356,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 1,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   },
   "DE-0003.07": {
     "name": "Cryptographic modes",
@@ -338,7 +368,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   },
   "DE-0003.11": {
     "name": "Watchdog timer",
@@ -349,7 +380,8 @@ window.NOS3_COVERAGE = {
     "incident_total": 3,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   },
   "DE-0003.12": {
     "name": "Poison AI/ML training",
@@ -360,6 +392,7 @@ window.NOS3_COVERAGE = {
     "incident_total": 1,
     "incident_recall": 0.0,
     "label_ok": 0,
-    "cluster": null
+    "cluster": null,
+    "explanation": ""
   }
 };
