@@ -250,9 +250,10 @@ detector missed. The detection net is Stage 1; Stage 2 only attaches a label.
 The detector suppresses alerts for **~124 s (600 frames) after each mode
 switch**, to ride out the switch transient. So **detection is reliable only in a
 mode held longer than ~124 s** — an attack confined to a briefly-held mode may
-raise no alert. Measured, the transient itself settles in **~26 s**, so most of
-that blind window is avoidable; reducing the warmup to ~200 frames (~41 s) is
-recommended pending a confirmatory nominal-soak measurement.
+raise no alert. Measured over a 36-switch nominal soak, the transient itself
+settles in **~36 s (~175 frames)**, so most of that blind window is avoidable;
+reducing the warmup to **~250 frames (~52 s)** cuts the blind window by ~58 %
+with margin over the transient.
 
 ---
 

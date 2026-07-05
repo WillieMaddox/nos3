@@ -29,9 +29,12 @@ def main():
     p.add_argument("--max-offset", type=int, default=700)
     p.add_argument("--settle-pct", type=float, default=3.0,
                    help="anomaly-rate %% at/below which the transient is 'settled'")
+    p.add_argument("--from-frame", type=int, default=0,
+                   help="only analyze frames with frame_idx >= this (isolate a soak window)")
     args = p.parse_args()
 
-    rows = list(csv.DictReader(open(args.side_file)))
+    rows = [r for r in csv.DictReader(open(args.side_file))
+            if int(r["frame_idx"]) >= args.from_frame]
     scn = [r["scenario"] for r in rows]
     anom = [r["is_anomaly"] in ("1", "True", "true") for r in rows]
     switches = [i for i in range(1, len(rows)) if scn[i] != scn[i - 1]]
