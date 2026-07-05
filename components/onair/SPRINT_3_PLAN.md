@@ -38,8 +38,8 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 | NOS3-303 | Task | Medium | 3 | 1.0 | ✅ DONE — warmup transient measured (~26s) ≪ 600f/124s; guidance + recommend 600→200 |
 | NOS3-304 | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
 | NOS3-305 | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
-| NOS3-310 | Epic | — | — | — | Explainability (Phase 7 start) |
 | NOS3-306 | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
+| NOS3-310 | Epic | — | — | — | Explainability (Phase 7 start) |
 | NOS3-311 | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
 | NOS3-312 | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
 | NOS3-320 | Epic | — | — | — | Coverage gaps & stakeholder rollout |
@@ -123,6 +123,16 @@ realized ROBUST-tier gain is **to be measured**, not assumed.
 **Estimate note:** E carries integration risk (routing + multi-head calibration
 in the live plugin). Independent of NOS3-301's outcome; pull in only after the
 explainability epic (NOS3-310) if capacity is tight.
+
+### NOS3-306 — Audit classifier reliance on activity counters · `Spike` · Low · E 3 · T 0.75 · `Backlog`
+**Summary:** NOS3-311 attribution showed v3 keys heavily on generic high-traffic
+counters (`CFE_EVS_HK.AppData`, `CFE_ES.CommandCounter`, `CFE_TBL.*`) across many
+attacks. Audit whether these are genuine discriminative signal or an
+activity-level shortcut, and whether regularizing/dropping them would improve
+per-attack discrimination without hurting LOIO accuracy. Deferred — informational,
+not blocking; any model change interacts with NOS3-301's "keep v3" decision.
+**Placement:** spun off from the NOS3-311 finding but it's a classification-trust
+concern (model behaviour), so it lives under EPIC NOS3-300, not Explainability.
 
 ### NOS3-302 — Out-of-fold incident-label accuracy · `Task` · High · E 5 · T 1.25 (~10h)
 **Summary:** Measure incident-label accuracy out-of-fold, not in-sample.
@@ -278,14 +288,6 @@ validated ≥3 attacks). Prototype discarded.
 **Spun off:** a model-level observation → NOS3-306 (the classifier keys on
 activity-level counters; audit whether that's genuine signal or a shortcut —
 NOT a v3 change, since NOS3-301 kept v3).
-
-### NOS3-306 — Audit classifier reliance on activity counters · `Spike` · Low · E 3 · T 0.75 · `Backlog`
-**Summary:** NOS3-311 attribution showed v3 keys heavily on generic high-traffic
-counters (`CFE_EVS_HK.AppData`, `CFE_ES.CommandCounter`, `CFE_TBL.*`) across many
-attacks. Audit whether these are genuine discriminative signal or an
-activity-level shortcut, and whether regularizing/dropping them would improve
-per-attack discrimination without hurting LOIO accuracy. Deferred — informational,
-not blocking; any model change interacts with NOS3-301's "keep v3" decision.
 
 ### NOS3-312 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h) · ✅ DONE 2026-07-04
 **Summary:** Show the per-incident explanation in the incident record and the
