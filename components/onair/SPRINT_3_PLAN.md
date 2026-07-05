@@ -46,7 +46,6 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 | NOS3-321 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
 | NOS3-322 | Task | High | 2 | 0.5 | Present coverage doc + demo to stakeholders |
 | NOS3-330 | Spike | Medium | 3 | 0.75 | Decide the next big-ML bet (Phase 5 VAE vs Phase 6 graph) |
-| NOS3-340 | Task | High | 1 | 0.25 | Push branch + open PR for the committed Sprint-1/2 work |
 
 **Totals (all tickets):** E = 41 · T = 12.0 (≈ 96 ideal hours).
 
@@ -295,9 +294,13 @@ catalog** (`data/onair/models/explanation_catalog.json`, built offline by
 - Demo: `gen_nos3_coverage.py` reads the catalog and adds `explanation` per
   technique; `nos3_overlay.js` renders a "Top fields (why)" column;
   `nos3_coverage.js` regenerated.
-**Acceptance criteria — met:** explanation in the incident side-file (plugin) +
-the demo panel. (Full live end-to-end incident run pending a stack session; the
-catalog load + lookup are verified against the real artifact.)
+**Acceptance criteria — met + LIVE-VERIFIED 2026-07-04:** restarted OnAIR (loaded
+`explanation_catalog.json (25 classes)`), ran DE-0003.10 live; a SUNSAFE incident
+classified EX-0012.12/EX-0014.01 wrote the `explanation` column to the side-file:
+`CFE_EVS_HK.AppData:45%|CFE_SB.MsgSendErrorCounter:14%|SCH.SameSlotCount:13%|…`.
+Nominal incidents correctly carry an empty explanation. Demo column verified in
+the regenerated `nos3_coverage.js`. (Runtime plugin synced to the build tree;
+the diff vs source was exactly this change.)
 **Depends on:** NOS3-311.
 
 ---
@@ -343,20 +346,6 @@ consolidating the current system instead.
 
 ---
 
-## 🔧 Hygiene
-
-### NOS3-340 — Push + PR the committed work · `Task` · High · E 1 · T 0.25 (~1.5h)
-**Summary:** Push `wm-onair` (+ OnAIR submodule) and open a PR for the committed
-cluster-rescore / incident-layer / demo-overlay work.
-**Description:** Sprint-1/2 work is committed locally but not pushed; the OnAIR
-submodule has a new local commit too. Push both and open a PR for review.
-Note: pre-existing uncommitted changes (`features.py`, `run_attack.py`,
-`train.py`, submodule `csv_output`) are out of scope — triage separately.
-**Acceptance criteria:**
-- Branch + submodule pushed; PR open; CI green.
-
----
-
 ## 📋 Backlog (carryover)
 
 | Key | Type | E | T | Summary |
@@ -371,21 +360,20 @@ Note: pre-existing uncommitted changes (`features.py`, `run_attack.py`,
 ## Capacity note
 
 **Two readings of the same overcommit:**
-- **Effort:** committed E across NOS3-301/302/303/311/312/322/330/340 = **33**
+- **Effort:** committed E across NOS3-301/302/303/311/312/322/330 = **32**
   vs ~16/sprint capacity.
-- **Time:** the same set = **~9.5 T** (≈ 76 ideal hours) vs ~7–8 T realistic
+- **Time:** the same set = **~9.25 T** (≈ 74 ideal hours) vs ~7–8 T realistic
   solo capacity for a 2-week sprint (10 working days × ~0.7 focus factor).
 
 Both say the full set doesn't fit. Recommended **commitment**: the two
 highest-value epics — **NOS3-300 (E 16 / T 5.25)** + **NOS3-311+312 (E 11 /
-T 2.75)** + **NOS3-340 (T 0.25)** ≈ **T 8.25** — with NOS3-321 and the spike as
-stretch. If velocity is tighter, commit NOS3-300 + NOS3-340 and pull
-explainability forward only after the mode gap is closed.
+T 2.75)** ≈ **T 8.0** — with NOS3-321 and the spike as stretch. If velocity is
+tighter, commit NOS3-300 and pull explainability forward only after the mode
+gap is closed.
 
 ## Suggested execution order
 
-1. **NOS3-340** (push/PR — unblocks review of shipped work).
-2. **NOS3-302** (honest out-of-fold numbers — grounds everything else).
-3. **NOS3-301** (mode-aware classifier — the core trust fix).
-4. **NOS3-311 → 312** (explainability on the improved model).
+1. **NOS3-302** (honest out-of-fold numbers — grounds everything else).
+2. **NOS3-301** (mode-aware classifier — the core trust fix).
+3. **NOS3-311 → 312** (explainability on the improved model).
 5. **NOS3-322** (rollout) + **NOS3-330** (next-bet spike) in parallel.
