@@ -39,7 +39,8 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 | NOS3-304 | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
 | NOS3-305 | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
 | NOS3-310 | Epic | — | — | — | Explainability (Phase 7 start) |
-| NOS3-311 | Story | High | 8 | 2.25 | Per-incident feature attribution (SHAP) |
+| NOS3-306 | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
+| NOS3-311 | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
 | NOS3-312 | Story | Medium | 3 | 0.5 | Surface explanations in incident record + demo |
 | NOS3-320 | Epic | — | — | — | Coverage gaps & stakeholder rollout |
 | NOS3-321 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
@@ -213,7 +214,7 @@ has no time-based gate, so 11 h is expected to behave identically.)
 production-grade system. A label without a reason is hard to action; this epic
 gives each incident its top contributing telemetry fields.
 
-### NOS3-311 — Per-incident feature attribution · `Story` · High · E 8 · T 2.25 (~18h)
+### NOS3-311 — Per-incident feature attribution · `Story` · High · E 8 · T 2.25 (~18h) · ✅ DONE 2026-07-04
 **Summary:** As an analyst, I want each incident to show which telemetry fields
 drove the detection/classification.
 **Description:** Compute SHAP (or TreeExplainer) attributions on the classifier
@@ -252,12 +253,28 @@ across an incident and need a second approach.
   `top_features` + `top_features_str` to a real `IncidentAggregator` Incident,
   OFFLINE (no submodule/runtime change). **Criterion 1 met** (incidents carry
   ranked top-N fields).
-**Remaining (decision needed):** operator *discrimination* — make the ranking
-surface what's distinctive about THIS attack, not the always-on counters.
-Options: contrastive/specificity ranking (down-weight fields that contribute to
-the average attack), keep EVS-AppData array elements un-collapsed (the element =
-which app emitted events, the discriminating bit), or interventional/background
-SHAP. This is a real method fork, separate from the (now-done) wiring.
+**Discrimination decision (2026-07-04) — RESOLVED as accept:** prototyped
+contrastive (specificity) ranking = per-attack |SHAP| profile minus the
+cross-attack mean. It did NOT demote the generic counters (EX-0008.02 AppData
+and IMP-0005 CFE_ES.CommandCounter stayed #1); it only reshuffled ranks 3–6 (a
+genuine win for DE-0003.10, which surfaced the spoofed NOVATEL ephemeris values).
+All three methods (sum/max/contrastive) agree the generic counters dominate →
+this is the MODEL's real behavior, not an attribution artifact. Reweighting to
+hide it would be misleading. So: **keep the faithful ranking; close NOS3-311.**
+The attack-specific field is present in the top-6 in every validated case.
+**Both acceptance criteria met** (per-mode/attack top-N carried by incidents +
+validated ≥3 attacks). Prototype discarded.
+**Spun off:** a model-level observation → NOS3-306 (the classifier keys on
+activity-level counters; audit whether that's genuine signal or a shortcut —
+NOT a v3 change, since NOS3-301 kept v3).
+
+### NOS3-306 — Audit classifier reliance on activity counters · `Spike` · Low · E 3 · T 0.75 · `Backlog`
+**Summary:** NOS3-311 attribution showed v3 keys heavily on generic high-traffic
+counters (`CFE_EVS_HK.AppData`, `CFE_ES.CommandCounter`, `CFE_TBL.*`) across many
+attacks. Audit whether these are genuine discriminative signal or an
+activity-level shortcut, and whether regularizing/dropping them would improve
+per-attack discrimination without hurting LOIO accuracy. Deferred — informational,
+not blocking; any model change interacts with NOS3-301's "keep v3" decision.
 
 ### NOS3-312 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h)
 **Summary:** Show the per-incident explanation in the incident record and the
