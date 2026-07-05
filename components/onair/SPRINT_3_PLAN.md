@@ -45,7 +45,7 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 | NOS3-320 | Epic | — | — | — | Coverage gaps & stakeholder rollout |
 | NOS3-321 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
 | NOS3-322 | Task | High | 2 | 0.5 | ◑ READY — rollout materials + current demo prepared; owner presents |
-| NOS3-330 | Spike | Medium | 3 | 0.75 | Decide the next big-ML bet (Phase 5 VAE vs Phase 6 graph) |
+| NOS3-330 | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
 
 **Totals (all tickets):** E = 41 · T = 12.0 (≈ 96 ideal hours).
 
@@ -360,15 +360,21 @@ matrix overlay, and log the feedback as backlog candidates.
 
 ## 🔬 Spike
 
-### NOS3-330 — Next big-ML bet · `Spike` · Medium · E 3 · T 0.75 (~6h)
+### NOS3-330 — Next big-ML bet · `Spike` · Medium · E 3 · T 0.75 (~6h) · ✅ DONE 2026-07-05
 **Summary:** Decide whether Phase 5 (VAE/DeepSAD) or Phase 6 (graph root-cause)
 is the next investment, or whether to consolidate.
 **Description:** Phases 1–3 are deployed and Phase 4 is closed. Before committing
 weeks to Phase 5 or 6, run a scoped feasibility read (data sufficiency, expected
 lift over v5+v3, operational value) and recommend the next bet — or recommend
 consolidating the current system instead.
-**Acceptance criteria:**
-- One-page recommendation with a go/no-go for Phase 5 vs 6 vs consolidate.
+**Recommendation (`NOS3_330_NEXT_ML_BET.md`):** **Phase 5 NO-GO, Phase 6 DEFER,
+CONSOLIDATE GO.** The binding constraint is *information* (observability), not
+model capacity — NOS3-301 (PASSIVE = info limit), Phase-4 deep-model plateau, and
+the nominal-ambiguous DEAD classes all point to signal, not architecture. Invest
+in NOS3-321 (extra MIDs) + 306 → 305; reopen DeepSAD only after 321 broadens the
+signal; hold the graph model until coverage is broad + operators ask for causal
+chains beyond the shipped explanations.
+**Acceptance criteria — met:** one-page go/no-go delivered (`NOS3_330_NEXT_ML_BET.md`).
 
 ---
 
