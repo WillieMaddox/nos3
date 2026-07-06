@@ -20,8 +20,26 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 
-from features import FeatureSchema, build_features
+from features import V5_DELTA_ONLY_COLUMNS, FeatureSchema, build_features
 from loader import load, load_with_labels
+
+
+def _resolve_delta_only(preset: str, explicit: str) -> list[str]:
+    """Resolve the --delta-only-preset CLI value to a column-name list.
+
+    Order of resolution:
+      preset='none' + explicit=''   → []  (backward compat with v1-v4)
+      preset='v5'                   → V5_DELTA_ONLY_COLUMNS
+      explicit non-empty            → that comma-list, overriding preset
+    """
+    cols = [s.strip() for s in (explicit or "").split(",") if s.strip()]
+    if cols:
+        return cols
+    if preset == "v5":
+        return list(V5_DELTA_ONLY_COLUMNS)
+    if preset == "none":
+        return []
+    raise ValueError(f"unknown --delta-only-preset: {preset!r}")
 
 
 def _summarize_scores(scores: np.ndarray) -> dict:
@@ -96,8 +114,10 @@ def train(
     balance: bool = False,
     exclude_scenarios: list[str] | None = None,
     skip_warmup_rows: int = 0,
+    delta_only: list[str] | None = None,
 ) -> dict:
     exclude_scenarios = list(exclude_scenarios or [])
+    delta_only = list(delta_only or [])
     t0 = time.perf_counter()
     if manifest:
         df, stats = load_with_labels(csv_dir, manifest, drop_unlabeled=True,
@@ -116,9 +136,12 @@ def train(
     # against the true chronological neighbour (file boundaries respected).
     # Subsampling for class balance happens AFTER feature build so it only
     # affects which rows the IF sees during fit, not the deltas themselves.
-    X, schema = build_features(df, include_deltas=include_deltas)
+    X, schema = build_features(df, include_deltas=include_deltas, delta_only=delta_only)
     print(f"feature matrix: {X.shape}  (scalars={len(schema.scalar_columns)}, "
           f"list-cols={len(schema.list_columns)}, dropped-text={len(schema.dropped_text_columns)})")
+    if schema.delta_only_columns:
+        print(f"  delta-only ({len(schema.delta_only_columns)} TLM cols): "
+              f"raw values suppressed, deltas kept")
     print(f"  feature build: {time.perf_counter()-t1:.2f}s")
 
     fit_idx: np.ndarray | None = None
@@ -188,6 +211,7 @@ def train(
             "balance": balance,
             "exclude_scenarios": list(exclude_scenarios),
             "skip_warmup_rows": skip_warmup_rows,
+            "delta_only_columns": list(delta_only),
         },
     }
 
@@ -205,6 +229,7 @@ def train_per_scenario(
     mode_transient_skip: int = 0,
     min_rows_per_label: int = 100,
     exclude_labels: list[str] | None = None,
+    delta_only: list[str] | None = None,
 ) -> dict:
     """Train one IsolationForest per label group; share the feature schema.
 
@@ -215,6 +240,7 @@ def train_per_scenario(
     callers to remember the magic exclude.
     """
     exclude_labels = list(exclude_labels or [])
+    delta_only = list(delta_only or [])
     if not manifest:
         raise ValueError("--per-scenario requires --manifest")
     t0 = time.perf_counter()
@@ -234,9 +260,12 @@ def train_per_scenario(
         print(f"    {name}: {n}")
 
     t1 = time.perf_counter()
-    X, schema = build_features(df, include_deltas=include_deltas)
+    X, schema = build_features(df, include_deltas=include_deltas, delta_only=delta_only)
     print(f"feature matrix: {X.shape}  (scalars={len(schema.scalar_columns)}, "
           f"list-cols={len(schema.list_columns)}, dropped-text={len(schema.dropped_text_columns)})")
+    if schema.delta_only_columns:
+        print(f"  delta-only ({len(schema.delta_only_columns)} TLM cols): "
+              f"raw values suppressed, deltas kept")
     print(f"  feature build: {time.perf_counter()-t1:.2f}s")
 
     all_labels = sorted(df[label_column].unique())
@@ -319,6 +348,7 @@ def train_per_scenario(
             "mode_transient_skip": mode_transient_skip,
             "exclude_labels": list(exclude_labels),
             "min_rows_per_label": min_rows_per_label,
+            "delta_only_columns": list(delta_only),
         },
     }
 
@@ -368,7 +398,19 @@ def main():
                    help="Comma-separated label values to skip when --per-scenario "
                         "groups by --label-column. Mode-flavoured analog of "
                         "--exclude-scenarios.")
+    p.add_argument("--delta-only-preset", default="none", choices=["none", "v5"],
+                   help="Apply a predefined delta-only column list. 'v5' "
+                        "suppresses raw absolute-time + deterministic orbital "
+                        "features (NOS3 sim epoch + TLE) so the IF is "
+                        "invariant to start time and start position; their "
+                        "deltas are still trained. 'none' (default) matches "
+                        "v1-v4 behaviour.")
+    p.add_argument("--delta-only-cols", default="",
+                   help="Explicit comma-separated TLM column names to mark "
+                        "delta-only. Overrides --delta-only-preset when "
+                        "non-empty.")
     args = p.parse_args()
+    delta_only = _resolve_delta_only(args.delta_only_preset, args.delta_only_cols)
 
     manifest = args.manifest
     if manifest and "," in manifest:
@@ -388,6 +430,7 @@ def main():
             mode_transient_skip=args.mode_transient_skip,
             min_rows_per_label=args.min_rows_per_label,
             exclude_labels=exclude_labels,
+            delta_only=delta_only,
         )
     else:
         exclude = [s.strip() for s in args.exclude_scenarios.split(",") if s.strip()]
@@ -400,6 +443,7 @@ def main():
             balance=args.balance,
             exclude_scenarios=exclude,
             skip_warmup_rows=args.skip_warmup_rows,
+            delta_only=delta_only,
         )
     save(art, args.out)
 

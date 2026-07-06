@@ -42,6 +42,11 @@ class FeatureSchema:
     list_columns: dict[str, dict] = field(default_factory=dict)
     dropped_text_columns: list[str] = field(default_factory=list)
     dropped_unparseable_columns: list[str] = field(default_factory=list)
+    # TLM column names whose raw values are suppressed from the feature
+    # matrix but whose delta values are kept. Used to make the IF invariant
+    # to absolute time + deterministic orbital state — see
+    # V5_DELTA_ONLY_COLUMNS for the canonical v5 list and the rationale.
+    delta_only_columns: list[str] = field(default_factory=list)
     feature_names: list[str] = field(default_factory=list)  # final feature column order
 
     def save(self, path: str) -> None:
@@ -53,6 +58,39 @@ class FeatureSchema:
         with open(path) as f:
             data = json.load(f)
         return cls(**data)
+
+
+# Canonical v5 delta-only TLM columns: absolute time references + the
+# deterministic NOS3 orbit. Their raw values are tied to the sim's
+# hard-coded mission epoch and TLE; an IF that ingests them learns the
+# specific orbit as "nominal" and will reject any other start state.
+# Deltas survive because they encode rates, which are invariant to the
+# starting point and are also the natural signal for time/PNT spoof
+# attacks (a small offset jumps out as a large delta).
+V5_DELTA_ONLY_COLUMNS = [
+    "CFE_TIME.SecondsMET",
+    "CFE_TIME.SubsecsMET",
+    "CFE_TIME.SecondsSTCF",
+    "CFE_TIME.SubsecsSTCF",
+    "CFE_TIME.LeapSeconds",
+    "NOVATEL.Novatel_oem615.Weeks",
+    "NOVATEL.Novatel_oem615.SecondsIntoWeek",
+    "NOVATEL.Novatel_oem615.Fractions",
+    "NOVATEL.Novatel_oem615.ECEFX",
+    "NOVATEL.Novatel_oem615.ECEFY",
+    "NOVATEL.Novatel_oem615.ECEFZ",
+    "NOVATEL.Novatel_oem615.VelX",
+    "NOVATEL.Novatel_oem615.VelY",
+    "NOVATEL.Novatel_oem615.VelZ",
+    "NOVATEL.Novatel_oem615.lat",
+    "NOVATEL.Novatel_oem615.lon",
+    "NOVATEL.Novatel_oem615.alt",
+    "SCH.LastSyncMETSlot",
+    "SC.NextRtsTime",
+    "SC.NextAtsTime",
+    "CFE_TBL.LastUpdateTimeSeconds",
+    "CFE_TBL.LastUpdateTimeSubsecs",
+]
 
 
 def _shape_of(value):
@@ -180,6 +218,7 @@ def _explode_list_column(df: pd.DataFrame, col: str, paths: list[tuple[int, ...]
 def build_features(
     df: pd.DataFrame, *, include_deltas: bool = True,
     schema: dict | FeatureSchema | None = None,
+    delta_only: Iterable[str] | None = None,
 ) -> tuple[np.ndarray, FeatureSchema]:
     """Transform the loaded DataFrame into a numeric feature matrix.
 
@@ -192,6 +231,12 @@ def build_features(
     CFE_TBL.LastFileDumped picking up a filename during long-uptime runs)
     would otherwise be reclassified as 'text' and dropped, mismatching the
     trained model's input dimension.
+
+    `delta_only` names TLM columns whose raw values should be excluded from
+    the feature matrix while their deltas remain. Requires
+    `include_deltas=True`. When `schema` carries a non-empty
+    `delta_only_columns` list (inference path), it overrides the kwarg so
+    the inference mask exactly matches the trained model.
     """
     schema_in = schema
     schema = FeatureSchema()
@@ -202,8 +247,17 @@ def build_features(
             classification[c] = "list"
         for c in sch.get("dropped_text_columns", []):
             classification[c] = "text"
+        if sch.get("delta_only_columns"):
+            delta_only = sch["delta_only_columns"]
     else:
         classification = _classify_columns(df)
+
+    delta_only_set: set[str] = set(delta_only or [])
+    if delta_only_set and not include_deltas:
+        raise ValueError(
+            "delta_only requires include_deltas=True — without deltas a "
+            "delta-only column would have no representation in the output."
+        )
 
     # Two-pass layout to match the inference plugin's invariant:
     #   raw = [all scalars in original CSV order, then all list-col leaves in
@@ -234,6 +288,19 @@ def build_features(
     raw_values = raw.to_numpy(dtype=np.float64, copy=False)
     feature_names = list(raw.columns)
 
+    # Build a mask of which raw-column indices belong to delta-only TLM
+    # columns. For a list column "FOO" exploded into "FOO[0]", "FOO[1]",
+    # …, naming "FOO" in delta_only suppresses every leaf.
+    if delta_only_set:
+        def _parent(fname: str) -> str:
+            return fname.split("[", 1)[0] if "[" in fname else fname
+        delta_only_raw_mask = np.array(
+            [_parent(n) in delta_only_set for n in feature_names],
+            dtype=bool,
+        )
+    else:
+        delta_only_raw_mask = np.zeros(len(feature_names), dtype=bool)
+
     if include_deltas:
         deltas = np.zeros_like(raw_values)
         deltas[1:] = raw_values[1:] - raw_values[:-1]
@@ -244,12 +311,15 @@ def build_features(
             boundary[0] = True
             boundary[1:] = file_ids[1:] != file_ids[:-1]
             deltas[boundary] = 0.0
-        feature_matrix = np.concatenate([raw_values, deltas], axis=1)
-        feature_names = feature_names + [f"d_{n}" for n in feature_names]
+        kept_raw = raw_values[:, ~delta_only_raw_mask]
+        kept_raw_names = [n for n, drop in zip(feature_names, delta_only_raw_mask) if not drop]
+        feature_matrix = np.concatenate([kept_raw, deltas], axis=1)
+        feature_names = kept_raw_names + [f"d_{n}" for n in feature_names]
     else:
         feature_matrix = raw_values
 
     schema.feature_names = feature_names
+    schema.delta_only_columns = sorted(delta_only_set)
     return feature_matrix, schema
 
 
