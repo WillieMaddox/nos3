@@ -34,6 +34,10 @@ docs/wiki/_build
 docs/wiki/_templates
 *.bkp
 *.html
+# ...except the standalone SPARTA coverage demo app, which is version-controlled.
+# It's a hand-authored HTML/CSS base; app/build_overlay.py regenerates only the
+# inlined NOS3 overlay block inside it (from nos3_coverage.js + nos3_overlay.js).
+!app/sparta_coverage.html
 
 #
 # Tooling / dev environment
