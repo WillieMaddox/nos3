@@ -43,6 +43,13 @@ docs/wiki/_templates
 logs
 
 #
+# SPARTA attack-script catalog — a separate side-project that leverages NOS3 +
+# OnAIR but is versioned independently, NOT part of the base nos3 repo. Left at
+# this path because run_attack.py resolves scripts here (ATTACK_SCRIPTS_ROOT).
+#
+gsw/attack_scripts/
+
+#
 # AI anomaly detection — derived/runtime artifacts
 #
 data/onair/models/*.pkl
