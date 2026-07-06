@@ -57,6 +57,14 @@ data/onair/csv/
 # symlinks into data/onair/csv/ (kept as symlinks — no data duplication). The
 # symlink targets are already ignored, so committing these pointers is pointless.
 data/onair/csv_corpus_v3stage/
+# data/onair is data (NAS-backed) → git-ignored, EXCEPT the small deployed-config
+# JSONs in models/ which are committed explicitly (cluster_taxonomy.json,
+# incident_rescore*.json, explanation_catalog.json, *_report.md).
+data/onair/scenarios/
+data/onair/soak_logs/
+data/onair/models/**/*.npz
+data/onair/models/**/*.log
+data/onair/models/**/confusion_*.csv
 # SPARTA attack-script per-run logs land in CWD by default
 ex_*_log_*.csv
 demo_*_log_*.csv
