@@ -53,6 +53,10 @@ data/onair/scenarios/*_dryrun*.json
 # components/onair/nos3_security.ini OutputDir to land here (outside fsw/build/)
 # so the data survives a clean rebuild.
 data/onair/csv/
+# Frozen v3 corpus: a pinned selection of csv_out_* files, implemented as
+# symlinks into data/onair/csv/ (kept as symlinks — no data duplication). The
+# symlink targets are already ignored, so committing these pointers is pointless.
+data/onair/csv_corpus_v3stage/
 # SPARTA attack-script per-run logs land in CWD by default
 ex_*_log_*.csv
 demo_*_log_*.csv
