@@ -59,6 +59,11 @@ def main():
                    default="data/onair/models/iforest_per_mode_v5_invariant_bolstered.pkl")
     p.add_argument("--classifier",
                    default="data/onair/models/xgb_attack_classifier_v3.pkl")
+    p.add_argument("--oof-predictions", default=None,
+                   help="loio_predictions.npz from eval_classifier_clusters.py. "
+                        "When set, incident labels are driven by the out-of-fold "
+                        "predictions (joined on file_id+row_idx) instead of the "
+                        "in-sample classifier, giving an honest label accuracy.")
     p.add_argument("--taxonomy",
                    default="data/onair/models/cluster_rescore/cluster_taxonomy.json")
     p.add_argument("--alert-hyst", type=int, default=3)
@@ -77,10 +82,29 @@ def main():
     if_cal = json.load(open(args.if_model.removesuffix(".pkl") + ".calibration.json"))
     thresholds = {k: float(v) for k, v in if_cal["thresholds"].items()}
 
-    with open(args.classifier, "rb") as f:
-        clf_art = pickle.load(f)
-    clf = clf_art["clf"]
-    labels = list(clf_art["labels"])
+    oof_mode = bool(args.oof_predictions)
+    clf = labels = None
+    oof = {}
+    if oof_mode:
+        z = np.load(args.oof_predictions, allow_pickle=True)
+        if "file_id" not in z.files:
+            sys.exit(f"{args.oof_predictions} predates NOS3-302 (no file_id/row_idx "
+                     "columns); re-run eval_classifier_clusters.py to regenerate it.")
+        oof_fid = z["file_id"].astype(str)
+        oof_ridx = z["row_idx"].astype(np.int64)
+        oof_pred = z["y_pred"].astype(str)
+        oof_conf = z["confidence"].astype(float) if "confidence" in z.files \
+            else np.ones(len(oof_pred))
+        oof = {(oof_fid[i], int(oof_ridx[i])): (oof_pred[i], float(oof_conf[i]))
+               for i in range(len(oof_pred))}
+        oof_files = set(oof_fid.tolist())
+        print(f"out-of-fold predictions: {len(oof)} frames over "
+              f"{len(oof_files)} files (label source = LOIO out-of-fold)")
+    else:
+        with open(args.classifier, "rb") as f:
+            clf_art = pickle.load(f)
+        clf = clf_art["clf"]
+        labels = list(clf_art["labels"])
 
     cluster_map = {}
     if os.path.exists(args.taxonomy):
@@ -93,6 +117,15 @@ def main():
     print("loading corpus ...")
     df, _ = load_with_labels(csv_dir=args.csv_dir, manifest=args.manifest_dir,
                              drop_unlabeled=True, skip_warmup_rows=30)
+    if oof_mode:
+        # Restrict to the exact files the out-of-fold cache covers, so the IF
+        # gate + aggregation run over the same frames the LOIO predicted. Whole
+        # files are dropped, so per-file delta masking stays intact.
+        keep = df["__file_id"].astype(str).isin(oof_files).to_numpy()
+        dropped_files = sorted(set(df["__file_id"][~keep].astype(str)))
+        df = df[keep].reset_index(drop=True)
+        print(f"  OOF: kept {len(df)} rows from {df['__file_id'].nunique()} "
+              f"cached files (dropped {len(dropped_files)} non-cache files)")
     drop = [c for c in df.columns if c.startswith("__") and c != "__file_id"]
     X, _ = build_features(df.drop(columns=drop), include_deltas=True, schema=schema)
     print(f"  {len(df)} rows, X={X.shape}")
@@ -118,11 +151,21 @@ def main():
           f"({is_anom.mean()*100:.1f}%)")
 
     # ─── classifier on anomalous frames only (IF-gated, like the plugin) ─
-    print("classifying anomalous frames ...")
     top1 = np.full(len(df), "", dtype=object)
     top1p = np.zeros(len(df))
     idx = np.where(is_anom)[0]
-    if len(idx):
+    if oof_mode:
+        print("labeling anomalous frames from out-of-fold predictions ...")
+        n_hit = 0
+        for i in idx:
+            pc = oof.get((str(fids[i]), int(ridx[i])))
+            if pc is not None:
+                top1[i], top1p[i] = pc[0], pc[1]
+                n_hit += 1
+        print(f"  {n_hit}/{len(idx)} anomalous frames had an out-of-fold label "
+              f"({len(idx) - n_hit} unlabeled — out-of-classifier-set classes)")
+    elif len(idx):
+        print("classifying anomalous frames ...")
         probs = clf.predict_proba(X[idx])
         am = probs.argmax(axis=1)
         for k, i in enumerate(idx):
@@ -171,23 +214,33 @@ def main():
 
     # ─── aggregate metrics ─────────────────────────────────────────────
     per_attack = defaultdict(lambda: {"n": 0, "detected": 0, "label_ok": 0})
-    per_mode = defaultdict(lambda: {"n": 0, "detected": 0})
+    per_mode = defaultdict(lambda: {"n": 0, "detected": 0, "label_ok": 0})
+    per_cluster = defaultdict(lambda: {"n": 0, "detected": 0, "label_ok": 0})
     for (fid, aid), v in gt.items():
         a = aid
         per_attack[a]["n"] += 1
         per_mode[v["mode"]]["n"] += 1
+        per_cluster[v["true_cluster"]]["n"] += 1
         if v["detected"]:
             per_attack[a]["detected"] += 1
             per_mode[v["mode"]]["detected"] += 1
+            per_cluster[v["true_cluster"]]["detected"] += 1
             if v["label_correct"]:
                 per_attack[a]["label_ok"] += 1
+                per_mode[v["mode"]]["label_ok"] += 1
+                per_cluster[v["true_cluster"]]["label_ok"] += 1
 
     n_attacks = len(gt)
     n_detected = sum(1 for v in gt.values() if v["detected"])
     n_label_ok = sum(1 for v in gt.values() if v["detected"] and v["label_correct"])
     total_min = len(df) / args.hz / 60.0
 
+    def _lblacc(v):
+        return round(v["label_ok"] / v["detected"], 4) if v.get("detected") else None
+
     summary = {
+        "prediction_source": "out_of_fold" if oof_mode else "in_sample",
+        "oof_predictions": args.oof_predictions if oof_mode else None,
         "n_ground_truth_attacks": n_attacks,
         "incident_detection_recall": round(n_detected / n_attacks, 4) if n_attacks else None,
         "n_detected": n_detected,
@@ -197,8 +250,12 @@ def main():
         "total_incidents": len(incidents),
         "corpus_minutes_approx": round(total_min, 1),
         "alert_hyst": args.alert_hyst, "clear_hyst": args.clear_hyst,
-        "per_mode": {m: {**v, "recall": round(v["detected"]/v["n"], 4) if v["n"] else None}
+        "per_mode": {m: {**v, "recall": round(v["detected"]/v["n"], 4) if v["n"] else None,
+                         "label_accuracy_of_detected": _lblacc(v)}
                      for m, v in sorted(per_mode.items())},
+        "per_cluster": {c: {**v, "recall": round(v["detected"]/v["n"], 4) if v["n"] else None,
+                            "label_accuracy_of_detected": _lblacc(v)}
+                        for c, v in sorted(per_cluster.items())},
         "per_attack": {a: {**v, "recall": round(v["detected"]/v["n"], 4) if v["n"] else None}
                        for a, v in sorted(per_attack.items())},
     }
@@ -215,12 +272,22 @@ def main():
           f"({n_detected}/{n_attacks})")
     print(f"false incidents                : {fp_incidents} "
           f"({summary['false_incidents_per_hour']:.2f}/h over ~{total_min/60:.1f}h)")
+    caveat = ("out-of-fold — honest" if oof_mode
+              else "in-sample label caveat")
     print(f"incident label accuracy        : {summary['incident_label_accuracy_of_detected']:.1%} "
-          f"of detected (in-sample label caveat)")
-    print(f"\nper mode:")
+          f"of detected ({caveat})")
+    print(f"\nper mode (recall · label-acc of detected):")
     for m, v in summary["per_mode"].items():
         if v["n"]:
-            print(f"  {m:16} {v['detected']:>3}/{v['n']:<3} = {v['recall']:.0%}")
+            la = v["label_accuracy_of_detected"]
+            print(f"  {m:16} {v['detected']:>3}/{v['n']:<3} = {v['recall']:.0%} "
+                  f"· label {f'{la:.0%}' if la is not None else '—'}")
+    print(f"\nper cluster (recall · label-acc of detected):")
+    for c, v in summary["per_cluster"].items():
+        if v["n"]:
+            la = v["label_accuracy_of_detected"]
+            print(f"  {c:24} {v['detected']:>3}/{v['n']:<3} = {v['recall']:.0%} "
+                  f"· label {f'{la:.0%}' if la is not None else '—'}")
     print(f"\nper attack (recall across instances):")
     for a, v in summary["per_attack"].items():
         print(f"  {a:22} {v['detected']}/{v['n']} det, "

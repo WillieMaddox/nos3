@@ -148,6 +148,15 @@ def load_instance(csv_dir: str, manifests: list[str], schema: dict,
     df, _ = load_with_labels(csv_dir=csv_dir, manifest=manifests,
                              drop_unlabeled=True, skip_warmup_rows=30)
     y = frame_labels(df)
+    # Per-frame metadata, aligned to X/y rows, so the out-of-fold predictions can
+    # later drive incident aggregation keyed by (file_id, row_idx) (NOS3-302).
+    meta = {
+        "file_id": df["__file_id"].astype(str).to_numpy(),
+        "row_idx": df["__row_idx"].to_numpy().astype(np.int64),
+        "adcs_mode": df["__adcs_mode"].astype(str).to_numpy(),
+        "in_corruption": df["__corruption_window"].astype(bool).to_numpy(),
+        "attack_id": df["__attack_id"].fillna("").astype(str).to_numpy(),
+    }
     # Keep __file_id for boundary masking; build_features ignores non-schema cols.
     drop = [c for c in df.columns if c.startswith("__") and c != "__file_id"]
     X, _ = build_features(df.drop(columns=drop), include_deltas=True, schema=schema)
@@ -158,7 +167,8 @@ def load_instance(csv_dir: str, manifests: list[str], schema: dict,
             print(f"  restricting to classifier label set: dropped "
                   f"{int((~keep).sum())} rows of out-of-set classes {dropped_ids}")
         X, y = X[keep], y[keep]
-    return X, y
+        meta = {k: v[keep] for k, v in meta.items()}
+    return X, y, meta
 
 
 def make_clf(hp: dict):
@@ -310,13 +320,13 @@ def main():
     data = []
     for i, manifests in enumerate(instances):
         print(f"\n=== instance {i} ({len(manifests)} manifests) ===")
-        X, y = load_instance(args.csv_dir, manifests, schema, allowed_labels)
+        X, y, meta = load_instance(args.csv_dir, manifests, schema, allowed_labels)
         assert X.shape[1] == n_feat, f"feature mismatch {X.shape[1]} != {n_feat}"
         print(f"  X={X.shape}  classes={len(set(y))}  "
               f"attack_rows={(y != 'nominal').sum()}  nominal_rows={(y == 'nominal').sum()}")
-        data.append((X, y))
+        data.append((X, y, meta))
 
-    labels = sorted(set().union(*[set(y) for _, y in data]))
+    labels = sorted(set().union(*[set(y) for _, y, _ in data]))
     print(f"\nglobal label space: {len(labels)} classes")
 
     # ─── LOIO ──────────────────────────────────────────────────────────
@@ -326,35 +336,57 @@ def main():
     per_fold_f1: list[dict] = []
     all_true: list = []
     all_pred: list = []
+    all_conf: list = []
+    meta_keys = ("file_id", "row_idx", "adcs_mode", "in_corruption", "attack_id")
+    all_meta: dict = {k: [] for k in meta_keys}
 
     for held in range(len(data)):
         Xtr = np.vstack([data[j][0] for j in range(len(data)) if j != held])
         ytr = np.concatenate([data[j][1] for j in range(len(data)) if j != held])
-        Xte, yte = data[held]
+        Xte, yte, mte = data[held]
         t1 = time.time()
         clf = make_clf(hp)
         clf.fit(Xtr, ytr)
-        ypred = clf.predict(Xte)
+        # predict_proba (not predict) so we keep the top-1 confidence for the
+        # out-of-fold incident aggregation; argmax of proba == predict().
+        proba = clf.predict_proba(Xte)
+        am = proba.argmax(axis=1)
+        ypred = clf.classes_[am]
+        conf = proba[np.arange(len(am)), am]
         acc = accuracy_score(yte, ypred)
         fold_tech_acc.append(acc)
         per_fold_f1.append(per_class_f1(yte, ypred, labels))
         all_true.append(yte)
         all_pred.append(ypred)
+        all_conf.append(conf)
+        for k in meta_keys:
+            all_meta[k].append(mte[k])
         for t, pr in zip(yte, ypred):
             conf_counts[(t, pr)] += 1
         print(f"  fold held={held}: train={len(ytr)} test={len(yte)} "
               f"acc={acc:.4f} ({time.time()-t1:.0f}s)")
 
     # Persist raw per-fold predictions so tau / cluster-rule sweeps need no
-    # retrain — recluster_from_cache.py loads this.
+    # retrain — recluster_from_cache.py loads y_true/y_pred/fold_of_row/labels.
+    # The file_id/row_idx/mode/corruption/attack_id/confidence columns are the
+    # out-of-fold record NOS3-302's incident rescore joins on (file_id, row_idx).
     np.savez(
         os.path.join(args.out_dir, "loio_predictions.npz"),
         fold_held=np.array(list(range(len(data)))),
         y_true=np.concatenate(all_true).astype(str),
         y_pred=np.concatenate(all_pred).astype(str),
+        confidence=np.concatenate(all_conf).astype(np.float64),
         fold_of_row=np.concatenate([
             np.full(len(all_true[h]), h) for h in range(len(data))]),
+        file_id=np.concatenate(all_meta["file_id"]).astype(str),
+        row_idx=np.concatenate(all_meta["row_idx"]).astype(np.int64),
+        adcs_mode=np.concatenate(all_meta["adcs_mode"]).astype(str),
+        in_corruption=np.concatenate(all_meta["in_corruption"]).astype(bool),
+        attack_id=np.concatenate(all_meta["attack_id"]).astype(str),
         labels=np.array(labels, dtype=str),
+        provenance_csv_dir=np.array(args.csv_dir),
+        provenance_manifest_dir=np.array(args.manifest_dir),
+        provenance_skip_warmup_rows=np.array(30),
     )
 
     tech_acc_mean = float(np.mean(fold_tech_acc))
