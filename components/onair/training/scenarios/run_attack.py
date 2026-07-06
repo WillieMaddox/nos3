@@ -48,7 +48,12 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cmd import Commander
+from cmd import (
+    ADCS_HK_REQ_MID, ADCS_MODE_BDOT, ADCS_MODE_INERTIAL, ADCS_MODE_PASSIVE,
+    ADCS_MODE_SUNSAFE, CSS_HK_REQ_MID, FSS_HK_REQ_MID, IMU_HK_REQ_MID,
+    MAG_HK_REQ_MID, ST_HK_REQ_MID, TORQUER_HK_REQ_MID,
+    Commander,
+)
 from run_baseline import (
     SCENARIOS,
     auto_discover_fsw_host,
@@ -56,6 +61,64 @@ from run_baseline import (
     precheck,
     write_manifest,
 )
+
+
+def scenario_all_modes_dwell(c: Commander, duration_s: int) -> None:
+    """Cycle ADCS through all 4 modes deterministically.
+
+    Holds each of INERTIAL, SUNSAFE, BDOT, PASSIVE for ``duration_s // 4``
+    seconds, re-issuing `adcs_set_mode` every 30s within each phase to
+    defeat FSW autonomous demotion (esp. INERTIAL → SUNSAFE when star
+    tracker quality dips). Issues HK polls every ~8s to maintain command
+    cadence parity with ``scenario_nominal_ops`` so the IF's nominal
+    distribution looks similar.
+
+    Created for attack-corpus mode balance: with this as the pre+post
+    scenario, every attack's corruption window samples rows across all
+    four ADCS modes, not just whatever mode the FSW happens to default
+    to (SUNSAFE for run_attack.py's idle context).
+    """
+    modes = [
+        ("INERTIAL", ADCS_MODE_INERTIAL),
+        ("SUNSAFE",  ADCS_MODE_SUNSAFE),
+        ("BDOT",     ADCS_MODE_BDOT),
+        ("PASSIVE",  ADCS_MODE_PASSIVE),
+    ]
+    hk_targets = [
+        (ADCS_HK_REQ_MID, "ADCS"),
+        (IMU_HK_REQ_MID, "IMU"),
+        (CSS_HK_REQ_MID, "CSS"),
+        (FSS_HK_REQ_MID, "FSS"),
+        (MAG_HK_REQ_MID, "MAG"),
+        (ST_HK_REQ_MID, "ST"),
+        (TORQUER_HK_REQ_MID, "TORQUER"),
+    ]
+    per_mode = max(60, duration_s // len(modes))
+    hk_idx = 0
+
+    for label, mode_const in modes:
+        print(f"  [all_modes_dwell] entering {label} for {per_mode}s")
+        c.adcs_set_mode(mode_const)
+        t_end = time.monotonic() + per_mode
+        next_recmd = time.monotonic() + 30
+        while time.monotonic() < t_end:
+            mid, name = hk_targets[hk_idx % len(hk_targets)]
+            c.req_hk(mid, name)
+            hk_idx += 1
+            if time.monotonic() >= next_recmd:
+                c.adcs_set_mode(mode_const)
+                next_recmd = time.monotonic() + 30
+            sleep_left = max(0.0, 8.0 - 0.2)
+            time.sleep(sleep_left if not c.dry_run else 0)
+
+
+# Local extension to run_baseline's SCENARIOS that includes the attack-
+# specific all_modes_dwell scenario. find_scenario uses this so the
+# --during arg can name it without polluting run_baseline.py's nominal
+# corpus definition.
+LOCAL_SCENARIOS = list(SCENARIOS) + [
+    ("all_modes_dwell", 240, scenario_all_modes_dwell),
+]
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 ATTACK_SCRIPTS_ROOT = os.path.join(REPO_ROOT, "gsw", "attack_scripts", "sparta")
@@ -337,10 +400,10 @@ ATTACK_CATALOG: dict[str, dict] = {
 
 
 def find_scenario(name: str):
-    for scn_name, base_duration, fn in SCENARIOS:
+    for scn_name, base_duration, fn in LOCAL_SCENARIOS:
         if scn_name == name:
             return scn_name, base_duration, fn
-    raise SystemExit(f"unknown scenario: {name}; valid={[s[0] for s in SCENARIOS]}")
+    raise SystemExit(f"unknown scenario: {name}; valid={[s[0] for s in LOCAL_SCENARIOS]}")
 
 
 def _corruption_end(end_utc: str, dwell_s: int) -> str:
@@ -420,10 +483,10 @@ def run_attack_session(
     if corruption_dwell_s is None:
         corruption_dwell_s = entry.get("corruption_dwell_s", 0)
     # If caller passed post_s=None, honor the catalog's recommendation
-    # (set per-attack when 180s isn't long enough to expose the signal),
-    # else fall back to 180s.
+    # (set per-attack when 240s isn't long enough to expose the signal),
+    # else fall back to 240s — the all_modes_dwell mode-coverage floor.
     if post_s is None:
-        post_s = entry.get("recommended_post_seconds_s", 180)
+        post_s = entry.get("recommended_post_seconds_s", 240)
         if "recommended_post_seconds_s" in entry:
             print(f"  [catalog] using recommended post_seconds_s={post_s} for {attack_key}")
     script_path = os.path.join(ATTACK_SCRIPTS_ROOT, entry["path"])
@@ -520,21 +583,25 @@ def main():
                    help="Which SPARTA attack script to inject")
     p.add_argument("--attack-level", type=int, default=2,
                    help="Attack-level argument passed through to the script")
-    p.add_argument("--during", default="nominal_ops",
-                   choices=[s[0] for s in SCENARIOS],
+    p.add_argument("--during", default="all_modes_dwell",
+                   choices=[s[0] for s in LOCAL_SCENARIOS],
                    help="Which nominal scenario brackets the attack window. "
-                        "Match this to a scenario whose IF models the feature "
-                        "space the attack disturbs (e.g. ex_0013 flooding bumps "
-                        "command counters → use nominal_ops/maneuvers/comm_passes "
-                        "where counter activity is in-distribution; quiescent's "
-                        "IF won't see counter floods because it was trained on "
-                        "near-zero-counter state).")
-    p.add_argument("--pre-seconds", type=int, default=90,
-                   help="Pre-attack scenario duration")
+                        "Default 'all_modes_dwell' cycles INERTIAL → SUNSAFE → "
+                        "BDOT → PASSIVE deterministically with 30s re-cmd "
+                        "intervals — required for per-ADCS-mode IF training "
+                        "since FSW autonomous behaviour leaves run_attack idle "
+                        "in SUNSAFE otherwise (see 2026-05-15 routing audit). "
+                        "Switch to nominal_ops/quiescent/etc. only when "
+                        "deliberately holding mode constant.")
+    p.add_argument("--pre-seconds", type=int, default=240,
+                   help="Pre-attack scenario duration. Default 240s = 4 modes × "
+                        "60s per all_modes_dwell phase. Shorter values truncate "
+                        "the mode-coverage cycle.")
     p.add_argument("--post-seconds", type=int, default=None,
                    help="Post-attack scenario duration. If omitted, uses the "
-                        "attack catalog's recommended_post_seconds_s (or 180 "
-                        "as the floor). Pass explicitly to override.")
+                        "attack catalog's recommended_post_seconds_s, else 240s "
+                        "(matches the all_modes_dwell mode-coverage requirement). "
+                        "Pass explicitly to override.")
     p.add_argument("--corruption-dwell-s", type=int, default=None,
                    help="Override the catalog's corruption_dwell_s for this "
                         "attack. Detection signal for state-change attacks "
