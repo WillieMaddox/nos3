@@ -1,4 +1,8 @@
-# NOS3 OnAIR Security Monitor — Stakeholder Rollout (NOS3-322)
+# NOS3 OnAIR Security Monitor — Stakeholder Rollout (EPIC AINOS3-42)
+
+> **Recurring playbook** for the AINOS3-42 "Stakeholder rollout & feedback" epic —
+> reuse this each rollout (once per sprint, or every other). AINOS3-43 is the first
+> instance (Sprint 3); file each subsequent readout as a fresh child ticket.
 
 A presenter's guide for walking stakeholders through **what the detector catches
 / what it doesn't**, demoing the live coverage overlay, and capturing feedback as
@@ -10,7 +14,7 @@ backlog tickets. The two artifacts to present are already prepared:
 - **The demo:** `app/sparta_coverage.html` — open in any browser (offline,
   `file://` friendly). The NOS3 overlay badges each SPARTA technique with real
   detection status and, in the coverage panel, a **"Top fields (why)"** column
-  (the SHAP-derived telemetry drivers, NOS3-311/312). Rebuilt 2026-07-05 so it
+  (the SHAP-derived telemetry drivers, AINOS3-38/AINOS3-40). Rebuilt 2026-07-05 so it
   reflects the current model + explanations.
   > The HTML is a **local build artifact** (git-ignored; regenerated from the
   > tracked `nos3_coverage.js` + `nos3_overlay.js`). If it's missing or stale,
@@ -30,13 +34,13 @@ backlog tickets. The two artifacts to present are already prepared:
    - a **DEAD / unlabelable** class — to show the honest limit (sibling-ambiguous
      vs nominal-ambiguous, coverage doc §B);
    - an **explanation caveat** — generic activity counters can top the list
-     (NOS3-306); the attack-specific field is within the top-N.
+     (AINOS3-39); the attack-specific field is within the top-N.
 4. **The honest limits** (coverage doc "What it does NOT catch", A–F): SUNSAFE-
    tied detection, unlabelable classes, unobservable attacks, out-of-fold label
-   accuracy, and the ~52 s post-mode-switch blind window (NOS3-303, just reduced
+   accuracy, and the ~52 s post-mode-switch blind window (AINOS3-35, just reduced
    from ~124 s).
-5. **Next bets** — the open backlog (NOS3-305 hybrid, NOS3-321 extra MIDs to
-   revive DEAD classes, NOS3-330 next-ML spike) — and ask which matter most.
+5. **Next bets** — the open backlog (AINOS3-37 hybrid, AINOS3-30 extra MIDs to
+   revive DEAD classes, next-ml-bet next-ML spike) — and ask which matter most.
 
 ## Feedback capture (→ turn each into a ticket)
 
@@ -45,7 +49,7 @@ backlog tickets. The two artifacts to present are already prepared:
 |   |             |                     |                                       |                    |
 
 After the session, file the captured rows as backlog tickets (mirror the
-`SPRINT_3_PLAN.md` format: Summary + Description + Type) and link them back here.
+`SPRINT_24_PLAN.md` format: Summary + Description + Type) and link them back here.
 
 ## Status
 

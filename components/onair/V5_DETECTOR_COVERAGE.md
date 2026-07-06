@@ -194,7 +194,7 @@ plugin uses for alerts. This lifted effective detection from ~61 % (frame) to
 Incident **detection** is IF-gate-driven and already honest (the threshold is
 calibrated on held-out nominal). Incident **labelling** had only ever been
 measured in-sample. Re-scoring the same `csv_corpus_v3stage` corpus with
-leave-one-instance-out, out-of-fold predictions (NOS3-302) gives the honest
+leave-one-instance-out, out-of-fold predictions (AINOS3-34) gives the honest
 figure: **34.6 % label accuracy of detected attacks, versus 76.9 % in-sample** —
 the in-sample number was more than 2× optimistic. Incident detection recall is
 identical either way (78/115), exactly as expected: only the label source
@@ -216,22 +216,22 @@ The label collapse is tier- and mode-dependent:
   - *Frame-level* (each frame's actual mode — the operationally real "attacked
     while persistently in mode X" question): **PASSIVE 0.148 cluster-acc is the
     WORST**, vs INERTIAL 0.341, SUNSAFE 0.395, BDOT 0.419. This **confirms** the
-    original NOS3-301 premise (PASSIVE is the weak mode). It is **intrinsic, not
+    original AINOS3-33 premise (PASSIVE is the weak mode). It is **intrinsic, not
     compositional**: the same cluster labels worse in PASSIVE (e.g.
     `EX-0012.{03,04,05}` 0.29 PASSIVE vs 0.44/0.50/0.52 elsewhere) — a single
     global classifier underfits PASSIVE's quiescent telemetry regime.
 
-**NOS3-301 (closed — negative result):** all three mode-aware approaches were
+**AINOS3-33 (closed — negative result):** all three mode-aware approaches were
 evaluated by LOIO over the frozen corpus and **none** raise PASSIVE label
 accuracy (PASSIVE cluster-acc: baseline 0.148 → mode-feature 0.146, per-mode
 heads 0.120, mode-rebalanced 0.150). A PASSIVE-only specialist scoring *below*
 the global model shows the global 0.148 is propped up by cross-mode transfer:
 PASSIVE labeling is an **information limit, not a modeling one**, so no
 mode-aware architecture on the current 894 features closes it. The real fix must
-add *signal* (extra discriminating MIDs — NOS3-321 — or temporal features), not
+add *signal* (extra discriminating MIDs — AINOS3-30 — or temporal features), not
 rearrange the model. Per-mode heads *do* help the higher-signal modes
 (INERTIAL +0.06, SUNSAFE +0.06, ROBUST +0.07, overall +0.01); that upside is
-filed as **NOS3-305** (selective hybrid, backlog).
+filed as **AINOS3-37** (selective hybrid, backlog).
 
 Bottom line: today, trust an incident's *existence* far more than its *label*,
 and treat **PASSIVE labels as low-confidence regardless of model**. (Source:
@@ -245,7 +245,7 @@ The classifier runs **only** on frames Stage 1 already flagged (it skips ~89 %
 of frames this way). It therefore **cannot** detect an attack the anomaly
 detector missed. The detection net is Stage 1; Stage 2 only attaches a label.
 
-### F. Blind window after every ADCS mode switch (NOS3-303)
+### F. Blind window after every ADCS mode switch (AINOS3-35)
 
 The detector suppresses alerts for **~124 s (600 frames) after each mode
 switch**, to ride out the switch transient. So **detection is reliable only in a

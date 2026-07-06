@@ -1,9 +1,9 @@
-# Sprint 3 — "Trustworthy & Explainable" 🔍
+# Sprint 24 — "Trustworthy & Explainable" 🔍
 
 **Component:** `OnAIR-Security` · **Duration:** 2 weeks
 **Capacity:** ~16 E-pts / ~7–8 T-pts (solo, realistic focus factor)
 **Created:** 2026-06-10 · **Context:** Phases 1–3 are deployed; Phase 4 (TCN) is
-closed as diminishing-returns; Sprint 2 shipped the incident layer + coverage
+closed as diminishing-returns; Sprint 23 shipped the incident layer + coverage
 doc + demo overlay (all committed). The next gaps are **classification trust**
 (labels collapse in PASSIVE, are noisy elsewhere, and are only validated
 in-sample) and **explainability** (Phase 7), which is what makes alerts
@@ -30,28 +30,38 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 
 ## Index
 
-| Key | Type | Pri | E | T | Summary |
-|---|---|---|--:|--:|---|
-| NOS3-300 | Epic | — | — | — | Classification trust (close the mode gap) |
-| NOS3-301 | Story | Highest | 8 | 3.0 | ✅ CLOSED (negative result) — PASSIVE labeling is an info limit, not modeling; keep v3 |
-| NOS3-302 | Task | High | 5 | 1.25 | ✅ DONE (2026-06-29) — out-of-fold incident-label accuracy = 34.6% |
-| NOS3-303 | Task | Medium | 3 | 1.0 | ✅ DONE + DEPLOYED — 36-switch soak: transient ~36s; ModeSwitchWarmupFrames 600→250 live (blind window 124s→52s) |
-| NOS3-304 | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
-| NOS3-305 | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
-| NOS3-306 | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
-| NOS3-310 | Epic | — | — | — | Explainability (Phase 7 start) |
-| NOS3-311 | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
-| NOS3-312 | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
-| NOS3-320 | Epic | — | — | — | Coverage gaps & stakeholder rollout |
-| NOS3-321 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
-| NOS3-322 | Task | High | 2 | 0.5 | ◑ READY — rollout materials + current demo prepared; owner presents |
-| NOS3-330 | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
+**IDs are slugs; Jira keys are the real ticket keys.** The durable slug ↔
+Jira-key mapping is maintained in **[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md)**
+(cross-sprint, append-only) — that file is where you *enter* keys. The `Jira`
+column below is a read-only mirror (keys are immutable, so it can't drift). In the
+section bodies below, a ticket is referenced by its **Jira key** where one exists
+(`next-ml-bet` has none yet, so it uses its slug); look any key up in this table
+or the crosswalk. Recurring work keeps a stable epic slug and tags each instance
+with the Jira sprint number (`rollout-s24`, next `rollout-s25`).
+
+| Slug | Jira | Type | Pri | E | T | Summary |
+|---|---|---|---|--:|--:|---|
+| classification-trust | AINOS3-31 | Epic | — | — | — | Classification trust (close the mode gap) |
+| mode-aware-classifier | AINOS3-33 | Story | Highest | 8 | 3.0 | ✅ CLOSED (negative result) — PASSIVE labeling is an info limit, not modeling; keep v3 |
+| oof-label-accuracy | AINOS3-34 | Task | High | 5 | 1.25 | ✅ DONE (2026-06-29) — out-of-fold incident-label accuracy = 34.6% |
+| warmup-tuning | AINOS3-35 | Task | Medium | 3 | 1.0 | ✅ DONE + DEPLOYED — 36-switch soak: transient ~36s; ModeSwitchWarmupFrames 600→250 live (blind window 124s→52s) |
+| mode-lock-artifact | AINOS3-36 | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
+| selective-mode-hybrid | AINOS3-37 | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
+| counter-reliance-audit | AINOS3-39 | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
+| explainability | AINOS3-32 | Epic | — | — | — | Explainability (Phase 7 start) |
+| shap-attribution | AINOS3-38 | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
+| surface-explanations | AINOS3-40 | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
+| coverage-expansion | AINOS3-41 | Epic | — | — | — | Detection coverage expansion |
+| extra-mids | AINOS3-30 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
+| next-ml-bet | — | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
+| stakeholder-rollout | AINOS3-42 | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
+| rollout-s24 | AINOS3-43 | Task | High | 2 | 0.5 | ◑ READY — under stakeholder-rollout; rollout materials + demo prepared; owner presents |
 
 **Totals (all tickets):** E = 41 · T = 12.0 (≈ 96 ideal hours).
 
 ---
 
-## 🟪 EPIC NOS3-300 — Classification trust (close the mode gap)
+## 🟪 EPIC AINOS3-31 — Classification trust (close the mode gap)
 
 **Summary:** Make attack-type labels reliable across ADCS modes and honestly
 measured.
@@ -60,7 +70,7 @@ INERTIAL/SUNSAFE but collapses to `nominal`/`EX-0012.09` in PASSIVE, and the
 incident-label accuracy reported so far is in-sample. This epic raises label
 trust and replaces the in-sample number with an honest one.
 
-### NOS3-301 — Mode-aware classifier · `Story` · Highest · E 8 · T 3.0 (~24h) · ✅ CLOSED 2026-06-29 (documented negative result)
+### AINOS3-33 — Mode-aware classifier · `Story` · Highest · E 8 · T 3.0 (~24h) · ✅ CLOSED 2026-06-29 (documented negative result)
 **Summary:** As an operator, I want the attack label to be reliable regardless
 of which ADCS mode the spacecraft is in.
 **Description:** The single v3 classifier is dominated by SUNSAFE/INERTIAL
@@ -90,13 +100,13 @@ not deployed wholesale. **The deployed v3 classifier is kept as-is.**
 - ➡️ Deploy criterion intentionally **not** exercised — no model change shipped.
 **Honest deliverable:** the per-mode LOIO table, the provable negative result,
 operator guidance that **PASSIVE incident labels are low-confidence**, and a
-redirect of the real PASSIVE fix to signal-adding work (NOS3-321 extra MIDs /
+redirect of the real PASSIVE fix to signal-adding work (AINOS3-30 extra MIDs /
 temporal features add *information*; they don't rearrange the model).
-**Spun off:** the per_mode INERTIAL/SUNSAFE/ROBUST upside → **NOS3-305** (selective
+**Spun off:** the per_mode INERTIAL/SUNSAFE/ROBUST upside → **AINOS3-37** (selective
 hybrid), tracked separately because it's plugin work for a benefit that is *not*
-what NOS3-301 was for.
+what AINOS3-33 was for.
 
-### NOS3-302 — Out-of-fold incident-label accuracy · `Task` · High · E 5 · T 1.25 (~10h)
+### AINOS3-34 — Out-of-fold incident-label accuracy · `Task` · High · E 5 · T 1.25 (~10h)
 **Summary:** Measure incident-label accuracy out-of-fold, not in-sample.
 **Description:** `eval_incident_rescore.py` currently labels incidents with the
 in-sample v3. Extend it to drive incident aggregation from the LOIO out-of-fold
@@ -108,13 +118,13 @@ accuracy per mode and per cluster.
 - Coverage doc updated to replace the in-sample caveat with the real number.
 **Estimate note:** ~80 min of LOIO retrain wall-clock is excluded from T.
 
-### NOS3-303 — Mode-switch warmup tuning / guidance · `Task` · Medium · E 3 · T 1.0 (~8h) · ✅ DONE 2026-07-05
+### AINOS3-35 — Mode-switch warmup tuning / guidance · `Task` · Medium · E 3 · T 1.0 (~8h) · ✅ DONE 2026-07-05
 **Summary:** Stop the 600-frame mode-switch warmup from blinding detection in
 transient modes (or document the operational guidance).
 **Description:** The IF re-arms a 600-frame (~124 s @ 4.83 fps) warmup on every
 routing switch (`ModeSwitchWarmupFrames`, `isolation_forest_plugin.py`),
 suppressing ALERT/CLEAR. An attack in a mode held < that window is never flagged.
-NOS3-304 makes this MORE relevant (modes do switch reliably/often).
+AINOS3-36 makes this MORE relevant (modes do switch reliably/often).
 **Measured — confirmatory 36-switch nominal soak (2026-07-05,
 `analyze_mode_switch_warmup.py`, 8731 frames, steady-state baseline 0.0%):**
 the post-switch transient is **16-21% through ~26 s**, drops to 9.4% at ~31 s,
@@ -137,7 +147,7 @@ log confirms `[iforest] mode-switch warmup=250 frames`. Per-switch blind window
 now ~52 s (was ~124 s).
 **Estimate note:** soak wall-clock for the confirmatory measurement excluded.
 
-### NOS3-304 — "FSW idle mode-lock" was a CSV-parsing artifact · `Bug` · High · E 2 · T 0.5 (~4h) · ✅ RESOLVED 2026-06-29
+### AINOS3-36 — "FSW idle mode-lock" was a CSV-parsing artifact · `Bug` · High · E 2 · T 0.5 (~4h) · ✅ RESOLVED 2026-06-29
 **Summary:** The long-held belief that a long-idle FSW silently rejects
 BDOT/SUNSAFE mode commands (and stays pinned in PASSIVE) is not a real FSW
 behaviour — it was a telemetry **measurement artifact** from naive CSV parsing.
@@ -169,7 +179,7 @@ addressing columns by header name) shows the mode changing normally.
 telemetry via `pd.read_csv` (`loader.py:140`) and additionally rejects
 row-misaligned files via `_file_is_clean()` (`loader.py:66`). The IF models,
 XGBoost classifiers, mode-balanced corpus, and all per-mode accuracy findings
-(NOS3-301/302) are unaffected — they were always parsed correctly. The artifact
+(AINOS3-33/AINOS3-34) are unaffected — they were always parsed correctly. The artifact
 only ever affected ad-hoc shell one-liners and the operational mode-lock belief.
 **Resolution / actions:**
 - Memory corrected (`project_fsw_autonomy_mode_lock.md`): the "Why" and
@@ -192,10 +202,10 @@ is unnecessary at this scale and can be dropped from `run_attack` /
 original 2026-05-16 observation remains formally un-reproduced, but the handler
 has no time-based gate, so 11 h is expected to behave identically.)
 
-### NOS3-305 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · `Backlog`
+### AINOS3-37 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · `Backlog`
 **Summary:** Bank the INERTIAL/SUNSAFE/ROBUST gains from per-mode heads without
 the BDOT/PASSIVE regressions, via mode-routed classification.
-**Description:** NOS3-301 showed full `per_mode` routing helps the two signal-rich
+**Description:** AINOS3-33 showed full `per_mode` routing helps the two signal-rich
 dynamic **modes** (INERTIAL +0.058, SUNSAFE +0.061, overall +0.012) and the
 cross-mode ROBUST **tier** (+0.068) but regresses the signal-poor modes
 (BDOT −0.047, PASSIVE −0.028). A **selective hybrid** — route INERTIAL/SUNSAFE
@@ -217,29 +227,29 @@ realized ROBUST-tier gain is **to be measured**, not assumed.
 - Per-mode calibration validated (confidences comparable across heads).
 - Model + routing + calibration deployed; ini updated; build tree synced.
 **Estimate note:** E carries integration risk (routing + multi-head calibration
-in the live plugin). Independent of NOS3-301's outcome; pull in only after the
-explainability epic (NOS3-310) if capacity is tight.
+in the live plugin). Independent of AINOS3-33's outcome; pull in only after the
+explainability epic (AINOS3-32) if capacity is tight.
 
-### NOS3-306 — Audit classifier reliance on activity counters · `Spike` · Low · E 3 · T 0.75 · `Backlog`
-**Summary:** NOS3-311 attribution showed v3 keys heavily on generic high-traffic
+### AINOS3-39 — Audit classifier reliance on activity counters · `Spike` · Low · E 3 · T 0.75 · `Backlog`
+**Summary:** AINOS3-38 attribution showed v3 keys heavily on generic high-traffic
 counters (`CFE_EVS_HK.AppData`, `CFE_ES.CommandCounter`, `CFE_TBL.*`) across many
 attacks. Audit whether these are genuine discriminative signal or an
 activity-level shortcut, and whether regularizing/dropping them would improve
 per-attack discrimination without hurting LOIO accuracy. Deferred — informational,
-not blocking; any model change interacts with NOS3-301's "keep v3" decision.
-**Placement:** spun off from the NOS3-311 finding but it's a classification-trust
-concern (model behaviour), so it lives under EPIC NOS3-300, not Explainability.
+not blocking; any model change interacts with AINOS3-33's "keep v3" decision.
+**Placement:** spun off from the AINOS3-38 finding but it's a AINOS3-31
+concern (model behaviour), so it lives under EPIC AINOS3-31, not Explainability.
 
 ---
 
-## 🟪 EPIC NOS3-310 — Explainability (Phase 7 start)
+## 🟪 EPIC AINOS3-32 — Explainability (Phase 7 start)
 
 **Summary:** Attach a human-readable reason to every incident.
 **Description:** Master-plan Phase 7 calls for SHAP explainability as part of the
 production-grade system. A label without a reason is hard to action; this epic
 gives each incident its top contributing telemetry fields.
 
-### NOS3-311 — Per-incident feature attribution · `Story` · High · E 8 · T 2.25 (~18h) · ✅ DONE 2026-07-04
+### AINOS3-38 — Per-incident feature attribution · `Story` · High · E 8 · T 2.25 (~18h) · ✅ DONE 2026-07-04
 **Summary:** As an analyst, I want each incident to show which telemetry fields
 drove the detection/classification.
 **Description:** Compute SHAP (or TreeExplainer) attributions on the classifier
@@ -285,15 +295,15 @@ and IMP-0005 CFE_ES.CommandCounter stayed #1); it only reshuffled ranks 3–6 (a
 genuine win for DE-0003.10, which surfaced the spoofed NOVATEL ephemeris values).
 All three methods (sum/max/contrastive) agree the generic counters dominate →
 this is the MODEL's real behavior, not an attribution artifact. Reweighting to
-hide it would be misleading. So: **keep the faithful ranking; close NOS3-311.**
+hide it would be misleading. So: **keep the faithful ranking; close AINOS3-38.**
 The attack-specific field is present in the top-6 in every validated case.
 **Both acceptance criteria met** (per-mode/attack top-N carried by incidents +
 validated ≥3 attacks). Prototype discarded.
-**Spun off:** a model-level observation → NOS3-306 (the classifier keys on
+**Spun off:** a model-level observation → AINOS3-39 (the classifier keys on
 activity-level counters; audit whether that's genuine signal or a shortcut —
-NOT a v3 change, since NOS3-301 kept v3).
+NOT a v3 change, since AINOS3-33 kept v3).
 
-### NOS3-312 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h) · ✅ DONE 2026-07-04
+### AINOS3-40 — Surface explanations · `Story` · Medium · E 3 · T 0.5 (~5h) · ✅ DONE 2026-07-04
 **Summary:** Show the per-incident explanation in the incident record and the
 demo app.
 **Description:** Add the top-N fields to `incident_*.csv` / the plugin reasoning,
@@ -303,7 +313,7 @@ catalog** (`data/onair/models/explanation_catalog.json`, built offline by
 `build_explanation_catalog.py`) is loaded by the plugin and the demo generator.
 **Delivered:**
 - `build_explanation_catalog.py` → 25-class catalog (class → top-N telemetry
-  fields via offline SHAP; faithful ranking per NOS3-311).
+  fields via offline SHAP; faithful ranking per AINOS3-38).
 - Plugin (`xgb_classifier_plugin.py`, submodule): loads the catalog (sibling of
   the classifier pickle, so it resolves at runtime with no ini change),
   `_explanation_for()` looks it up by winning sub-technique→cluster, and
@@ -319,16 +329,28 @@ classified EX-0012.12/EX-0014.01 wrote the `explanation` column to the side-file
 Nominal incidents correctly carry an empty explanation. Demo column verified in
 the regenerated `nos3_coverage.js`. (Runtime plugin synced to the build tree;
 the diff vs source was exactly this change.)
-**Depends on:** NOS3-311.
+**Depends on:** AINOS3-38.
 
 ---
 
-## 🟪 EPIC NOS3-320 — Coverage gaps & stakeholder rollout
+## 🟪 EPIC AINOS3-41 — Detection coverage expansion
 
-### NOS3-321 — Recover nominal-ambiguous DEAD classes · `Story` · Medium · E 8 · T 2.5 (~20h)
+**Summary:** Broaden what the detector can *see* and classify — add signal, not
+model capacity.
+**Description:** The `next-ml-bet` spike found the binding constraint is
+observability, not architecture, so this epic invests in coverage — *adding
+signal*, not changing the model. `AINOS3-30` is the first lever — restore the
+MIDs that csv-format-v2 pruned so the nominal-ambiguous DEAD classes can separate.
+Further telemetry-expansion work (more MIDs / subscribed subsystems) joins here as
+the theme grows. Note: `AINOS3-37` and `AINOS3-39` live
+under `AINOS3-31`, not here — the former is model *routing* (no new
+signal) and the latter *audits* label trust — but the audit's findings will point
+to which signals this epic should add next.
+
+### AINOS3-30 — Recover nominal-ambiguous DEAD classes · `Story` · Medium · E 8 · T 2.5 (~20h)
 **Summary:** Subscribe extra MIDs so `DE-0003.03/.08/.09`, `EX-0014.03` become
 detectable/classifiable.
-**Description:** Promoted from the Sprint-2 backlog (was NOS3-220). These
+**Description:** Carried from the Sprint 23 backlog. These
 techniques' frames are indistinguishable from nominal because the discriminating
 MIDs (`CFE_TBL.LastFileLoaded`/`LastUpdatedTable`, CryptoLib SA state) were
 pruned by csv-format-v2. Add them to `nos3_security_tlm.json`, re-collect +
@@ -339,16 +361,32 @@ retrain, and measure whether the classes separate.
 **Estimate note:** ~5h of corpus-collection wall-clock excluded from T; E
 carries risk the classes stay dead even with the new MIDs.
 
-### NOS3-322 — Stakeholder rollout · `Task` · High · E 2 · T 0.5 (~3h) · ◑ READY (owner presents)
+---
+
+## 🟪 EPIC AINOS3-42 — Stakeholder rollout & feedback (recurring)
+
+**Summary:** Recurring stakeholder readout — show the coverage overlay + doc each
+sprint (or every other) and turn feedback into backlog.
+**Description:** A standing readout, not a one-off. Present the current
+`app/sparta_coverage.html` detection-coverage overlay + `V5_DETECTOR_COVERAGE.md`,
+walk stakeholders through "what it catches / what it doesn't," and log feedback as
+backlog candidates. **Cadence:** once per sprint or every other sprint; each
+occurrence is a fresh child slug tagged with the Jira sprint number (`AINOS3-43`
+is the first). Keeping it as its own epic — separate from the engineering work in
+`AINOS3-41` — keeps the AINOS3-41 backlog and the
+stakeholder-feedback backlog from tangling.
+
+### AINOS3-43 — Stakeholder rollout (Sprint 24) · `Task` · High · E 2 · T 0.5 (~3h) · ◑ READY (owner presents)
 **Summary:** Present `V5_DETECTOR_COVERAGE.md` + the demo overlay to stakeholders
 and capture feedback.
-**Description:** The coverage doc and demo overlay exist but haven't been shown.
-Walk stakeholders through "what it catches / what it doesn't," demo the live
-matrix overlay, and log the feedback as backlog candidates.
+**Description:** First instance of the recurring `AINOS3-42` readout. The coverage
+doc and demo overlay exist but haven't been shown. Walk stakeholders through
+"what it catches / what it doesn't," demo the live matrix overlay, and log the
+feedback as backlog candidates.
 **Materials prepared 2026-07-05:**
 - `STAKEHOLDER_ROLLOUT.md` — presenter's 5-min flow + a feedback-capture table.
 - Demo made current: regenerated `nos3_coverage.js` and rebuilt the inlined
-  overlay in `app/sparta_coverage.html` (now shows the NOS3-312 "Top fields
+  overlay in `app/sparta_coverage.html` (now shows the `AINOS3-40` "Top fields
   (why)" column). **Fixed a `build_overlay.py` bug** (`re.sub` mis-parsed `\u`
   escapes from the JSON-escaped `Δ` in explanations — now uses a function repl).
 **Acceptance criteria:**
@@ -360,7 +398,7 @@ matrix overlay, and log the feedback as backlog candidates.
 
 ## 🔬 Spike
 
-### NOS3-330 — Next big-ML bet · `Spike` · Medium · E 3 · T 0.75 (~6h) · ✅ DONE 2026-07-05
+### next-ml-bet — Next big-ML bet · `Spike` · Medium · E 3 · T 0.75 (~6h) · ✅ DONE 2026-07-05
 **Summary:** Decide whether Phase 5 (VAE/DeepSAD) or Phase 6 (graph root-cause)
 is the next investment, or whether to consolidate.
 **Description:** Phases 1–3 are deployed and Phase 4 is closed. Before committing
@@ -369,9 +407,9 @@ lift over v5+v3, operational value) and recommend the next bet — or recommend
 consolidating the current system instead.
 **Recommendation (`NOS3_330_NEXT_ML_BET.md`):** **Phase 5 NO-GO, Phase 6 DEFER,
 CONSOLIDATE GO.** The binding constraint is *information* (observability), not
-model capacity — NOS3-301 (PASSIVE = info limit), Phase-4 deep-model plateau, and
+model capacity — AINOS3-33 (PASSIVE = info limit), Phase-4 deep-model plateau, and
 the nominal-ambiguous DEAD classes all point to signal, not architecture. Invest
-in NOS3-321 (extra MIDs) + 306 → 305; reopen DeepSAD only after 321 broadens the
+in AINOS3-30 (extra MIDs) + 306 → 305; reopen DeepSAD only after 321 broadens the
 signal; hold the graph model until coverage is broad + operators ask for causal
 chains beyond the shipped explanations.
 **Acceptance criteria — met:** one-page go/no-go delivered (`NOS3_330_NEXT_ML_BET.md`).
@@ -382,30 +420,30 @@ chains beyond the shipped explanations.
 
 | Key | Type | E | T | Summary |
 |---|---|--:|--:|---|
-| NOS3-221 | Story | 5 | 1.5 | TCN reconstruction-error as a feature, scoped to EX-0008 ATS/RTS |
-| NOS3-222 | Task | 3 | 0.75 | 4th corpus instance (LOIO variance already ±3.6%; ~5h wall-clock) |
-| NOS3-223 | Story | 3 | 1.0 | Demo app Tier B/C (live execution / agent) |
-| NOS3-350 | Story | 8 | 2.5 | Optional: foundation-model (MOMENT/THEMIS) zero-shot baseline |
+| AINOS3-44 | Story | 5 | 1.5 | TCN reconstruction-error as a feature, scoped to EX-0008 ATS/RTS |
+| AINOS3-45 | Task | 3 | 0.75 | 4th corpus instance (LOIO variance already ±3.6%; ~5h wall-clock) |
+| AINOS3-46 | Story | 3 | 1.0 | Demo app Tier B/C (live execution / agent) |
+| AINOS3-47 | Story | 8 | 2.5 | Optional: foundation-model (MOMENT/THEMIS) zero-shot baseline |
 
 ---
 
 ## Capacity note
 
 **Two readings of the same overcommit:**
-- **Effort:** committed E across NOS3-301/302/303/311/312/322/330 = **32**
+- **Effort:** committed E across AINOS3-33/AINOS3-34/AINOS3-35/AINOS3-38/AINOS3-40/AINOS3-43/next-ml-bet = **32**
   vs ~16/sprint capacity.
 - **Time:** the same set = **~9.25 T** (≈ 74 ideal hours) vs ~7–8 T realistic
   solo capacity for a 2-week sprint (10 working days × ~0.7 focus factor).
 
 Both say the full set doesn't fit. Recommended **commitment**: the two
-highest-value epics — **NOS3-300 (E 16 / T 5.25)** + **NOS3-311+312 (E 11 /
-T 2.75)** ≈ **T 8.0** — with NOS3-321 and the spike as stretch. If velocity is
-tighter, commit NOS3-300 and pull explainability forward only after the mode
+highest-value epics — **AINOS3-31 (E 16 / T 5.25)** + **AINOS3-38+312 (E 11 /
+T 2.75)** ≈ **T 8.0** — with AINOS3-30 and the spike as stretch. If velocity is
+tighter, commit AINOS3-31 and pull explainability forward only after the mode
 gap is closed.
 
 ## Suggested execution order
 
-1. **NOS3-302** (honest out-of-fold numbers — grounds everything else).
-2. **NOS3-301** (mode-aware classifier — the core trust fix).
-3. **NOS3-311 → 312** (explainability on the improved model).
-5. **NOS3-322** (rollout) + **NOS3-330** (next-bet spike) in parallel.
+1. **AINOS3-34** (honest out-of-fold numbers — grounds everything else).
+2. **AINOS3-33** (mode-aware classifier — the core trust fix).
+3. **AINOS3-38 → 312** (explainability on the improved model).
+5. **AINOS3-43** (rollout) + **next-ml-bet** (next-bet spike) in parallel.
