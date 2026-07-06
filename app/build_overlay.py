@@ -14,7 +14,7 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HTML = os.path.join(HERE, "sparta_standalone.html")
+HTML = os.path.join(HERE, "sparta_coverage.html")
 COVERAGE = os.path.join(HERE, "nos3_coverage.js")
 OVERLAY = os.path.join(HERE, "nos3_overlay.js")
 

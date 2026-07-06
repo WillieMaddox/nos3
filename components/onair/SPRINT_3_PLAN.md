@@ -348,7 +348,7 @@ matrix overlay, and log the feedback as backlog candidates.
 **Materials prepared 2026-07-05:**
 - `STAKEHOLDER_ROLLOUT.md` — presenter's 5-min flow + a feedback-capture table.
 - Demo made current: regenerated `nos3_coverage.js` and rebuilt the inlined
-  overlay in `app/sparta_standalone.html` (now shows the NOS3-312 "Top fields
+  overlay in `app/sparta_coverage.html` (now shows the NOS3-312 "Top fields
   (why)" column). **Fixed a `build_overlay.py` bug** (`re.sub` mis-parsed `\u`
   escapes from the JSON-escaped `Δ` in explanations — now uses a function repl).
 **Acceptance criteria:**
