@@ -57,6 +57,7 @@ data/onair/csv/
 ex_*_log_*.csv
 demo_*_log_*.csv
 imp_*_log_*.csv
+de_*_log_*.csv
 ia_*_log_*.csv
 per_*_log_*.csv
 rec_*_log_*.csv

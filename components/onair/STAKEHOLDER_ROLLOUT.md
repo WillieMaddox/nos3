@@ -7,7 +7,7 @@ backlog tickets. The two artifacts to present are already prepared:
 - **The doc:** `components/onair/V5_DETECTOR_COVERAGE.md` — the honest
   "catches / doesn't" reference (per-mode FP, SUNSAFE detection list, classifier
   tiers, the two DEAD-class failure modes, drift result, blind-window limit).
-- **The demo:** `app/sparta-standalone 1.html` — open in any browser (offline,
+- **The demo:** `app/sparta_standalone.html` — open in any browser (offline,
   `file://` friendly). The NOS3 overlay badges each SPARTA technique with real
   detection status and, in the coverage panel, a **"Top fields (why)"** column
   (the SHAP-derived telemetry drivers, NOS3-311/312). Rebuilt 2026-07-05 so it
@@ -50,6 +50,6 @@ After the session, file the captured rows as backlog tickets (mirror the
 ## Status
 
 - [x] Doc ready (`V5_DETECTOR_COVERAGE.md`, current).
-- [x] Demo ready + current (`sparta-standalone 1.html` rebuilt with explanations).
+- [x] Demo ready + current (`sparta_standalone.html` rebuilt with explanations).
 - [ ] **Presentation delivered** — owner action (cannot be automated).
 - [ ] **Feedback captured as tickets** — fill the table above during/after.
