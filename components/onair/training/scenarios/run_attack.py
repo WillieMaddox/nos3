@@ -122,6 +122,10 @@ LOCAL_SCENARIOS = list(SCENARIOS) + [
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 ATTACK_SCRIPTS_ROOT = os.path.join(REPO_ROOT, "gsw", "attack_scripts", "sparta")
+# Log hygiene (NOS3-322 change A): route each attack's detection log into
+# <repo>/logs/attack_runs/ instead of the CWD (which cluttered the repo root).
+# Persistent (outside fsw/build, survives rebuilds), git-ignored, NAS-backed.
+ATTACK_LOG_DIR = os.path.join(REPO_ROOT, "logs", "attack_runs")
 
 # Catalog of supported iter-0 attack scripts. Each entry maps a short ID to
 # the SPARTA technique code, the script's relative path, the standard CLI
@@ -420,6 +424,13 @@ def run_attack_subprocess(
 ) -> dict:
     """Fire the attack script as a subprocess; return a manifest record."""
     extra_args = list(extra_args or [])
+    # Route the detection log into logs/attack_runs/ (not the CWD) unless the
+    # caller already passed --output. All 33 catalog scripts accept --output.
+    if not dry_run and "--output" not in extra_args:
+        os.makedirs(ATTACK_LOG_DIR, exist_ok=True)
+        stem = os.path.splitext(os.path.basename(script_path))[0]
+        ts = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        extra_args += ["--output", os.path.join(ATTACK_LOG_DIR, f"{stem}_log_{ts}.csv")]
     cmd = [
         sys.executable, script_path,
         "--fsw-host", fsw_host,
