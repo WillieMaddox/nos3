@@ -47,14 +47,47 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
 ---
 
-### validate-pnt-geofence — Validate EX-0002 (PNT Geofencing) · `Task` · Medium
+### validate-pnt-geofence — Validate EX-0002 (PNT Geofencing) · `Task` · Medium · ◑ FOOTPRINT-VALIDATED 2026-07-16
 **Summary:** As a defender, I want EX-0002 (PNT geofencing manipulation) validated
 into the corpus so the detector is scored against it.
-**Description:** Attack forces the spacecraft's believed position across a
-geofence boundary via GPS/PNT manipulation. Script `ex_0002_pnt_geofencing.py`
-exists but was never folded into the validated corpus. Footprint expected in the
-already-subscribed `NOVATEL_HK` / `NOVATEL` device position fields.
-**AC:** common criteria; confirm which NOVATEL field(s) move + magnitude.
+**Description:** Attack disables the GPS receiver (NOVATEL) to cut PNT data (level
+2) and shifts CFE_TIME STCF (level 3), forcing ADCS onto stale nav.
+**VALIDATED live (2026-07-16, `ex_0002_pnt_geofencing.py --attack-level 2`):**
+- **Signal class: ON_BOARD, clean.** `NOVATEL_HK.DeviceEnabled: 1→0` (GPS disabled)
+  — an unambiguous discrete flag, in subscribed telemetry (221 frames). The
+  position/attitude drift is mostly natural orbital dynamics over the window; the
+  flag is the smoking gun. GPS re-enabled afterward (cleanup).
+- **Deployed IF MISSES it:** is_anomaly=0 / alert=0 across all GPS-disabled frames
+  (score ~0.12, MODE_SUNSAFE). In SUNSAFE the ADCS uses sun/mag not GPS, so
+  disabling GPS barely perturbs the *attitude dynamics* the IF watches — the flag
+  flip itself isn't a feature the IF weights.
+**AC:** footprint ON_BOARD ✓. Detection needs a rule on `NOVATEL_HK.DeviceEnabled`
+(or re-test in an INERTIAL/nav-dependent mode where stale GPS actually perturbs
+dynamics). See the campaign-findings note below.
+
+---
+
+## Campaign findings (running) — the IF is a *dynamics* detector, not a *state* detector
+
+**2/2 validated Section-A techniques so far are ON_BOARD but MISSED by the deployed
+IF, for the same structural reason.** DE-0010 (EVS event-flood) and EX-0002 (GPS
+DeviceEnabled→0) both leave clean, subscribed footprints the v5 per-mode IF does not
+flag. Contrast: the already-validated EX-0012.07/08/09 subsystem-corruption attacks
+ARE caught (ROBUST tier) — because they perturb the GNC *attitude dynamics* the IF
+is trained on.
+
+**Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
+dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
+or a counter/rate spike that doesn't disturb the physics** (EVS send-rate, GPS
+enable flag, likely CI/SB counters, LC/DS/FM state). Because the classifier is
+IF-gated, these are undetected end-to-end despite loud, subscribed signals.
+
+**Implication:** for this class, "validate → fold into corpus → detector catches it"
+is the wrong remedy — more data won't teach a dynamics-IF to watch a flag. The cheap,
+high-leverage fix is a **lightweight rule/threshold layer beside the IF** (flag
+discrete state changes: `*.DeviceEnabled→0`, mode changes, EVS/SB send-rate spikes),
+gating the classifier in parallel with the IF. Recommend confirming with 1-2 more
+diverse techniques, then prototyping that rule layer rather than grinding all 13.
 
 ### validate-hw-commands — Validate EX-0005.02 (Malicious Use of Hardware Commands) · `Task` · Medium
 **Summary:** Validate direct malicious hardware/device commands into the corpus.
@@ -146,6 +179,12 @@ so the audit trail is drowned. Observable in the EVS housekeeping.
   all 263 flood-burst frames (score ~0.12 vs thr ~0). The per-mode, GNC-dominated
   IF doesn't weight CDH/EVS counters; since the classifier is IF-gated, DE-0010 is
   **undetected end-to-end** despite the loud footprint.
+**Re-run 2026-07-16 (post 16-MID subscription):** footprint reconfirmed (EVS sent
++379). New footprint element: **`CFE_SB.MsgSendErrorCounter` +96** (flood induces SB
+send errors; already subscribed). **`CI.IngestPackets` did NOT move** — externally
+injected commands hit the NOS3 UDP→SB bridge at :5012 and **bypass CI_LAB**, so
+`CI_LAB_HK` is NOT a command-injection signal in NOS3 (refutes a triage assumption;
+same likely applies to the EX-0013 flood tickets). No new MID adds DE-0010 signal.
 **Revised AC:** footprint is confirmed ON_BOARD ✓. Folding into the corpus is
 **not** guaranteed to make the IF catch it — the honest next step is (a) collect
 DE-0010 + retrain and re-measure whether the IF learns the EVS-flood signature, or
