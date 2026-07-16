@@ -3,1407 +3,2695 @@
         "CDH": {
             "CFE_EVS.PacketID.AppName": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Application name that generated the event"
             },
             "CFE_EVS.PacketID.EventID": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Numeric event identifier"
             },
             "CFE_EVS.PacketID.EventType": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Event type: 1=DEBUG 2=INFO 3=ERROR 4=CRITICAL"
             },
             "CFE_EVS.PacketID.SpacecraftID": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Spacecraft identifier"
             },
             "CFE_EVS.PacketID.ProcessorID": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Processor identifier"
             },
             "CFE_EVS.Message": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Event message text (up to 122 chars); ERROR/CRITICAL from unexpected app = attack signal"
             },
             "CFE_EVS.Spare1": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Padding spare byte 1"
             },
             "CFE_EVS.Spare2": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Padding spare byte 2"
             },
             "CFE_EVS_HK.CommandCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EVS valid command count"
             },
             "CFE_EVS_HK.CommandErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EVS command error count"
             },
             "CFE_EVS_HK.MessageFormatMode": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Event message format mode (short/long)"
             },
             "CFE_EVS_HK.MessageTruncCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Count of truncated event messages; spike indicates event flooding attack"
             },
             "CFE_EVS_HK.UnregisteredAppCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Count of events from unregistered apps; nonzero = unauthorized code executing"
             },
             "CFE_EVS_HK.OutputPort": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Active EVS output port bitmask"
             },
             "CFE_EVS_HK.LogFullFlag": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EVS log full flag; 1 = log exhausted (possible flooding)"
             },
             "CFE_EVS_HK.LogMode": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Log mode: 0=overwrite 1=discard"
             },
             "CFE_EVS_HK.MessageSendCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Total event messages sent"
             },
             "CFE_EVS_HK.LogOverflowCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Count of log overflow events"
             },
             "CFE_EVS_HK.LogEnabled": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EVS local log enabled flag"
             },
             "CFE_EVS_HK.Spare1": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Padding spare byte 1"
             },
             "CFE_EVS_HK.Spare2": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Padding spare byte 2"
             },
             "CFE_EVS_HK.Spare3": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Padding spare byte 3"
             },
             "CFE_EVS_HK.AppData": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Per-app event stats array (16 apps): AppID, SentCounter, EnableStatus, SquelchedCounter; AppEnableStatus=0 during anomaly = event suppression attack"
             },
             "CFE_ES.CommandCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ES valid command count"
             },
             "CFE_ES.CommandErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ES command error count"
             },
             "CFE_ES.CFECoreChecksum": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "CRC checksum of cFE core; change = firmware tamper"
             },
             "CFE_ES.CFEMajorVersion": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "cFE major version"
             },
             "CFE_ES.CFEMinorVersion": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "cFE minor version"
             },
             "CFE_ES.CFERevision": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "cFE revision"
             },
             "CFE_ES.CFEMissionRevision": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "cFE mission revision"
             },
             "CFE_ES.OSALMajorVersion": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "OSAL major version"
             },
             "CFE_ES.OSALMinorVersion": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "OSAL minor version"
             },
             "CFE_ES.OSALRevision": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "OSAL revision"
             },
             "CFE_ES.OSALMissionRevision": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "OSAL mission revision"
             },
             "CFE_ES.PSPMajorVersion": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "PSP major version"
             },
             "CFE_ES.PSPMinorVersion": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "PSP minor version"
             },
             "CFE_ES.PSPRevision": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "PSP revision"
             },
             "CFE_ES.PSPMissionRevision": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "PSP mission revision"
             },
             "CFE_ES.SysLogBytesUsed": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Bytes used in system log"
             },
             "CFE_ES.SysLogSize": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Total system log capacity in bytes"
             },
             "CFE_ES.SysLogEntries": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Number of entries in system log"
             },
             "CFE_ES.SysLogMode": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "System log mode: 0=overwrite 1=discard"
             },
             "CFE_ES.ERLogIndex": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Exception/Reset log next write index"
             },
             "CFE_ES.ERLogEntries": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Exception/Reset log entry count"
             },
             "CFE_ES.RegisteredCoreApps": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Count of registered core cFE apps"
             },
             "CFE_ES.RegisteredExternalApps": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Count of registered external apps; change mid-mission = unauthorized app load"
             },
             "CFE_ES.RegisteredTasks": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Count of registered OS tasks"
             },
             "CFE_ES.RegisteredLibs": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Count of registered shared libraries"
             },
             "CFE_ES.ResetType": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Last reset type (power-on vs processor)"
             },
             "CFE_ES.ResetSubtype": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Last reset subtype"
             },
             "CFE_ES.ProcessorResets": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Processor reset counter; incrementing = crash-exploitation or watchdog triggered"
             },
             "CFE_ES.MaxProcessorResets": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Maximum allowed processor resets before power-on reset"
             },
             "CFE_ES.BootSource": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Boot source identifier"
             },
             "CFE_ES.PerfState": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance monitor state"
             },
             "CFE_ES.PerfMode": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance monitor mode"
             },
             "CFE_ES.PerfTriggerCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance monitor trigger count"
             },
             "CFE_ES.PerfFilterMask": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance filter mask array (4 x uint32 = 128 IDs)"
             },
             "CFE_ES.PerfTriggerMask": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance trigger mask array (4 x uint32 = 128 IDs)"
             },
             "CFE_ES.PerfDataStart": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance data buffer start index"
             },
             "CFE_ES.PerfDataEnd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance data buffer end index"
             },
             "CFE_ES.PerfDataCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance data entry count"
             },
             "CFE_ES.PerfDataToWrite": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Performance data entries pending write"
             },
             "CFE_ES.HeapBytesFree": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Heap bytes free; sustained drain = memory-exhaustion attack"
             },
             "CFE_ES.HeapBlocksFree": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Heap free block count"
             },
             "CFE_ES.HeapMaxBlockSize": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Largest free heap block in bytes"
             },
             "CFE_SB.CommandCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SB valid command count"
             },
             "CFE_SB.CommandErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SB command error count"
             },
             "CFE_SB.NoSubscribersCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Messages sent with no subscribers; spike = message-injection probe"
             },
             "CFE_SB.MsgSendErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Message send error count"
             },
             "CFE_SB.MsgReceiveErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Message receive error count"
             },
             "CFE_SB.InternalErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SB internal error count"
             },
             "CFE_SB.CreatePipeErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Pipe creation error count"
             },
             "CFE_SB.SubscribeErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Subscription error count"
             },
             "CFE_SB.PipeOptsErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Pipe options error count"
             },
             "CFE_SB.DuplicateSubscriptionsCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Duplicate subscription attempts; nonzero = eavesdropping setup"
             },
             "CFE_SB.GetPipeIdByNameErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Pipe name lookup error count"
             },
             "CFE_SB.Spare2Align": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Alignment padding byte"
             },
             "CFE_SB.PipeOverflowErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Pipe overflow error count; spike = pipe-flooding DoS"
             },
             "CFE_SB.MsgLimitErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Message limit error count; spike = pipe-flooding DoS"
             },
             "CFE_SB.MemPoolHandle": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SB memory pool handle"
             },
             "CFE_SB.MemInUse": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SB memory in use (bytes)"
             },
             "CFE_SB.UnmarkedMem": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SB untracked memory (bytes)"
             },
             "CFE_SB_SUBS.PktSegment": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Current segment number in multi-packet subscription dump"
             },
             "CFE_SB_SUBS.TotalSegments": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Total segments in subscription dump"
             },
             "CFE_SB_SUBS.Entries": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Number of subscription entries in this packet"
             },
             "CFE_SB_SUBS.Entry": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Array of 20 subscription entries (MsgId, Qos, PipeId, Spare); new MsgId after init = eavesdropping"
             },
             "CFE_TBL.CommandCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "TBL valid command count"
             },
             "CFE_TBL.CommandErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "TBL command error count"
             },
             "CFE_TBL.NumTables": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Number of registered tables"
             },
             "CFE_TBL.NumLoadPending": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Tables with pending loads; nonzero outside maintenance = table injection"
             },
             "CFE_TBL.ValidationCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Table validation request count"
             },
             "CFE_TBL.LastValCrc": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "CRC of last validated table"
             },
             "CFE_TBL.LastValStatus": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Status of last table validation"
             },
             "CFE_TBL.ActiveBuffer": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Active table buffer indicator"
             },
             "CFE_TBL.LastValTableName": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Name of last validated table; identifies target of table-modification attack"
             },
             "CFE_TBL.SuccessValCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Successful table validations count"
             },
             "CFE_TBL.FailedValCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Failed table validations count; spike = corrupted table injection"
             },
             "CFE_TBL.NumValRequests": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Total table validation requests"
             },
             "CFE_TBL.NumFreeSharedBufs": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Free shared table buffer count"
             },
             "CFE_TBL.ByteAlignPad1": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Alignment padding byte"
             },
             "CFE_TBL.MemPoolHandle": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "TBL memory pool handle"
             },
             "CFE_TBL.LastUpdateTimeSeconds": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Seconds portion of last table update time"
             },
             "CFE_TBL.LastUpdateTimeSubsecs": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Subseconds portion of last table update time"
             },
             "CFE_TBL.LastUpdatedTable": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Name of last updated table"
             },
             "CFE_TBL.LastFileLoaded": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Last table file loaded from storage"
             },
             "CFE_TBL.LastFileDumped": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Last table file dumped to storage"
             },
             "CFE_TBL.LastTableLoaded": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Name of last table loaded"
             },
             "CFE_TBL.FileLoadChanged": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "AINOS3-30 derived: 1 when LastFileLoaded changed vs previous frame (table file load event); DE-0003.03/.08/.09 signal"
             },
             "CFE_TBL.FileLoadCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "AINOS3-30 derived: monotonic count of LastFileLoaded change events since startup"
             },
             "CFE_TBL.TableUpdateChanged": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "AINOS3-30 derived: 1 when LastUpdatedTable changed vs previous frame (table update event); DE-0003 signal"
             },
             "CFE_TBL.TableUpdateCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "AINOS3-30 derived: monotonic count of LastUpdatedTable change events since startup"
             },
             "CFE_TBL.TableLoadChanged": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "AINOS3-30 derived: 1 when LastTableLoaded changed vs previous frame (table load event); DE-0003 signal"
             },
             "CFE_TBL.TableLoadCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "AINOS3-30 derived: monotonic count of LastTableLoaded change events since startup"
             },
             "CFE_TIME.CommandCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "TIME valid command count"
             },
             "CFE_TIME.CommandErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "TIME command error count"
             },
             "CFE_TIME.ClockStateFlags": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Clock state bitmask; source change = replay-attack window or crypto epoch break"
             },
             "CFE_TIME.ClockStateAPI": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Clock state API value"
             },
             "CFE_TIME.LeapSeconds": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Leap seconds applied to UTC conversion"
             },
             "CFE_TIME.SecondsMET": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Mission Elapsed Time seconds; discontinuity = time-manipulation attack"
             },
             "CFE_TIME.SubsecsMET": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Mission Elapsed Time subseconds"
             },
             "CFE_TIME.SecondsSTCF": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Spacecraft Time Correction Factor seconds"
             },
             "CFE_TIME.SubsecsSTCF": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Spacecraft Time Correction Factor subseconds"
             },
             "SC.AtsNumber": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Active Absolute Time Sequence (ATS) number"
             },
             "SC.AtpState": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ATP execution state"
             },
             "SC.ContinueAtsOnFailureFlag": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Continue ATS on command failure flag"
             },
             "SC.CmdErrCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SC command error count"
             },
             "SC.CmdCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SC valid command count"
             },
             "SC.Padding8": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Alignment padding byte"
             },
             "SC.SwitchPendFlag": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Pending ATS switch flag"
             },
             "SC.NumRtsActive": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Number of active Relative Time Sequences"
             },
             "SC.RtsNumber": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "RTS number associated with last RTS command"
             },
             "SC.RtsActiveCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "RTS activation count"
             },
             "SC.RtsActiveErrCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "RTS activation error count"
             },
             "SC.AtsCmdCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ATS command execution count"
             },
             "SC.AtsCmdErrCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ATS command error count; spike after upload = malformed injected sequence"
             },
             "SC.RtsCmdCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "RTS command execution count"
             },
             "SC.RtsCmdErrCtr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "RTS command error count"
             },
             "SC.LastAtsErrSeq": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Sequence number of last ATS with error"
             },
             "SC.LastAtsErrCmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Command number of last ATS error"
             },
             "SC.LastRtsErrSeq": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Sequence number of last RTS with error"
             },
             "SC.LastRtsErrCmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Command number of last RTS error"
             },
             "SC.AppendCmdArg": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ATS number for last Append ATS command"
             },
             "SC.AppendEntryCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Commands in Append ATS table"
             },
             "SC.AppendByteCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Bytes in Append ATS table"
             },
             "SC.AppendLoadCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Append ATS load count"
             },
             "SC.AtpCmdNumber": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Current ATS command number being executed"
             },
             "SC.AtpFreeBytes": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Free bytes in each ATS buffer (2 entries)"
             },
             "SC.NextRtsTime": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "MET of next RTS command"
             },
             "SC.NextAtsTime": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "MET of next ATS command"
             },
             "SC.RtsExecutingStatus": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Bitmap of executing RTS sequences (4 x uint16 = 64 RTS); change without operator command = unauthorized RTS execution"
             },
             "SC.RtsDisabledStatus": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Bitmap of disabled RTS sequences (4 x uint16 = 64 RTS)"
             },
             "SCH.CmdCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SCH valid command count"
             },
             "SCH.ErrCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SCH command error count"
             },
             "SCH.SyncToMET": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "MET synchronization slot count"
             },
             "SCH.MajorFrameSource": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Major frame timing source"
             },
             "SCH.ScheduleActivitySuccessCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Successful scheduled activity count"
             },
             "SCH.ScheduleActivityFailureCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Failed scheduled activity count"
             },
             "SCH.SlotsProcessedCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Total schedule slots processed"
             },
             "SCH.SkippedSlotsCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Skipped schedule slots; spike = timing starvation / DoS"
             },
             "SCH.MultipleSlotsCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Multiple-slot processing count (catching up after late wake)"
             },
             "SCH.SameSlotCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Same-slot processing count"
             },
             "SCH.BadTableDataCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Bad schedule table data count; nonzero = corrupted schedule injection"
             },
             "SCH.TableVerifySuccessCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Successful schedule table verifications"
             },
             "SCH.TableVerifyFailureCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Failed schedule table verifications; nonzero = table corruption attempt"
             },
             "SCH.TablePassCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Full schedule table pass count"
             },
             "SCH.ValidMajorFrameCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Valid major frame signal count"
             },
             "SCH.MissedMajorFrameCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Missed major frame count; spike = timing DoS"
             },
             "SCH.UnexpectedMajorFrameCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Unexpected major frame count"
             },
             "SCH.MinorFramesSinceTone": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Minor frames since last 1Hz tone"
             },
             "SCH.NextSlotNumber": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Next schedule slot to process"
             },
             "SCH.LastSyncMETSlot": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "MET slot of last sync"
             },
             "SCH.IgnoreMajorFrame": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Ignore major frame flag"
             },
             "SCH.UnexpectedMajorFrame": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Unexpected major frame flag"
             }
         },
         "GNC": {
             "NOVATEL_HK.CommandErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "NovAtel receiver command error count"
             },
             "NOVATEL_HK.CommandCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "NovAtel receiver valid command count"
             },
             "NOVATEL_HK.DeviceErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "NovAtel device-level error count"
             },
             "NOVATEL_HK.DeviceCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "NovAtel device command count"
             },
             "NOVATEL_HK.DeviceEnabled": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "NovAtel receiver enabled flag; toggle without ground command = GPS sabotage"
             },
             "NOVATEL.Novatel_oem615.Weeks": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "GPS week number"
             },
             "NOVATEL.Novatel_oem615.SecondsIntoWeek": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "GPS seconds into current week"
             },
             "NOVATEL.Novatel_oem615.Fractions": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "GPS sub-second fractions"
             },
             "NOVATEL.Novatel_oem615.ECEFX": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ECEF X position (m); discontinuity = GPS spoofing"
             },
             "NOVATEL.Novatel_oem615.ECEFY": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ECEF Y position (m)"
             },
             "NOVATEL.Novatel_oem615.ECEFZ": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ECEF Z position (m)"
             },
             "NOVATEL.Novatel_oem615.VelX": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ECEF X velocity (m/s); inconsistency with orbital dynamics = GPS spoofing"
             },
             "NOVATEL.Novatel_oem615.VelY": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ECEF Y velocity (m/s)"
             },
             "NOVATEL.Novatel_oem615.VelZ": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ECEF Z velocity (m/s)"
             },
             "NOVATEL.Novatel_oem615.lat": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Geodetic latitude (deg)"
             },
             "NOVATEL.Novatel_oem615.lon": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Geodetic longitude (deg)"
             },
             "NOVATEL.Novatel_oem615.alt": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Geodetic altitude (m)"
             },
             "ADCS_HK.CommandErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ADCS command error count; spike = unauthorized command injection"
             },
             "ADCS_HK.CommandCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "ADCS valid command count"
             },
             "ADCS_GNC.DT": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "GNC control loop time step (s)"
             },
             "ADCS_GNC.MaxMcmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Maximum magnetic moment command magnitude"
             },
             "ADCS_GNC.Mode": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "GNC control mode; change without ground command = ADCS hijack"
             },
             "ADCS_GNC.HmgmtOn": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Momentum management enabled flag"
             },
             "ADCS_GNC.Hmgmt.Kb": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Momentum management B-dot gain"
             },
             "ADCS_GNC.Hmgmt.b_range": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Momentum management B-field range"
             },
             "ADCS_GNC.Hmgmt.loFrac": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Momentum management low fraction threshold"
             },
             "ADCS_GNC.Hmgmt.hiFrac": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Momentum management high fraction threshold"
             },
             "ADCS_GNC.Hmgmt.mm_active": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Momentum management active axis flags (3 elements)"
             },
             "ADCS_GNC.Hmgmt.Mcmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Momentum management magnetic moment command (3 axes)"
             },
             "ADCS_GNC.bvb": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Body-frame magnetic field vector (3 elements)"
             },
             "ADCS_GNC.svb": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Body-frame sun vector (3 elements)"
             },
             "ADCS_GNC.SunValid": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Sun vector valid flag"
             },
             "ADCS_GNC.wbn": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Body angular rate vector (rad/s, 3 elements)"
             },
             "ADCS_GNC.HwhlMaxB": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
-                "description": "Maximum reaction wheel angular momentum (N·m·s, 3 axes)"
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Maximum reaction wheel angular momentum (N\u00b7m\u00b7s, 3 axes)"
             },
             "ADCS_GNC.HwhlB": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
-                "description": "Current reaction wheel angular momentum (N·m·s, 3 axes)"
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Current reaction wheel angular momentum (N\u00b7m\u00b7s, 3 axes)"
             },
             "ADCS_GNC.Mcmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
-                "description": "Magnetic torquer moment command (A·m², 3 axes)"
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Magnetic torquer moment command (A\u00b7m\u00b2, 3 axes)"
             },
             "ADCS_GNC.Tcmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
-                "description": "Reaction wheel torque command (N·m, 3 axes); nonzero with no scheduled maneuver = ADCS injection"
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Reaction wheel torque command (N\u00b7m, 3 axes); nonzero with no scheduled maneuver = ADCS injection"
             },
             "ADCS_GNC.qValid": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Quaternion estimate valid flag"
             },
             "ADCS_GNC.qbn": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Body-to-inertial quaternion estimate (4 elements)"
             },
             "ADCS_GNC.qErr": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Quaternion attitude error (4 elements); growing unchecked = ADCS destabilization"
             },
             "ADCS_DO.Trq.qba": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Torquer actuator quaternion output (4 elements)"
             },
             "ADCS_DO.Trq.Mcmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Torquer magnetic moment command (3 axes); nonzero with no GNC Mcmd = actuator bypass"
             },
             "ADCS_DO.Rw.axis": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Reaction wheel axis vectors (3x3 matrix)"
             },
             "ADCS_DO.Rw.Tcmd": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
-                "description": "Reaction wheel torque commands (N·m, 3 wheels); nonzero with no GNC Tcmd = actuator bypass"
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Reaction wheel torque commands (N\u00b7m, 3 wheels); nonzero with no GNC Tcmd = actuator bypass"
             },
             "ADCS_DI.Payload.Mag.qbs": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Magnetometer body-to-sensor quaternion (4 elements)"
             },
             "ADCS_DI.Payload.Mag.bvb": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Magnetometer body-frame B-field vector; deviation from model = sensor spoofing"
             },
             "ADCS_DI.Payload.Fss.qbs": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Fine Sun Sensor body-to-sensor quaternion (4 elements)"
             },
             "ADCS_DI.Payload.Fss.valid": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "FSS measurement valid flag"
             },
             "ADCS_DI.Payload.Fss.svb": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "FSS body-frame sun vector (3 elements)"
             },
             "ADCS_DI.Payload.Css.Sensor": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Coarse Sun Sensor array (6 sensors: axis[3], scale, percenton each)"
             },
             "ADCS_DI.Payload.Css.valid": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "CSS measurement valid flag"
             },
             "ADCS_DI.Payload.Css.svb": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "CSS body-frame sun vector (3 elements)"
             },
             "ADCS_DI.Payload.Imu.qbs": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "IMU body-to-sensor quaternion (4 elements)"
             },
             "ADCS_DI.Payload.Imu.pos": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "IMU position estimate (3 elements)"
             },
             "ADCS_DI.Payload.Imu.valid": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "IMU measurement valid flag"
             },
             "ADCS_DI.Payload.Imu.wbn": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "IMU body angular rate (rad/s, 3 elements); inconsistent with RW Tcmd = sensor spoofing"
             },
             "ADCS_DI.Payload.Imu.acc": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "IMU body acceleration (3 elements)"
             },
             "ADCS_DI.Payload.Rw.whl_axis": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Reaction wheel axis unit vectors (3x3 matrix)"
             },
             "ADCS_DI.Payload.Rw.H_maxB": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Max wheel angular momentum per axis (3 elements)"
             },
             "ADCS_DI.Payload.Rw.HwhlB": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Current wheel angular momentum body vector (3 elements)"
             },
             "ADCS_DI.Payload.St.qbs": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Star tracker body-to-sensor quaternion (4 elements)"
             },
             "ADCS_DI.Payload.St.q": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Star tracker attitude quaternion (4 elements)"
             },
             "ADCS_DI.Payload.St.valid": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Star tracker measurement valid flag; 0 outside eclipse = star tracker spoofing/blinding"
             },
             "RW.CommandErrorCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Reaction wheel app command error count"
             },
             "RW.CommandCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Reaction wheel app valid command count"
             },
             "RW.DeviceErrorCount_RW0": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 0 device error count"
             },
             "RW.DeviceErrorCount_RW1": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 1 device error count"
             },
             "RW.DeviceErrorCount_RW2": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 2 device error count"
             },
             "RW.DeviceCount_RW0": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 0 device command count"
             },
             "RW.DeviceCount_RW1": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 1 device command count"
             },
             "RW.DeviceCount_RW2": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 2 device command count"
             },
             "RW.DeviceEnabled_RW0": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 0 enabled flag"
             },
             "RW.DeviceEnabled_RW1": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 1 enabled flag"
             },
             "RW.DeviceEnabled_RW2": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Wheel 2 enabled flag"
             },
             "RW.data.momentum": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
-                "description": "Reaction wheel momentum vector (N·m·s, 3 elements); change without ADCS_DO Rw.Tcmd = direct HW command injection"
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Reaction wheel momentum vector (N\u00b7m\u00b7s, 3 elements); change without ADCS_DO Rw.Tcmd = direct HW command injection"
             },
             "THRUSTER.CommandErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Thruster command error count"
             },
             "THRUSTER.CommandCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Thruster valid command count; incrementing outside maneuver window = unauthorized orbit modification"
             },
             "THRUSTER.DeviceErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Thruster device error count"
             },
             "THRUSTER.DeviceCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Thruster device command count"
             },
             "THRUSTER.DeviceEnabled": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Thruster enabled flag; toggle without ground command = orbit-modification attack"
             }
         },
         "POWER": {
             "EPS.CommandErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EPS command error count"
             },
             "EPS.CommandCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EPS valid command count"
             },
             "EPS.DeviceErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EPS device error count"
             },
             "EPS.DeviceCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EPS device command count"
             },
             "EPS.DeviceHK.BatteryVoltage": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Battery bus voltage (raw ADC); anomaly = unauthorized load or drain"
             },
             "EPS.DeviceHK.BatteryTemperature": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Battery temperature (raw ADC)"
             },
             "EPS.DeviceHK.Bus3p3Voltage": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "3.3 V bus voltage (raw ADC)"
             },
             "EPS.DeviceHK.Bus5p0Voltage": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "5.0 V bus voltage (raw ADC)"
             },
             "EPS.DeviceHK.Bus12Voltage": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "12 V bus voltage (raw ADC)"
             },
             "EPS.DeviceHK.EPSTemperature": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "EPS board temperature (raw ADC)"
             },
             "EPS.DeviceHK.SolarArrayVoltage": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Solar array open-circuit voltage (raw ADC)"
             },
             "EPS.DeviceHK.SolarArrayTemperature": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Solar array temperature (raw ADC)"
             },
             "EPS.DeviceHK.Switch": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Array of 8 power switch states (Voltage, Current, Status each); Status change without operator command = subsystem kill"
             }
         },
         "COMM": {
             "RADIO_HK.CommandErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Radio command error count"
             },
             "RADIO_HK.CommandCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Radio valid command count"
             },
             "RADIO_HK.DeviceErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Radio device error count"
             },
             "RADIO_HK.ForwardErrorCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Proximity-link forward error count"
             },
             "RADIO_HK.ForwardCount": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Proximity-link forward message count; activity without authorized cross-link = eavesdropping"
             },
             "RADIO_HK.DeviceHK.DeviceCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Radio device command counter"
             },
             "RADIO_HK.DeviceHK.DeviceConfig": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Radio device configuration word; change = frequency / power reconfiguration attack"
             },
             "RADIO_HK.DeviceHK.ProxSignal": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Proximity RF signal strength"
             },
             "RADIO_DEV.DeviceCounter": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Radio device-layer command counter"
             },
             "RADIO_DEV.DeviceConfig": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "Radio device-layer configuration word"
             },
             "RADIO_DEV.ProxSignal": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "RF proximity signal strength; anomaly inconsistent with orbital geometry = jamming / spoofed link"
             },
             "SBN.ProtocolIdx": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SBN peer protocol index"
             },
             "SBN.ModuleStatus": {
                 "conversion": "",
-                "tests": {"NOOP": "[]"},
+                "tests": {
+                    "NOOP": "[]"
+                },
                 "description": "SBN module peer status blob (64 bytes); new peer mid-mission = unauthorized SBN connection"
             }
         },
-        "NONE": {}
+        "NONE": {},
+        "VALIDATION_MIDS": {
+            "CSS.CommandErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CSS MID)"
+            },
+            "CSS.CommandCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CSS MID)"
+            },
+            "CSS.DeviceErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CSS MID)"
+            },
+            "CSS.DeviceCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CSS MID)"
+            },
+            "CSS.DeviceEnabled": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CSS MID)"
+            },
+            "CSS_DEV.Generic_css.Voltage": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CSS_DEV MID)"
+            },
+            "FSS.CommandErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS MID)"
+            },
+            "FSS.CommandCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS MID)"
+            },
+            "FSS.DeviceErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS MID)"
+            },
+            "FSS.DeviceCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS MID)"
+            },
+            "FSS.DeviceEnabled": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS MID)"
+            },
+            "FSS_DEV.Generic_fss.Alpha": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS_DEV MID)"
+            },
+            "FSS_DEV.Generic_fss.Beta": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS_DEV MID)"
+            },
+            "FSS_DEV.Generic_fss.ErrorCode": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FSS_DEV MID)"
+            },
+            "IMU.CommandErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU MID)"
+            },
+            "IMU.CommandCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU MID)"
+            },
+            "IMU.DeviceErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU MID)"
+            },
+            "IMU.DeviceCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU MID)"
+            },
+            "IMU.DeviceEnabled": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU MID)"
+            },
+            "IMU.DeviceHK.DeviceCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU MID)"
+            },
+            "IMU.DeviceHK.DeviceStatus": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU MID)"
+            },
+            "IMU_DEV.Generic_imu.X_Data.LinearAcc": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU_DEV MID)"
+            },
+            "IMU_DEV.Generic_imu.X_Data.AngularAcc": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU_DEV MID)"
+            },
+            "IMU_DEV.Generic_imu.Y_Data.LinearAcc": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU_DEV MID)"
+            },
+            "IMU_DEV.Generic_imu.Y_Data.AngularAcc": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU_DEV MID)"
+            },
+            "IMU_DEV.Generic_imu.Z_Data.LinearAcc": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU_DEV MID)"
+            },
+            "IMU_DEV.Generic_imu.Z_Data.AngularAcc": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (IMU_DEV MID)"
+            },
+            "MAG.CommandErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG MID)"
+            },
+            "MAG.CommandCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG MID)"
+            },
+            "MAG.DeviceErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG MID)"
+            },
+            "MAG.DeviceCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG MID)"
+            },
+            "MAG.DeviceEnabled": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG MID)"
+            },
+            "MAG_DEV.Generic_mag.MagneticIntensityX": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG_DEV MID)"
+            },
+            "MAG_DEV.Generic_mag.MagneticIntensityY": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG_DEV MID)"
+            },
+            "MAG_DEV.Generic_mag.MagneticIntensityZ": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (MAG_DEV MID)"
+            },
+            "ST.CommandErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST MID)"
+            },
+            "ST.CommandCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST MID)"
+            },
+            "ST.DeviceErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST MID)"
+            },
+            "ST.DeviceCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST MID)"
+            },
+            "ST.DeviceEnabled": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST MID)"
+            },
+            "ST.DeviceHK.DeviceCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST MID)"
+            },
+            "ST_DEV.Generic_star_tracker.Q0": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST_DEV MID)"
+            },
+            "ST_DEV.Generic_star_tracker.Q1": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST_DEV MID)"
+            },
+            "ST_DEV.Generic_star_tracker.Q2": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST_DEV MID)"
+            },
+            "ST_DEV.Generic_star_tracker.Q3": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST_DEV MID)"
+            },
+            "ST_DEV.Generic_star_tracker.IsValid": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (ST_DEV MID)"
+            },
+            "TORQUER.CommandErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TORQUER MID)"
+            },
+            "TORQUER.CommandCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TORQUER MID)"
+            },
+            "TORQUER.DeviceErrorCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TORQUER MID)"
+            },
+            "TORQUER.DeviceCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TORQUER MID)"
+            },
+            "TORQUER.DeviceEnabled": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TORQUER MID)"
+            },
+            "TORQUER.TorquerPeriod": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TORQUER MID)"
+            },
+            "TORQUER.TrqInfo": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TORQUER MID)"
+            },
+            "TO.Payload.CommandCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TO MID)"
+            },
+            "TO.Payload.CommandErrorCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TO MID)"
+            },
+            "TO.Payload.spareToAlign": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (TO MID)"
+            },
+            "CI.Payload.CommandErrorCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "CI.Payload.CommandCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "CI.Payload.EnableChecksums": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "CI.Payload.SocketConnected": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "CI.Payload.Spare1": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "CI.Payload.IngestPackets": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "CI.Payload.IngestErrors": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "CI.Payload.Spare2": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (CI MID)"
+            },
+            "LC.CmdCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.CmdErrCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.CurrentLCState": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.Pad8": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.WPResults": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.APResults": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.PassiveRTSExecCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.WPsInUse": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.ActiveAPs": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.Pad16": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.APSampleCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.MonitoredMsgCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "LC.RTSExecCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (LC MID)"
+            },
+            "DS.Payload.CmdAcceptedCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.CmdRejectedCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.DestTblLoadCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.DestTblErrCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FilterTblLoadCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FilterTblErrCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.AppEnableState": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.Spare8": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FileWriteCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FileWriteErrCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FileUpdateCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FileUpdateErrCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.DisabledPktCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.IgnoredPktCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FilteredPktCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.PassedPktCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "DS.Payload.FilterTblFilename": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (DS MID)"
+            },
+            "FM.CommandCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.CommandErrCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.Spare": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.NumOpenFiles": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.ChildCmdCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.ChildCmdErrCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.ChildCmdWarnCounter": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.ChildQueueCount": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.ChildCurrentCC": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            },
+            "FM.ChildPreviousCC": {
+                "conversion": "",
+                "tests": {
+                    "NOOP": "[]"
+                },
+                "description": "Validation-campaign recording field (FM MID)"
+            }
+        }
     },
     "order": [
         "CFE_EVS.PacketID.AppName",
@@ -1679,6 +2967,110 @@
         "RADIO_DEV.ProxSignal",
         "SBN.ProtocolIdx",
         "SBN.ModuleStatus",
+        "CSS.CommandErrorCount",
+        "CSS.CommandCount",
+        "CSS.DeviceErrorCount",
+        "CSS.DeviceCount",
+        "CSS.DeviceEnabled",
+        "CSS_DEV.Generic_css.Voltage",
+        "FSS.CommandErrorCount",
+        "FSS.CommandCount",
+        "FSS.DeviceErrorCount",
+        "FSS.DeviceCount",
+        "FSS.DeviceEnabled",
+        "FSS_DEV.Generic_fss.Alpha",
+        "FSS_DEV.Generic_fss.Beta",
+        "FSS_DEV.Generic_fss.ErrorCode",
+        "IMU.CommandErrorCount",
+        "IMU.CommandCount",
+        "IMU.DeviceErrorCount",
+        "IMU.DeviceCount",
+        "IMU.DeviceEnabled",
+        "IMU.DeviceHK.DeviceCounter",
+        "IMU.DeviceHK.DeviceStatus",
+        "IMU_DEV.Generic_imu.X_Data.LinearAcc",
+        "IMU_DEV.Generic_imu.X_Data.AngularAcc",
+        "IMU_DEV.Generic_imu.Y_Data.LinearAcc",
+        "IMU_DEV.Generic_imu.Y_Data.AngularAcc",
+        "IMU_DEV.Generic_imu.Z_Data.LinearAcc",
+        "IMU_DEV.Generic_imu.Z_Data.AngularAcc",
+        "MAG.CommandErrorCount",
+        "MAG.CommandCount",
+        "MAG.DeviceErrorCount",
+        "MAG.DeviceCount",
+        "MAG.DeviceEnabled",
+        "MAG_DEV.Generic_mag.MagneticIntensityX",
+        "MAG_DEV.Generic_mag.MagneticIntensityY",
+        "MAG_DEV.Generic_mag.MagneticIntensityZ",
+        "ST.CommandErrorCount",
+        "ST.CommandCount",
+        "ST.DeviceErrorCount",
+        "ST.DeviceCount",
+        "ST.DeviceEnabled",
+        "ST.DeviceHK.DeviceCounter",
+        "ST_DEV.Generic_star_tracker.Q0",
+        "ST_DEV.Generic_star_tracker.Q1",
+        "ST_DEV.Generic_star_tracker.Q2",
+        "ST_DEV.Generic_star_tracker.Q3",
+        "ST_DEV.Generic_star_tracker.IsValid",
+        "TORQUER.CommandErrorCount",
+        "TORQUER.CommandCount",
+        "TORQUER.DeviceErrorCount",
+        "TORQUER.DeviceCount",
+        "TORQUER.DeviceEnabled",
+        "TORQUER.TorquerPeriod",
+        "TORQUER.TrqInfo",
+        "TO.Payload.CommandCounter",
+        "TO.Payload.CommandErrorCounter",
+        "TO.Payload.spareToAlign",
+        "CI.Payload.CommandErrorCounter",
+        "CI.Payload.CommandCounter",
+        "CI.Payload.EnableChecksums",
+        "CI.Payload.SocketConnected",
+        "CI.Payload.Spare1",
+        "CI.Payload.IngestPackets",
+        "CI.Payload.IngestErrors",
+        "CI.Payload.Spare2",
+        "LC.CmdCount",
+        "LC.CmdErrCount",
+        "LC.CurrentLCState",
+        "LC.Pad8",
+        "LC.WPResults",
+        "LC.APResults",
+        "LC.PassiveRTSExecCount",
+        "LC.WPsInUse",
+        "LC.ActiveAPs",
+        "LC.Pad16",
+        "LC.APSampleCount",
+        "LC.MonitoredMsgCount",
+        "LC.RTSExecCount",
+        "DS.Payload.CmdAcceptedCounter",
+        "DS.Payload.CmdRejectedCounter",
+        "DS.Payload.DestTblLoadCounter",
+        "DS.Payload.DestTblErrCounter",
+        "DS.Payload.FilterTblLoadCounter",
+        "DS.Payload.FilterTblErrCounter",
+        "DS.Payload.AppEnableState",
+        "DS.Payload.Spare8",
+        "DS.Payload.FileWriteCounter",
+        "DS.Payload.FileWriteErrCounter",
+        "DS.Payload.FileUpdateCounter",
+        "DS.Payload.FileUpdateErrCounter",
+        "DS.Payload.DisabledPktCounter",
+        "DS.Payload.IgnoredPktCounter",
+        "DS.Payload.FilteredPktCounter",
+        "DS.Payload.PassedPktCounter",
+        "DS.Payload.FilterTblFilename",
+        "FM.CommandCounter",
+        "FM.CommandErrCounter",
+        "FM.Spare",
+        "FM.NumOpenFiles",
+        "FM.ChildCmdCounter",
+        "FM.ChildCmdErrCounter",
+        "FM.ChildCmdWarnCounter",
+        "FM.ChildQueueCount",
+        "FM.ChildCurrentCC",
+        "FM.ChildPreviousCC",
         "CFE_TBL.FileLoadChanged",
         "CFE_TBL.FileLoadCount",
         "CFE_TBL.TableUpdateChanged",
@@ -1687,26 +3079,153 @@
         "CFE_TBL.TableLoadCount"
     ],
     "channels": {
-        "0x0808": ["CFE_EVS",     "CFE_EVS_LongEventTlm_t"],
-        "0x0801": ["CFE_EVS_HK",  "CFE_EVS_HousekeepingTlm_t"],
-        "0x0800": ["CFE_ES",      "CFE_ES_HousekeepingTlm_t"],
-        "0x0803": ["CFE_SB",      "CFE_SB_HousekeepingTlm_t"],
-        "0x080D": ["CFE_SB_SUBS", "CFE_SB_AllSubscriptionsTlm_t"],
-        "0x0804": ["CFE_TBL",     "CFE_TBL_HousekeepingTlm_t"],
-        "0x0805": ["CFE_TIME",    "CFE_TIME_HousekeepingTlm_t"],
-        "0x08AA": ["SC",          "SC_HkTlm_t"],
-        "0x0897": ["SCH",         "SCH_HkPacket_t"],
-        "0x0870": ["NOVATEL_HK",  "NOVATEL_OEM615_Hk_tlm_t"],
-        "0x0871": ["NOVATEL",     "NOVATEL_OEM615_Device_tlm_t"],
-        "0x0940": ["ADCS_HK",     "Generic_ADCS_Hk_tlm_t"],
-        "0x0943": ["ADCS_GNC",    "Generic_ADCS_GNC_Tlm_t"],
-        "0x0945": ["ADCS_DO",     "Generic_ADCS_DO_Tlm_t"],
-        "0x0941": ["ADCS_DI",     "Generic_ADCS_DI_Tlm_t"],
-        "0x0993": ["RW",          "GENERIC_RW_HkTlm_t"],
-        "0x08EA": ["THRUSTER",    "GENERIC_THRUSTER_Hk_tlm_t"],
-        "0x091A": ["EPS",         "GENERIC_EPS_Hk_tlm_t"],
-        "0x0930": ["RADIO_HK",    "GENERIC_RADIO_Hk_tlm_t"],
-        "0x0931": ["RADIO_DEV",   "GENERIC_RADIO_Device_tlm_t"],
-        "0x08DC": ["SBN",         "SBN_ModuleStatusTlm_t"]
+        "0x0808": [
+            "CFE_EVS",
+            "CFE_EVS_LongEventTlm_t"
+        ],
+        "0x0801": [
+            "CFE_EVS_HK",
+            "CFE_EVS_HousekeepingTlm_t"
+        ],
+        "0x0800": [
+            "CFE_ES",
+            "CFE_ES_HousekeepingTlm_t"
+        ],
+        "0x0803": [
+            "CFE_SB",
+            "CFE_SB_HousekeepingTlm_t"
+        ],
+        "0x080D": [
+            "CFE_SB_SUBS",
+            "CFE_SB_AllSubscriptionsTlm_t"
+        ],
+        "0x0804": [
+            "CFE_TBL",
+            "CFE_TBL_HousekeepingTlm_t"
+        ],
+        "0x0805": [
+            "CFE_TIME",
+            "CFE_TIME_HousekeepingTlm_t"
+        ],
+        "0x08AA": [
+            "SC",
+            "SC_HkTlm_t"
+        ],
+        "0x0897": [
+            "SCH",
+            "SCH_HkPacket_t"
+        ],
+        "0x0870": [
+            "NOVATEL_HK",
+            "NOVATEL_OEM615_Hk_tlm_t"
+        ],
+        "0x0871": [
+            "NOVATEL",
+            "NOVATEL_OEM615_Device_tlm_t"
+        ],
+        "0x0940": [
+            "ADCS_HK",
+            "Generic_ADCS_Hk_tlm_t"
+        ],
+        "0x0943": [
+            "ADCS_GNC",
+            "Generic_ADCS_GNC_Tlm_t"
+        ],
+        "0x0945": [
+            "ADCS_DO",
+            "Generic_ADCS_DO_Tlm_t"
+        ],
+        "0x0941": [
+            "ADCS_DI",
+            "Generic_ADCS_DI_Tlm_t"
+        ],
+        "0x0993": [
+            "RW",
+            "GENERIC_RW_HkTlm_t"
+        ],
+        "0x08EA": [
+            "THRUSTER",
+            "GENERIC_THRUSTER_Hk_tlm_t"
+        ],
+        "0x091A": [
+            "EPS",
+            "GENERIC_EPS_Hk_tlm_t"
+        ],
+        "0x0930": [
+            "RADIO_HK",
+            "GENERIC_RADIO_Hk_tlm_t"
+        ],
+        "0x0931": [
+            "RADIO_DEV",
+            "GENERIC_RADIO_Device_tlm_t"
+        ],
+        "0x08DC": [
+            "SBN",
+            "SBN_ModuleStatusTlm_t"
+        ],
+        "0x0910": [
+            "CSS",
+            "GENERIC_CSS_Hk_tlm_t"
+        ],
+        "0x0911": [
+            "CSS_DEV",
+            "GENERIC_CSS_Device_tlm_t"
+        ],
+        "0x0920": [
+            "FSS",
+            "GENERIC_FSS_Hk_tlm_t"
+        ],
+        "0x0921": [
+            "FSS_DEV",
+            "GENERIC_FSS_Device_tlm_t"
+        ],
+        "0x0925": [
+            "IMU",
+            "GENERIC_IMU_Hk_tlm_t"
+        ],
+        "0x0926": [
+            "IMU_DEV",
+            "GENERIC_IMU_Device_tlm_t"
+        ],
+        "0x092A": [
+            "MAG",
+            "GENERIC_MAG_Hk_tlm_t"
+        ],
+        "0x092B": [
+            "MAG_DEV",
+            "GENERIC_MAG_Device_tlm_t"
+        ],
+        "0x0935": [
+            "ST",
+            "GENERIC_STAR_TRACKER_Hk_tlm_t"
+        ],
+        "0x0936": [
+            "ST_DEV",
+            "GENERIC_STAR_TRACKER_Device_tlm_t"
+        ],
+        "0x093A": [
+            "TORQUER",
+            "GENERIC_TORQUER_Hk_tlm_t"
+        ],
+        "0x08E8": [
+            "TO",
+            "TO_LAB_HkTlm_t"
+        ],
+        "0x08E0": [
+            "CI",
+            "CI_LAB_HkTlm_t"
+        ],
+        "0x08A7": [
+            "LC",
+            "LC_HkPacket_t"
+        ],
+        "0x08B8": [
+            "DS",
+            "DS_HkPacket_t"
+        ],
+        "0x088A": [
+            "FM",
+            "FM_HousekeepingPkt_t"
+        ]
     }
 }

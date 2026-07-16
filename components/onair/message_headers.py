@@ -790,3 +790,293 @@ class CFE_EVS_HousekeepingTlm_t(Structure):
         ("Spare3",                 c_uint8),
         ("AppData",                CFE_EVS_AppTlmData_t * _MAX_APPS),
     ]
+
+
+# ===========================================================================
+# Extra sensor / actuator / core-app telemetry — 16 MIDs added 2026-07-16 for
+# the SPARTA coverage validation campaign (RECORDING only; not yet model
+# features). Structs translated byte-exact from the component C headers; each
+# begins with the 16-byte CFE telemetry header (sbn.CFE_SB_Msg_t) + packed=1.
+# ===========================================================================
+
+_GENERIC_CSS_NUM_CHANNELS = 6   # GENERIC_CSS_NUM_CHANNELS
+_LC_HKWR_NUM_BYTES = 44         # ((LC_MAX_WATCHPOINTS 176 + 15)/16)*4
+_LC_HKAR_NUM_BYTES = 88         # ((LC_MAX_ACTIONPOINTS 176 + 7)/8)*4
+
+# --- Coarse Sun Sensor (CSS) --- 0x0910 HK / 0x0911 DEVICE
+class GENERIC_CSS_Hk_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",         sbn.CFE_SB_Msg_t),
+        ("CommandErrorCount", c_uint8),
+        ("CommandCount",      c_uint8),
+        ("DeviceErrorCount",  c_uint8),
+        ("DeviceCount",       c_uint8),
+        ("DeviceEnabled",     c_uint8),
+    ]
+
+class GENERIC_CSS_Device_Data_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [("Voltage", c_uint16 * _GENERIC_CSS_NUM_CHANNELS)]
+
+class GENERIC_CSS_Device_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",   sbn.CFE_SB_Msg_t),
+        ("Generic_css", GENERIC_CSS_Device_Data_tlm_t),
+    ]
+
+# --- Fine Sun Sensor (FSS) --- 0x0920 HK / 0x0921 DEVICE
+class GENERIC_FSS_Hk_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",         sbn.CFE_SB_Msg_t),
+        ("CommandErrorCount", c_uint8),
+        ("CommandCount",      c_uint8),
+        ("DeviceErrorCount",  c_uint8),
+        ("DeviceCount",       c_uint8),
+        ("DeviceEnabled",     c_uint8),
+    ]
+
+class GENERIC_FSS_Device_Data_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("Alpha",     c_float),
+        ("Beta",      c_float),
+        ("ErrorCode", c_uint8),
+    ]
+
+class GENERIC_FSS_Device_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",   sbn.CFE_SB_Msg_t),
+        ("Generic_fss", GENERIC_FSS_Device_Data_tlm_t),
+    ]
+
+# --- Inertial Measurement Unit (IMU) --- 0x0925 HK / 0x0926 DEVICE
+class GENERIC_IMU_Device_HK_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("DeviceCounter", c_uint32),
+        ("DeviceStatus",  c_uint32),
+    ]
+
+class GENERIC_IMU_Hk_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",         sbn.CFE_SB_Msg_t),
+        ("CommandErrorCount", c_uint8),
+        ("CommandCount",      c_uint8),
+        ("DeviceErrorCount",  c_uint8),
+        ("DeviceCount",       c_uint8),
+        ("DeviceEnabled",     c_uint8),
+        ("DeviceHK",          GENERIC_IMU_Device_HK_tlm_t),
+    ]
+
+class GENERIC_IMU_Device_Axis_Data_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("LinearAcc",  c_float),
+        ("AngularAcc", c_float),
+    ]
+
+class GENERIC_IMU_Device_Data_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("X_Data", GENERIC_IMU_Device_Axis_Data_t),
+        ("Y_Data", GENERIC_IMU_Device_Axis_Data_t),
+        ("Z_Data", GENERIC_IMU_Device_Axis_Data_t),
+    ]
+
+class GENERIC_IMU_Device_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",   sbn.CFE_SB_Msg_t),
+        ("Generic_imu", GENERIC_IMU_Device_Data_tlm_t),
+    ]
+
+# --- Magnetometer (MAG) --- 0x092A HK / 0x092B DEVICE
+class GENERIC_MAG_Hk_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",         sbn.CFE_SB_Msg_t),
+        ("CommandErrorCount", c_uint8),
+        ("CommandCount",      c_uint8),
+        ("DeviceErrorCount",  c_uint8),
+        ("DeviceCount",       c_uint8),
+        ("DeviceEnabled",     c_uint8),
+    ]
+
+class GENERIC_MAG_Device_Data_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("MagneticIntensityX", c_int32),
+        ("MagneticIntensityY", c_int32),
+        ("MagneticIntensityZ", c_int32),
+    ]
+
+class GENERIC_MAG_Device_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",   sbn.CFE_SB_Msg_t),
+        ("Generic_mag", GENERIC_MAG_Device_Data_tlm_t),
+    ]
+
+# --- Star Tracker (ST) --- 0x0935 HK / 0x0936 DEVICE
+class GENERIC_STAR_TRACKER_Device_HK_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [("DeviceCounter", c_uint32)]
+
+class GENERIC_STAR_TRACKER_Hk_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",         sbn.CFE_SB_Msg_t),
+        ("CommandErrorCount", c_uint8),
+        ("CommandCount",      c_uint8),
+        ("DeviceErrorCount",  c_uint8),
+        ("DeviceCount",       c_uint8),
+        ("DeviceEnabled",     c_uint8),
+        ("DeviceHK",          GENERIC_STAR_TRACKER_Device_HK_tlm_t),
+    ]
+
+class GENERIC_STAR_TRACKER_Device_Data_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("Q0",      c_double),
+        ("Q1",      c_double),
+        ("Q2",      c_double),
+        ("Q3",      c_double),
+        ("IsValid", c_uint8),
+    ]
+
+class GENERIC_STAR_TRACKER_Device_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",            sbn.CFE_SB_Msg_t),
+        ("Generic_star_tracker", GENERIC_STAR_TRACKER_Device_Data_tlm_t),
+    ]
+
+# --- Magnetic Torquer (actuator) --- 0x093A HK
+class GENERIC_TORQUER_Device_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("Direction", c_uint8),
+        ("PercentOn", c_uint8),
+    ]
+
+class GENERIC_TORQUER_Hk_tlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",         sbn.CFE_SB_Msg_t),
+        ("CommandErrorCount", c_uint8),
+        ("CommandCount",      c_uint8),
+        ("DeviceErrorCount",  c_uint8),
+        ("DeviceCount",       c_uint8),
+        ("DeviceEnabled",     c_uint8),
+        ("TorquerPeriod",     c_uint32),
+        ("TrqInfo",           GENERIC_TORQUER_Device_tlm_t * 3),
+    ]
+
+# --- Telemetry Output (TO_LAB) --- 0x08E8 HK
+class TO_LAB_HkTlm_Payload_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("CommandCounter",      c_uint8),
+        ("CommandErrorCounter", c_uint8),
+        ("spareToAlign",        c_uint8 * 2),
+    ]
+
+class TO_LAB_HkTlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader", sbn.CFE_SB_Msg_t),
+        ("Payload",   TO_LAB_HkTlm_Payload_t),
+    ]
+
+# --- Command Ingest (CI_LAB) --- 0x08E0 HK
+class CI_LAB_HkTlm_Payload_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("CommandErrorCounter", c_uint8),
+        ("CommandCounter",      c_uint8),
+        ("EnableChecksums",     c_uint8),
+        ("SocketConnected",     c_uint8),
+        ("Spare1",              c_uint8 * 8),
+        ("IngestPackets",       c_uint32),
+        ("IngestErrors",        c_uint32),
+        ("Spare2",              c_uint32),
+    ]
+
+class CI_LAB_HkTlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader", sbn.CFE_SB_Msg_t),
+        ("Payload",   CI_LAB_HkTlm_Payload_t),
+    ]
+
+# --- Limit Checker (LC) --- 0x08A7 HK
+class LC_HkPacket_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",           sbn.CFE_SB_Msg_t),
+        ("CmdCount",            c_uint8),
+        ("CmdErrCount",         c_uint8),
+        ("CurrentLCState",      c_uint8),
+        ("Pad8",                c_uint8),
+        ("WPResults",           c_uint8 * _LC_HKWR_NUM_BYTES),
+        ("APResults",           c_uint8 * _LC_HKAR_NUM_BYTES),
+        ("PassiveRTSExecCount", c_uint16),
+        ("WPsInUse",            c_uint16),
+        ("ActiveAPs",           c_uint16),
+        ("Pad16",               c_uint16),
+        ("APSampleCount",       c_uint32),
+        ("MonitoredMsgCount",   c_uint32),
+        ("RTSExecCount",        c_uint32),
+    ]
+
+# --- Data Storage (DS) --- 0x08B8 HK
+class DS_HkTlm_Payload_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("CmdAcceptedCounter",   c_uint8),
+        ("CmdRejectedCounter",   c_uint8),
+        ("DestTblLoadCounter",   c_uint8),
+        ("DestTblErrCounter",    c_uint8),
+        ("FilterTblLoadCounter", c_uint8),
+        ("FilterTblErrCounter",  c_uint8),
+        ("AppEnableState",       c_uint8),
+        ("Spare8",               c_uint8),
+        ("FileWriteCounter",     c_uint16),
+        ("FileWriteErrCounter",  c_uint16),
+        ("FileUpdateCounter",    c_uint16),
+        ("FileUpdateErrCounter", c_uint16),
+        ("DisabledPktCounter",   c_uint32),
+        ("IgnoredPktCounter",    c_uint32),
+        ("FilteredPktCounter",   c_uint32),
+        ("PassedPktCounter",     c_uint32),
+        ("FilterTblFilename",    c_char * _MAX_PATH_LEN),
+    ]
+
+class DS_HkPacket_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader", sbn.CFE_SB_Msg_t),
+        ("Payload",   DS_HkTlm_Payload_t),
+    ]
+
+# --- File Manager (FM) --- 0x088A HK
+class FM_HousekeepingPkt_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",           sbn.CFE_SB_Msg_t),
+        ("CommandCounter",      c_uint8),
+        ("CommandErrCounter",   c_uint8),
+        ("Spare",               c_uint8),
+        ("NumOpenFiles",        c_uint8),
+        ("ChildCmdCounter",     c_uint8),
+        ("ChildCmdErrCounter",  c_uint8),
+        ("ChildCmdWarnCounter", c_uint8),
+        ("ChildQueueCount",     c_uint8),
+        ("ChildCurrentCC",      c_uint8),
+        ("ChildPreviousCC",     c_uint8),
+    ]
