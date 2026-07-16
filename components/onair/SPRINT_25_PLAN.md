@@ -17,6 +17,71 @@ attribution field (`AppData`) actionable at the subsystem level, audit whether
 the classifier leans on genuine signal or an activity-level shortcut, and bank
 the dynamic-mode classification gains without regressing the weak modes.
 
+---
+
+## 🔄 Mid-sprint update (2026-07-16) — pivoted to coverage *validation* + new detector gates
+
+The two committed add-signal items **closed early with decisive results**, and the
+`coverage-expansion` epic (AINOS3-41) then became the sprint's centre of gravity via
+a **Section-A attack-validation campaign** that produced four new OnAIR detector
+gates. The sprint over-delivered on the epic goal ("broaden what the detector sees")
+along a *different axis* than planned — not by recovering DEAD classes (that premise
+was disproven) but by building the gates for the attack classes the deployed v5 IF
+structurally misses.
+
+**Committed items — status:**
+- **AINOS3-30 (extra-mids) — ✅ CLOSED, NULL result, DORMANT** (details below). The
+  16 extra MIDs are subscribed + RECORDING (pipe cap 32→48); the CFE_TBL
+  change-detection features read constant-0 (premise disproven — these aren't
+  table-load attacks). Not deployed, not reverted.
+- **AINOS3-48 (appdata-slot-map) — ✅ DONE + live-verified** (details below).
+- **AINOS3-39 (counter-reliance-audit) — ○ NOT STARTED** — capacity went to the
+  validation campaign; carries to Sprint 26.
+- **AINOS3-37 (selective-mode-hybrid) — ○ NOT STARTED** (stretch) — carries to Sprint 26.
+- **AINOS3-49 (rollout-s25) — ○ NOT STARTED** — end-of-sprint readout.
+
+**NEW workstream — Section-A coverage validation (under AINOS3-41).** The
+`SPARTA_COVERAGE_TRIAGE` Section-A tickets (AINOS3-50…62, 13 techniques; see
+[`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md)) were opened and
+validated against the live FSW under the evaluation-provenance rule. **5 of 13 done:**
+
+| Technique | Ticket | Result |
+|---|---|---|
+| DE-0010 audit-log overflow | AINOS3-60 | ✔ ON_BOARD (EVS sent counter); v5 IF blind |
+| EX-0002 PNT geofencing | AINOS3-50 | ✔ ON_BOARD (GPS DeviceEnabled→0); IF blind |
+| EX-0011 safe-mode exploit | AINOS3-52 | ✔ First technique the IF catches itself (thruster perturbs physics); +2 attack-script bug fixes (LC `<HH`, EVS bitmask) |
+| EX-0014.02 bus spoof | AINOS3-57 | ✔ **Overturned its MARKDOWN-ONLY triage** — CI_LAB (:5012) republishes any MID → external SB spoof demonstrated |
+| EX-0012.02 routing tables | AINOS3-53 | ✔ CFE_SB DISABLE_ROUTE → telemetry freeze; **corrected the triage** (CFE_SB_SUBS not OnAIR-observable) |
+
+Running finding: the v5 IF is a *dynamics* detector — blind to discrete state
+changes, transient spoofs, and frozen streams. That drove the four new gates.
+
+**NEW deliverables — four complementary detector gates** (belong under AINOS3-41;
+**no crosswalk rows yet** — reserved slugs proposed: `rule-gate-detector`,
+`consistency-gate`, `staleness-gate`, `sb-command-rule`):
+- **rule-gate** — state-change gate (R1 device-disable · R2 EVS-rate · R3 SB-err ·
+  R4 cmd-err · **R5 monitor-state/LC-disable**) + incident wiring into the shared
+  aggregator. DEPLOYED + live-verified.
+- **consistency-check** — per-sample bus-spoof gate (wide-counter monotonicity;
+  **0 FP / 810 live frames**). DEPLOYED + live-verified.
+- **staleness-check** — telemetry-denial / frozen-stream gate (wide-counter
+  **max-advancement**, not "value constant" — OnAIR's double buffer makes a frozen
+  field OSCILLATE between two stale values, so the invariant is "the max stops
+  advancing"). Algorithm validated **offline: 0 FP / 1275 frames, detects an
+  injected freeze at ~57 frames**. **NOT deployed — live discovery is fragile:**
+  because OnAIR polls faster than the MIDs publish (nominal no-advance gaps 14–27+
+  frames), the discovery-measured cadence — and thus the watched set — varies run
+  to run (`IMU.DeviceHK.DeviceCounter` was watched offline but not on one live run).
+  Needs a more robust discovery (continuous/long-baseline cadence learning) before
+  it can be trusted live. Built, unit-tested (7), synced; **not in the deploy set.**
+- **(candidate R6)** — CFE_SB.CommandCounter rule for the route command itself. Not built.
+
+The detector roadmap is now **2 deployed gates + IF** (dynamics-IF · rule-gate ·
+consistency-check), with staleness-check as an offline-validated-but-live-fragile
+prototype (the freeze/telemetry-denial class is genuinely the hardest — no forward
+delta AND a poll-rate mismatch). **Owner action:** create Jira tickets for the gates
+(and the 8 remaining Section-A validations) — the crosswalk's reserved slugs hold this.
+
 ## Points — two metrics
 
 Each item carries two independent estimates:

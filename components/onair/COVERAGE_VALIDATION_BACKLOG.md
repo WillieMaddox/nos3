@@ -103,6 +103,21 @@ frames) for the freeze, and a CFE_SB.CommandCounter rule (candidate rule-gate R6
 for the route COMMAND itself (SB route/subscription commands are rare in nominal
 ops). Also corrected the triage: CFE_SB_SUBS is NOT OnAIR-observable ([0]).
 
+**Staleness detector — BUILT + offline-validated, live-fragile, NOT deployed
+(2026-07-16).** `staleness_check` plugin (prototype 4th gate). Key correction found
+during tuning: a frozen field is NOT constant — OnAIR's double buffer makes it
+OSCILLATE between its two last stale values, so the primitive is "**a wide monotonic
+counter's max stops advancing**," not "value unchanged." Offline (real-CSV replay):
+**0 FP / 1275 frames, detects an injected freeze at ~57 frames** (7 unit tests).
+**But live discovery is fragile:** OnAIR polls FASTER than the MIDs publish (nominal
+no-advance gaps 14–27+ frames), so the discovery-measured cadence — and thus which
+counters are watched and their thresholds — varies run to run
+(`IMU.DeviceHK.DeviceCounter` watched offline but not on one live run). Needs
+robust/continuous cadence learning before live deployment. Built + synced but **kept
+OUT of the deployed LearnersPluginDict.** The R6 CFE_SB.CommandCounter rule remains
+unbuilt — it is the more robust catch for this technique (the route COMMAND is a
+clean subscribed signal; the freeze EFFECT is intrinsically hard).
+
 **Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
 dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
 or a counter/rate spike that doesn't disturb the physics** (EVS send-rate, GPS
@@ -221,9 +236,11 @@ flow. **VALIDATED live 2026-07-16 (no script — raw UDP CFE_SB commands):**
   stream has no delta (consistency-check needs a backwards step: 0 alerts; rule-gate
   needs a flag-drop/spike: 0 non-R3; IF sees constant input). Same family as
   EX-0014.03's frozen fields. Catching the FREEZE needs a **per-MID staleness
-  detector** ("subscribed MID hasn't updated in N frames"). Catching the COMMAND
-  needs a **CFE_SB.CommandCounter rule** (candidate rule-gate R6 — any SB
-  route/subscription command is suspicious).
+  detector** ("subscribed MID hasn't updated in N frames") — **BUILT 2026-07-16 as
+  the `staleness_check` plugin, in validation** (see the campaign-findings note
+  above for the tuning: settle period + per-counter adaptive threshold). Catching
+  the COMMAND needs a **CFE_SB.CommandCounter rule** (candidate rule-gate R6 — any
+  SB route/subscription command is suspicious; not yet built).
 **AC:** exercisability confirmed ✓; footprint ON_BOARD (CFE_SB.CommandCounter) +
 telemetry-freeze; triage observable corrected; detector gap (staleness) documented.
 No lasting state change (route restored).
