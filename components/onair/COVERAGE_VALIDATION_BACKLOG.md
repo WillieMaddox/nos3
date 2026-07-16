@@ -89,6 +89,20 @@ discrete state changes: `*.DeviceEnabled→0`, mode changes, EVS/SB send-rate sp
 gating the classifier in parallel with the IF. Recommend confirming with 1-2 more
 diverse techniques, then prototyping that rule layer rather than grinding all 13.
 
+**EX-0014.03 (2026-07-16) — 3/3, AND it settles the sensor-DEVICE-MID retrain
+question: NO.** In NOS3, EX-0014.03 "sensor data spoof" is only exercisable as a
+sensor DISABLE (true data fabrication is out of scope). Disabling the IMU flips
+`IMU.DeviceEnabled 1→0` (105 frames) — but the sim keeps the device ALIVE:
+`IMU.DeviceCount` keeps incrementing, `IMU_DEV.*` readings keep changing with normal
+values (6 distinct across the window), and `ADCS_DI.Payload.Imu.valid` stays 1. So
+**the raw sensor DEVICE telemetry does NOT change on disable** — the new sensor
+DEVICE MIDs add ZERO signal for EX-0014.03 (the one attack they were added to
+sharpen), and `ADCS_DI` already mirrors the device reading anyway. IF misses it
+(is_anomaly=0). Verdict: EX-0014.03 is a flag-flip attack (only `DeviceEnabled→0`),
+NOT a dynamics/data change → the sensor-DEVICE-MID IF retrain is **not justified**;
+the rule layer covers it too. (A genuine data-fabrication variant WOULD move the
+device readings and justify the MIDs — but NOS3 can't inject false sensor values.)
+
 ### validate-hw-commands — Validate EX-0005.02 (Malicious Use of Hardware Commands) · `Task` · Medium
 **Summary:** Validate direct malicious hardware/device commands into the corpus.
 **Description:** Attacker issues valid-but-malicious device commands to a component
