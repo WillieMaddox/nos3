@@ -70,6 +70,8 @@ data/onair/csv/
 # symlinks into data/onair/csv/ (kept as symlinks — no data duplication). The
 # symlink targets are already ignored, so committing these pointers is pointless.
 data/onair/csv_corpus_v3stage/
+# AINOS3-30 staged collection corpus (fresh 256-col instance, ~179M) — data, not tracked.
+data/onair/csv_ainos3_30/
 # data/onair is data (NAS-backed) → git-ignored, EXCEPT the small deployed-config
 # JSONs in models/ which are committed explicitly (cluster_taxonomy.json,
 # incident_rescore*.json, explanation_catalog.json, *_report.md).

@@ -536,6 +536,36 @@
                 "tests": {"NOOP": "[]"},
                 "description": "Name of last table loaded"
             },
+            "CFE_TBL.FileLoadChanged": {
+                "conversion": "",
+                "tests": {"NOOP": "[]"},
+                "description": "AINOS3-30 derived: 1 when LastFileLoaded changed vs previous frame (table file load event); DE-0003.03/.08/.09 signal"
+            },
+            "CFE_TBL.FileLoadCount": {
+                "conversion": "",
+                "tests": {"NOOP": "[]"},
+                "description": "AINOS3-30 derived: monotonic count of LastFileLoaded change events since startup"
+            },
+            "CFE_TBL.TableUpdateChanged": {
+                "conversion": "",
+                "tests": {"NOOP": "[]"},
+                "description": "AINOS3-30 derived: 1 when LastUpdatedTable changed vs previous frame (table update event); DE-0003 signal"
+            },
+            "CFE_TBL.TableUpdateCount": {
+                "conversion": "",
+                "tests": {"NOOP": "[]"},
+                "description": "AINOS3-30 derived: monotonic count of LastUpdatedTable change events since startup"
+            },
+            "CFE_TBL.TableLoadChanged": {
+                "conversion": "",
+                "tests": {"NOOP": "[]"},
+                "description": "AINOS3-30 derived: 1 when LastTableLoaded changed vs previous frame (table load event); DE-0003 signal"
+            },
+            "CFE_TBL.TableLoadCount": {
+                "conversion": "",
+                "tests": {"NOOP": "[]"},
+                "description": "AINOS3-30 derived: monotonic count of LastTableLoaded change events since startup"
+            },
             "CFE_TIME.CommandCounter": {
                 "conversion": "",
                 "tests": {"NOOP": "[]"},
@@ -1648,7 +1678,13 @@
         "RADIO_DEV.DeviceConfig",
         "RADIO_DEV.ProxSignal",
         "SBN.ProtocolIdx",
-        "SBN.ModuleStatus"
+        "SBN.ModuleStatus",
+        "CFE_TBL.FileLoadChanged",
+        "CFE_TBL.FileLoadCount",
+        "CFE_TBL.TableUpdateChanged",
+        "CFE_TBL.TableUpdateCount",
+        "CFE_TBL.TableLoadChanged",
+        "CFE_TBL.TableLoadCount"
     ],
     "channels": {
         "0x0808": ["CFE_EVS",     "CFE_EVS_LongEventTlm_t"],
