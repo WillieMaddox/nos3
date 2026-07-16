@@ -58,7 +58,7 @@ corpus. **Cheapest breadth wins.**
 | EX-0014.02 | Bus Traffic Spoofing | ✅ | injected SB messages vs `CFE_SB_SUBS` |
 | DE-0002.03 | Inhibit Spacecraft Functionality | ✅ | subsystem HK going quiet / error counts |
 | DE-0005 | Subvert Protections via Safe-Mode | ✅ | mode change (sibling of EX-0011) |
-| DE-0010 | Overflow Audit Log | ✅ | **EVS `AppData[*].AppMessageSquelchedCounter`** — the event-flood signal (see the AppData analysis) |
+| DE-0010 | Overflow Audit Log | ✅ | **EVS sent-rate** — `CFE_EVS_HK.MessageSendCounter` + `AppData[CFE_EVS].AppMessageSentCounter` spike (validated 2026-07-16: ON_BOARD, but the deployed IF misses it — squelched-counter does NOT fire) |
 | PER-0001 | Memory Compromise | ✅ | sibling of EX-0012.03 memory write |
 
 ## B. Applicable · UNSUBSCRIBED · needs a MID to become detectable

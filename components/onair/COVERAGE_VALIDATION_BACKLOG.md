@@ -127,14 +127,31 @@ protections and evade. Same footprint (mode transition). Low priority: near-
 duplicate of validate-safemode-exploit; validate together.
 **AC:** common criteria; may share a run with EX-0011.
 
-### validate-audit-overflow — Validate DE-0010 (Overflow Audit Log) · `Task` · High
+### validate-audit-overflow — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ◑ FOOTPRINT-VALIDATED 2026-07-16
 **Summary:** Validate an EVS event-log overflow used to bury evidence.
-**Description:** Flood EVS with events so the audit trail overflows / rate-limits,
-hiding a concurrent malicious action. **Directly observable via
-`CFE_EVS_HK.AppData[<app>].AppMessageSquelchedCounter`** climbing (the EVS squelch
-signal — see the AppData analysis) and `AppEnableStatus`. High priority: clean,
-already-subscribed signal, and it exercises the EVS per-app array meaningfully.
-**AC:** common criteria; assert the squelched-counter rise for the flooding app.
+**Description:** Flood EVS with events (script sends `CFE_EVS_NOOP`, MID 0x1801)
+so the audit trail is drowned. Observable in the EVS housekeeping.
+**VALIDATED against live FSW (2026-07-16, `de_0010_overflow_audit_log.py`
+`--attack-level 2 --flood-count 500`):**
+- **Signal class: ON_BOARD, strong.** `CFE_EVS_HK.MessageSendCounter` 10564→11080
+  (Δ+516) and **`AppData[CFE_EVS].AppMessageSentCounter` 2→490 (Δ+488)**, +303
+  events in a single frame at peak — a huge, clean, already-subscribed signal.
+- **Hypothesis CORRECTED:** the footprint is the **sent** counter, NOT
+  `AppMessageSquelchedCounter`. Squelch never fired even on an instantaneous
+  200-event burst (config `CFE_PLATFORM_EVS_MAX_APP_EVENT_BURST=32`,
+  `APP_EVENTS_PER_SEC=15`) — the FSW's command-processing pace keeps the event
+  rate under the refill. The squelch-signal claim (here + the AppData analysis +
+  `V5_DETECTOR_COVERAGE.md`) is refuted for NOS3 event floods; correct to sent-rate.
+- **Deployed detector MISSES it:** the v5 IF held `is_anomaly=0 / alert=0` across
+  all 263 flood-burst frames (score ~0.12 vs thr ~0). The per-mode, GNC-dominated
+  IF doesn't weight CDH/EVS counters; since the classifier is IF-gated, DE-0010 is
+  **undetected end-to-end** despite the loud footprint.
+**Revised AC:** footprint is confirmed ON_BOARD ✓. Folding into the corpus is
+**not** guaranteed to make the IF catch it — the honest next step is (a) collect
+DE-0010 + retrain and re-measure whether the IF learns the EVS-flood signature, or
+more likely (b) add a targeted EVS-send-rate feature/rule, since the per-mode IF
+structurally under-weights CDH-layer signal. This reframes DE-0010 from "just
+validate" to "signal present but detector-blind — needs a feature, not just data."
 
 ### validate-memory-compromise — Validate PER-0001 (Memory Compromise) · `Task` · Medium
 **Summary:** Validate persistent memory compromise.
