@@ -89,6 +89,19 @@ discrete state changes: `*.DeviceEnabled→0`, mode changes, EVS/SB send-rate sp
 gating the classifier in parallel with the IF. Recommend confirming with 1-2 more
 diverse techniques, then prototyping that rule layer rather than grinding all 13.
 
+**RULE-GATE PROTOTYPE — WORKS (2026-07-16).** `training/rule_gate_prototype.py`
+(offline). Rules: R1 `*.DeviceEnabled` drops below session baseline; R2
+`CFE_EVS_HK.MessageSendCounter` per-frame delta > auto-threshold; R3
+`CFE_SB.MsgSendErrorCounter` delta > 0; R4 `*.CommandError*` delta spike. Scored on
+the 44,419-frame post-restart CSV: **all 3 IF-blind attacks caught** — DE-0010
+(R2+R3), EX-0002 (R1 NOVATEL), EX-0014.03 (R1 IMU) — the exact windows the IF scored
+is_anomaly=0. **Nominal FP = 0.016%** (7 flicker-edge frames). Double-buffer causes
+1-frame flicker at edges → a runtime impl needs the IF plugin's hysteresis
+(alert/clear counters). Next: wire it as a parallel gate OR-ed with the IF (either
+gate → classify + incident), so the flag/counter class is covered end-to-end with no
+retrain and no new MIDs. The IF still owns the dynamics attacks (subsystem
+corruption, ROBUST tier); the two gates are complementary.
+
 **EX-0014.03 (2026-07-16) — 3/3, AND it settles the sensor-DEVICE-MID retrain
 question: NO.** In NOS3, EX-0014.03 "sensor data spoof" is only exercisable as a
 sensor DISABLE (true data fabrication is out of scope). Disabling the IMU flips `IMU.DeviceEnabled 1→0`. Per the source
