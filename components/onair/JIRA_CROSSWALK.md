@@ -85,7 +85,7 @@ misses (state-change / spoof / telemetry-freeze). Proposed as a dedicated epic
 | rule-gate-detector | — | Story | detector-gates | Rule-gate: parallel state-change detector (R1–R5) + incident wiring | ✅ Done, deployed |
 | consistency-gate | — | Story | detector-gates | Consistency-check: per-sample bus-spoof detector | ✅ Done, deployed |
 | staleness-gate | — | Story | detector-gates | Staleness-check: telemetry-denial / frozen-stream detector | ✅ Done, deployed |
-| sb-command-rule | — | Task | detector-gates | Rule-gate R6: CFE_SB routing/subscription command rule | ○ To Do |
+| sb-command-rule | — | Task | detector-gates | Rule-gate R6: CFE_SB routing/subscription command rule | ✅ Done, deployed |
 
 ## Sprint 24 (prior)
 

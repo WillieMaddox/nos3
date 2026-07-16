@@ -125,13 +125,14 @@ prior `rollout-s24`).
 | rule-gate-detector | — | Story | — | 8 | 2.5 | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
 | consistency-gate | — | Story | — | 5 | 1.5 | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
 | staleness-gate | — | Story | — | 8 | 2.5 | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
-| sb-command-rule | — | Task | Med | 2 | 0.5 | ○ TODO — R6 CFE_SB.CommandCounter route-command rule |
+| sb-command-rule | — | Task | Med | 2 | 0.5 | ✅ DONE — R6 CFE_SB.CommandCounter route-command rule (low-latency EX-0012.02 catch) |
 
 **Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours).
 **Unplanned `detector-gates` epic (mid-sprint actuals):** E = 23 · T = 7.0 (≈ 56 h)
 — the three shipped Stories are the sprint's actual highest-value output; their E/T
 are **retrospective (realized effort/time)**, not forward estimates, since uncertainty
-is resolved. `sb-command-rule` (E 2 · T 0.5) is the only forward estimate.
+is resolved. `sb-command-rule` (E 2 · T 0.5) also shipped (its E/T came in on
+estimate). All four gates are now DONE + deployed.
 
 ---
 
@@ -517,18 +518,18 @@ high-latency (~30–50s — OnAIR polls faster than MIDs publish); coverage = CD
 MIDs (sensor DeviceHK counters publish too variably). See `sb-command-rule` for the
 lower-latency complement.
 
-### sb-command-rule — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · Medium · E 2 · T 0.5 (~4h) · ○ TODO
+### sb-command-rule — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · Medium · E 2 · T 0.5 (~4h) · ✅ DONE (deployed)
 **Summary:** As a defender I want the EX-0012.02 route-modification COMMAND itself
 caught — a cleaner, lower-latency signal than the freeze effect.
-**Description:** Add rule-gate R6 on `CFE_SB.CommandCounter`: any CFE_SB command
+**Description:** Rule-gate R6 on `CFE_SB.CommandCounter`: any CFE_SB command
 (ENABLE/DISABLE_ROUTE, subscription report, WRITE_ROUTING_INFO) is rare/never in
-nominal ops, so an increment is a strong, immediate indicator of the routing-table
-attack — vs the staleness gate's intrinsically high-latency freeze detection. Small
-addition to the existing rule-gate plugin.
-**Acceptance criteria:** R6 fires on a `CFE_SB.CommandCounter` delta; labeled
-EX-0012.02 incident; nominal FP measured (expected ~0); unit test + live-verify against
-a DISABLE_ROUTE.
-**Status:** Not built.
+nominal ops, so an increment is an immediate indicator of the routing-table attack —
+vs the staleness gate's intrinsically high-latency freeze detection. Fires on a new
+running-max of the counter (robust to double-buffer flicker) and holds a short dwell
+so the single-step signal latches the leaky integrator into one bounded incident.
+**Status:** Deployed (rule_gate a268852); 4 unit tests (15 total). Live-verified: a
+CFE_SB NOOP produced an R6 alert **1 frame** after the command and a closed EX-0012.02
+incident; **0 FP** (CommandCounter static at its boot value across the run).
 
 ---
 
