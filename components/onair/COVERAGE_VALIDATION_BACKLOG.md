@@ -33,7 +33,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 |---|---|---|---|:--:|---|
 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | NOVATEL/GPS position fields |
 | validate-hw-commands | EX-0005.02 | Task | Med | — | component HK command counters |
-| validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ADCS/SC mode change |
+| validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
 | validate-routing-tables | EX-0012.02 | Task | High | — | `CFE_SB_SUBS` (subscribed) |
 | validate-cdh-subsystem | EX-0012.10 | Task | Med | — | `CFE_ES`/`CFE_SB` counters |
 | validate-flood-valid | EX-0013.01 | Task | Med | ✅ | cmd counters + `CFE_SB` errors |
@@ -69,12 +69,16 @@ dynamics). See the campaign-findings note below.
 
 ## Campaign findings (running) — the IF is a *dynamics* detector, not a *state* detector
 
-**2/2 validated Section-A techniques so far are ON_BOARD but MISSED by the deployed
-IF, for the same structural reason.** DE-0010 (EVS event-flood) and EX-0002 (GPS
-DeviceEnabled→0) both leave clean, subscribed footprints the v5 per-mode IF does not
-flag. Contrast: the already-validated EX-0012.07/08/09 subsystem-corruption attacks
-ARE caught (ROBUST tier) — because they perturb the GNC *attitude dynamics* the IF
-is trained on.
+**Tally (2026-07-16): 4 Section-A techniques validated — DE-0010, EX-0002,
+EX-0014.03, EX-0011 — all ON_BOARD; the dynamics-vs-state split is now sharp.**
+The first three are pure flag/counter footprints the v5 per-mode IF MISSES
+(is_anomaly=0); the rule-gate covers them. **EX-0011 is the confirming
+counterexample: the IF CATCHES it (52% of window)** because its exploit fires the
+thruster + toggles EPS/CSS and thus perturbs the GNC *attitude dynamics* the IF is
+trained on — exactly like the already-caught EX-0012.07/08/09 corruption attacks
+(ROBUST tier). So the rule "IF sees dynamics perturbation, is blind to pure
+state/counter changes" holds across all validated cases. (The rule-gate ALSO
+caught EX-0011 via CSS-disable + EVS cmd-errors, so it's double-covered.)
 
 **Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
 dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
@@ -126,12 +130,42 @@ counters + resulting device state. No script yet — create one targeting a
 subscribed actuator.
 **AC:** common criteria; pick a target component whose HK is subscribed.
 
-### validate-safemode-exploit — Validate EX-0011 (Exploit Reduced Protections in Safe-Mode) · `Task` · Medium
+### validate-safemode-exploit — Validate EX-0011 (Exploit Reduced Protections in Safe-Mode) · `Task` · Medium · ✔ VALIDATED 2026-07-16
 **Summary:** Validate the safe-mode exploitation technique.
-**Description:** Force the vehicle into a safe/reduced-protection mode, then act
-while protections are relaxed. Script `ex_0011_exploit_safe_mode.py` exists.
-Footprint: ADCS/SC mode transition (already observable — `ADCS_GNC.Mode`, `SC`).
-**AC:** common criteria; confirm the mode transition is captured + any follow-on.
+**Description:** In NOS3 this is NOT an ADCS/SC mode transition (the original
+footprint guess was wrong). The script simulates safe-mode by disabling
+monitoring (HS/LC/EVS) then exploiting: EPS switch-off, thruster arm+fire, sensor
+disable. **VALIDATED live (`ex_0011_exploit_safe_mode.py --attack-level 3`,
+2026-07-16):**
+- **Signal class: ON_BOARD. DETECTED BY BOTH GATES — the first Section-A
+  technique the IF catches on its own.** Unlike DE-0010/EX-0002/EX-0014.03 (pure
+  flag/counter, IF-blind), EX-0011's *exploit* perturbs GNC dynamics: **IF
+  is_anomaly=1 on 58/112 window frames (52%)** because the thruster fires at 80%
+  and EPS/CSS changes disturb the attitude physics the IF is trained on.
+- **Rule-gate also catches it, 3 ways:** R1 `CSS.DeviceEnabled 1→0` (CSS disable),
+  R2 EVS send-rate spike, R4 `CFE_EVS_HK` cmd-errors → labeled **cmd-errors
+  incident** (frames 5116-5142, SUNSAFE). So it is covered end-to-end even if the
+  dynamics IF had missed it.
+- **Observable fields that moved (subscribed):** `CSS.DeviceEnabled`,
+  `THRUSTER.DeviceEnabled`+`CommandCount`, `EPS.CommandCount`, `LC.CmdCount`/
+  `CmdErrCount`, EVS `MessageSendCounter` + `CommandErrorCounter`. **HS is NOT
+  subscribed** (`HS_*`=0 cols) so the HS monitoring-disable is not observable; LC
+  **is** subscribed as `LC.CurrentLCState`.
+- **2 script bugs found + FIXED (live-validated):** (a) LC `SET_LC_STATE` payload
+  was `>H` (2-byte BE) — must be `<HH` (4-byte LE: `uint16 NewLCState; uint16
+  Padding`); it was rejected (CmdErrCount climbed, state never changed). Corrected
+  form flips `LC.CurrentLCState 1→3`. (b) EVS `DISABLE_EVENT_TYPE` sent a 1-byte
+  ordinal — must be a 2-byte `{uint8 BitMask; uint8 Spare}` with bit values
+  (DEBUG=0x01…CRIT=0x08); corrected form is accepted (no cmd errors).
+- **New observable — `LC.CurrentLCState` (a monitoring-STATE field):** with the
+  fixed command it flips 1→3 (DISABLED). The **rule-gate is blind to it** (0
+  non-R3 alerts — no rule watches LC state). IF-detectability of the *pure* LC
+  flip is inconclusive here (confounded by settling dynamics from the thruster
+  cleanup), but structurally it's a CDH-layer state field the per-mode GNC IF
+  under-weights (same family as DE-0010). → **candidate R5 rule** (LC/HS/monitoring
+  state → DISABLED), a natural extension of the rule-gate.
+**AC:** footprint ON_BOARD ✓, detected by both gates ✓, script fixed ✓. Cleanup
+verified (thruster disarmed, CSS/EPS/LC/EVS restored).
 
 ### validate-routing-tables — Validate EX-0012.02 (Internal Routing Tables) · `Task` · High
 **Summary:** Validate SB internal-routing-table modification.
