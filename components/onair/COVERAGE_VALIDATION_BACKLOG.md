@@ -34,7 +34,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | NOVATEL/GPS position fields |
 | validate-hw-commands | EX-0005.02 | Task | Med | — | component HK command counters |
 | validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
-| validate-routing-tables | EX-0012.02 | Task | High | — | `CFE_SB_SUBS` (subscribed) |
+| validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
 | validate-cdh-subsystem | EX-0012.10 | Task | Med | — | `CFE_ES`/`CFE_SB` counters |
 | validate-flood-valid | EX-0013.01 | Task | Med | ✅ | cmd counters + `CFE_SB` errors |
 | validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | `CFE_SB` error family |
@@ -93,6 +93,15 @@ rule-gate. **BUILT + DEPLOYED 2026-07-16** (consistency_check plugin, fsw b58a2b
 The detector roadmap now has THREE deployed complementary gates: dynamics-IF
 (physics), rule-gate (sustained state/counter, incl. R5 monitor-state), and
 consistency-check (per-sample counter-monotonicity, 0 FP / 810 live frames).
+
+**6th (2026-07-16): EX-0012.02 routing-table modification — a FOURTH detector-gap
+class (staleness).** CFE_SB DISABLE_ROUTE severs a MsgId→pipe route; disabling the
+SBN route FREEZES that MID in OnAIR (telemetry denial). A frozen stream has no
+delta, so all three delta-based gates miss it (same as EX-0014.03 frozen fields).
+Two complementary fixes: a per-MID STALENESS detector (MID hasn't updated in N
+frames) for the freeze, and a CFE_SB.CommandCounter rule (candidate rule-gate R6)
+for the route COMMAND itself (SB route/subscription commands are rare in nominal
+ops). Also corrected the triage: CFE_SB_SUBS is NOT OnAIR-observable ([0]).
 
 **Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
 dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
@@ -184,14 +193,40 @@ disable. **VALIDATED live (`ex_0011_exploit_safe_mode.py --attack-level 3`,
 **AC:** footprint ON_BOARD ✓, detected by both gates ✓, script fixed ✓. Cleanup
 verified (thruster disarmed, CSS/EPS/LC/EVS restored).
 
-### validate-routing-tables — Validate EX-0012.02 (Internal Routing Tables) · `Task` · High
+### validate-routing-tables — Validate EX-0012.02 (Internal Routing Tables) · `Task` · High · ✔ VALIDATED 2026-07-16
 **Summary:** Validate SB internal-routing-table modification.
-**Description:** Modify the Software Bus routing/subscription tables to redirect or
-duplicate message flow. Sibling of the already-done EX-0012.04 (app/subscriber
-tables). **Directly observable in the subscribed `CFE_SB_SUBS` (0x080D) packet** —
-a new/changed MsgId route after init. High priority: strong expected signal, low
-effort. No script yet.
-**AC:** common criteria; assert the specific `CFE_SB_SUBS.Entry` change.
+**Description:** Modify the Software Bus routing tables to redirect/deny message
+flow. **VALIDATED live 2026-07-16 (no script — raw UDP CFE_SB commands):**
+- **Exercisable via `CFE_SB DISABLE_ROUTE` / `ENABLE_ROUTE`** (MID 0x1803, CC 5 /
+  CC 4). Disables a specific `MsgId → PipeId` route so that MID stops reaching the
+  pipe. **Payload gotcha:** `CFE_SB_RouteCmd_Payload_t` is MsgId(u32)+PipeId(u32)+
+  Spare(u8) but STRUCT-PADDED to 12 bytes → the command is 20 bytes total (8 hdr +
+  12). A 9-byte payload is rejected (CmdErrCount++, length error); pad to 12.
+- **Route enumeration via `CFE_SB WRITE_ROUTING_INFO` (CC 3)** → dumps a file
+  (`/cf/<name>.dat`) readable on the shared mount (like AINOS3-48). Format: 64-byte
+  CFE_FS header + 52-byte `CFE_SB_RoutingFileEntry_t` (MsgId u32 @0, PipeId u32 @4,
+  State @8, AppName[20] @12, PipeName[20] @32). **OnAIR receives ALL telemetry via
+  the SBN pipe `SBN_2_42_Pipe` (pipeid 0x0016002c)** — the route to sever for an
+  OnAIR-visible effect.
+- **`CFE_SB_SUBS` (0x080D) is NOT observable — reads `[0]`, not SBN-forwarded to
+  OnAIR** (same pattern as NOVATEL/CI/ST). **The triage's claimed observable is
+  WRONG.**
+- **Footprint (DEMONSTRATED — disabled IMU_HK 0x0925 → SBN pipe):** (a) the routing
+  COMMAND moves `CFE_SB.CommandCounter` (1→2 disable, →3 enable — subscribed, live,
+  the clean ON_BOARD signal; SB route commands are rare/never in nominal ops); (b)
+  the routing EFFECT froze `IMU.DeviceHK.DeviceCounter` at 61731 for the whole 20s
+  window (telemetry DENIAL — the MID stops reaching OnAIR while the FSW keeps
+  running). Reversible; ENABLE_ROUTE restored the flow (verified IMU resumed).
+- **Detection: all THREE delta-based gates are BLIND to the freeze** — a frozen
+  stream has no delta (consistency-check needs a backwards step: 0 alerts; rule-gate
+  needs a flag-drop/spike: 0 non-R3; IF sees constant input). Same family as
+  EX-0014.03's frozen fields. Catching the FREEZE needs a **per-MID staleness
+  detector** ("subscribed MID hasn't updated in N frames"). Catching the COMMAND
+  needs a **CFE_SB.CommandCounter rule** (candidate rule-gate R6 — any SB
+  route/subscription command is suspicious).
+**AC:** exercisability confirmed ✓; footprint ON_BOARD (CFE_SB.CommandCounter) +
+telemetry-freeze; triage observable corrected; detector gap (staleness) documented.
+No lasting state change (route restored).
 
 ### validate-cdh-subsystem — Validate EX-0012.10 (C&DH Subsystem) · `Task` · Medium
 **Summary:** Validate on-board-value modification targeting the C&DH subsystem.
