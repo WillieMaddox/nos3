@@ -122,14 +122,16 @@ prior `rollout-s24`).
 | stakeholder-rollout | AINOS3-42 | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
 | rollout-s25 | AINOS3-49 | Task | Medium | 2 | 0.5 | ◑ COMMIT — Sprint-25 readout: DEAD-class recovery + audit findings |
 | detector-gates | — | Epic | — | — | — | 🔄 MID-SPRINT (unplanned) — complementary detector gates, parallel to the IF |
-| rule-gate-detector | — | Story | — | — | — | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
-| consistency-gate | — | Story | — | — | — | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
-| staleness-gate | — | Story | — | — | — | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
-| sb-command-rule | — | Task | — | — | — | ○ TODO — R6 CFE_SB.CommandCounter route-command rule |
+| rule-gate-detector | — | Story | — | 8 | 2.5 | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
+| consistency-gate | — | Story | — | 5 | 1.5 | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
+| staleness-gate | — | Story | — | 8 | 2.5 | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
+| sb-command-rule | — | Task | Med | 2 | 0.5 | ○ TODO — R6 CFE_SB.CommandCounter route-command rule |
 
-**Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours). The
-`detector-gates` epic below was unplanned mid-sprint work (see the mid-sprint update)
-— its three shipped Stories are the sprint's actual highest-value output.
+**Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours).
+**Unplanned `detector-gates` epic (mid-sprint actuals):** E = 23 · T = 7.0 (≈ 56 h)
+— the three shipped Stories are the sprint's actual highest-value output; their E/T
+are **retrospective (realized effort/time)**, not forward estimates, since uncertainty
+is resolved. `sb-command-rule` (E 2 · T 0.5) is the only forward estimate.
 
 ---
 
@@ -470,7 +472,7 @@ IF→classifier path (all emit the shared `Incident` format). Proposed as a dedi
 epic; alternatively park under `coverage-expansion` (AINOS3-41). Slugs reserved in
 [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md) — create the tickets and enter keys.
 
-### rule-gate-detector — Rule-gate: parallel state-change detector · `Story` · ✅ DONE (deployed)
+### rule-gate-detector — Rule-gate: parallel state-change detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
 **Summary:** As a defender I want the flag/counter state-change attacks the
 dynamics-IF misses (device disable, EVS/SB rate spikes, monitoring disable) caught by
 a rule/threshold gate beside the IF.
@@ -485,7 +487,7 @@ double-buffer flicker. Folds into the shared IncidentAggregator.
 **Status:** Deployed + live-verified; 11 unit tests. Validated against EX-0002,
 EX-0014.03, DE-0010, EX-0011.
 
-### consistency-gate — Consistency-check: per-sample bus-spoof detector · `Story` · ✅ DONE (deployed)
+### consistency-gate — Consistency-check: per-sample bus-spoof detector · `Story` · E 5 · T 1.5 (~12h, actual) · ✅ DONE (deployed)
 **Summary:** As a defender I want externally-injected spoofed telemetry (bus-traffic
 spoofing, EX-0014.02) caught — a per-sample out-of-distribution value the IF and
 rule-gate both miss.
@@ -499,7 +501,7 @@ name + uint8 filters beat wraps and physical fields). Labels EX-0014.02 incident
 a spoofed `IMU.DeviceHK.DeviceCounter` while the rule-gate stayed silent. Caveat: wide
 (non-wrapping) counters only.
 
-### staleness-gate — Staleness-check: telemetry-denial / frozen-stream detector · `Story` · ✅ DONE (deployed)
+### staleness-gate — Staleness-check: telemetry-denial / frozen-stream detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
 **Summary:** As a defender I want a route-disable telemetry-freeze (a MID stops
 reaching the monitor, EX-0012.02) caught — a frozen stream has no forward delta, so
 all three delta-based gates miss it.
@@ -515,7 +517,7 @@ high-latency (~30–50s — OnAIR polls faster than MIDs publish); coverage = CD
 MIDs (sensor DeviceHK counters publish too variably). See `sb-command-rule` for the
 lower-latency complement.
 
-### sb-command-rule — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · ○ TODO
+### sb-command-rule — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · Medium · E 2 · T 0.5 (~4h) · ○ TODO
 **Summary:** As a defender I want the EX-0012.02 route-modification COMMAND itself
 caught — a cleaner, lower-latency signal than the freeze effect.
 **Description:** Add rule-gate R6 on `CFE_SB.CommandCounter`: any CFE_SB command
