@@ -51,6 +51,7 @@ with the Jira sprint number (`rollout-s24`, next `rollout-s25`).
 | explainability | AINOS3-32 | Epic | — | — | — | Explainability (Phase 7 start) |
 | shap-attribution | AINOS3-38 | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
 | surface-explanations | AINOS3-40 | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
+| appdata-slot-map | — | Task | Medium | 3 | 0.75 | Backlog — EVS AppData slot→app reference map; unblocks counter-reliance-audit + targeted event-suppression features |
 | coverage-expansion | AINOS3-41 | Epic | — | — | — | Detection coverage expansion |
 | extra-mids | AINOS3-30 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
 | next-ml-bet | — | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
@@ -239,6 +240,9 @@ per-attack discrimination without hurting LOIO accuracy. Deferred — informatio
 not blocking; any model change interacts with AINOS3-33's "keep v3" decision.
 **Placement:** spun off from the AINOS3-38 finding but it's a AINOS3-31
 concern (model behaviour), so it lives under EPIC AINOS3-31, not Explainability.
+**Prerequisite:** `appdata-slot-map` (under EPIC AINOS3-32) — the `AppData`
+half of this audit can't distinguish genuine attacked-subsystem signal from a
+generic busy-app shortcut until each of the 16 slots is resolved to an app name.
 
 ---
 
@@ -330,6 +334,58 @@ Nominal incidents correctly carry an empty explanation. Demo column verified in
 the regenerated `nos3_coverage.js`. (Runtime plugin synced to the build tree;
 the diff vs source was exactly this change.)
 **Depends on:** AINOS3-38.
+
+### appdata-slot-map — EVS AppData slot→app reference map · `Task` · Medium · E 3 · T 0.75 (~6h) · `Backlog`
+**Summary:** As a developer/analyst, I want a reference map from each
+`CFE_EVS_HK.AppData` slot to the human-readable app it represents, so the
+top-field that dominates most attack attributions (`AppData`) becomes actionable
+at the subsystem level instead of an anonymous 16×4 array.
+**Description:** `CFE_EVS_HK.AppData` is an array of 16 `CFE_EVS_AppTlmData_t`
+records (`message_headers.py:756`); each record's field 0 is an **opaque cFE
+resource `AppID`** (`CFE_ES_APPID_BASE 0x110000 + N`, e.g. observed
+`1114113 = 0x110001`), not a name. The array only holds the first 16
+EVS-registered apps (the build has >16 apps). SHAP attribution (AINOS3-38) shows
+`AppData` in the top-6 for nearly every attack, but we currently cannot say
+*which* app drives it — a diagnostic dead-end.
+**Why this is dual-use (primary beneficiary is the engineering loop, not the
+stakeholder readout):**
+- **Unblocks AINOS3-39** (activity-counter reliance audit): lets us ask the sharp
+  question — is the `AppData` signal the *attacked* subsystem's event stream
+  (genuine) or a generic busy app like SCH (a shortcut)?
+- **Enables targeted features:** the struct docstring (`message_headers.py:769`)
+  flags `AppEnableStatus = 0` as the *event-suppression* attack signal (an
+  attacker silencing a subsystem to hide activity). A named map lets us build an
+  explicit `AppData[<app>].AppEnableStatus` feature instead of leaving it buried
+  in a 64-wide array for the model to discover.
+- **Sharpens footprint assertions:** attack-validation / soaks can assert "attack
+  Y suppresses app Z ⇒ `AppData[Z].AppEnableStatus`→0 and
+  `AppMessageSquelchedCounter` climbs" rather than "AppData changed somewhere."
+**Approach — static crosswalk (build-static, no runtime change):** the
+`AppID→name` binding is deterministic for a fixed cFS image (same
+`cfe_es_startup.scr` + cFE core apps every launch), so it does **not** need
+per-run telemetry. Take one live `CFE_ES` App Info dump to pin the
+`0x110000+N → name` offset against the startup-script names, commit a JSON
+crosswalk artifact, and resolve by the **`AppID` value in field 0** (not slot
+position, so EVS registration-order variation can't misname). Explicitly **not**
+subscribing the ES App Info MID at runtime — that solves a per-run-dynamic
+problem we don't have and adds permanent flight-runtime surface.
+**Acceptance criteria:**
+- Committed `AppID→name` crosswalk JSON covering the 16 populated slots, pinned
+  against one live ES App Info dump.
+- Attribution / demo render `AppData` contributions by app name (e.g.
+  `AppData[ADCS].AppEnableStatus`) where a specific slot dominates.
+- **Diff-guard:** a script that re-dumps ES App Info and fails if the committed
+  map no longer matches the running build (ties into the existing
+  schema-fingerprint discipline), so an intentional rebuild that shifts app
+  registration order is flagged rather than silently misnaming.
+**Depends on:** AINOS3-38 (attribution). **Feeds:** AINOS3-39 (counter-reliance
+audit); optionally the AINOS3-37 targeted-feature work.
+**Escape hatch:** if a future need makes live app-registration state worthwhile
+(frequent rebuilds, or an operator wants live ES state), the static table
+upgrades to the ES App Info telemetry approach cheaply.
+**Estimate note:** E 3 carries the offset-pinning uncertainty (mapping the
+opaque IDs to names correctly the first time); T ~0.75 (~6h) is the table +
+render + guard once the dump is in hand.
 
 ---
 

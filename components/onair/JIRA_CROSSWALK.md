@@ -21,7 +21,57 @@ How to use it:
   `rollout-s25`, …), never an arbitrary counter.
 - `—` in the Jira column = not yet created / not yet entered.
 
-## Sprint 24 (current)
+## Sprint 25 (current)
+
+Workstream Sprint 4 (`SPRINT_25_PLAN.md`), theme "Consolidate & Add Signal" —
+executes the `next-ml-bet` (`NOS3_330`) CONSOLIDATE verdict. All committed items
+carried over from the Sprint 24 backlog; only `rollout-s25` is new. The two new
+keys (`appdata-slot-map → AINOS3-48`, `rollout-s25 → AINOS3-49`) were created in
+Jira 2026-07-15 and entered below.
+
+| Slug | Jira | Type | Epic (parent) | Title | Status |
+|---|---|---|---|---|---|
+| coverage-expansion | AINOS3-41 | Epic | — | Detection coverage expansion | — |
+| extra-mids | AINOS3-30 | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | ◑ Committed |
+| explainability | AINOS3-32 | Epic | — | Explainability (Phase 7) | — |
+| appdata-slot-map | AINOS3-48 | Task | explainability | EVS AppData slot→app reference map | ◑ Committed |
+| classification-trust | AINOS3-31 | Epic | — | Classification trust (close the mode gap) | — |
+| counter-reliance-audit | AINOS3-39 | Spike | classification-trust | Activity-counter reliance audit | ◑ Committed |
+| selective-mode-hybrid | AINOS3-37 | Story | classification-trust | Selective per-mode hybrid | ○ Stretch |
+| stakeholder-rollout | AINOS3-42 | Epic | — | Stakeholder rollout & feedback (recurring) | — |
+| rollout-s25 | AINOS3-49 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 25 | ◑ Committed |
+
+### Backlog / carryover (slugs reserved; file rows here as they're created)
+
+| Slug | Jira | Type | Epic (parent) | Title | Status |
+|---|---|---|---|---|---|
+| tcn-feature | AINOS3-44 | Story | coverage-expansion | TCN reconstruction-error feature (EX-0008) | Backlog |
+| corpus-instance-4 | AINOS3-45 | Task | — | 4th corpus instance | Backlog |
+| demo-tier-bc | AINOS3-46 | Story | — | Demo app Tier B/C (live execution / agent) | Backlog |
+| foundation-baseline | AINOS3-47 | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
+| deepsad-revisit | — | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
+
+### Coverage-validation backlog — Section A (in-scope-now techniques)
+
+From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md). All Tasks under `coverage-expansion` (AINOS3-41). Enter keys as tickets are created.
+
+| Slug | Jira | Type | Epic (parent) | Title (SPARTA) | Status |
+|---|---|---|---|---|---|
+| validate-pnt-geofence | — | Task | coverage-expansion | Validate EX-0002 PNT geofencing | Backlog |
+| validate-hw-commands | — | Task | coverage-expansion | Validate EX-0005.02 malicious hardware commands | Backlog |
+| validate-safemode-exploit | — | Task | coverage-expansion | Validate EX-0011 safe-mode exploit | Backlog |
+| validate-routing-tables | — | Task | coverage-expansion | Validate EX-0012.02 internal routing tables | Backlog |
+| validate-cdh-subsystem | — | Task | coverage-expansion | Validate EX-0012.10 C&DH subsystem | Backlog |
+| validate-flood-valid | — | Task | coverage-expansion | Validate EX-0013.01 valid-command flood | Backlog |
+| validate-flood-erroneous | — | Task | coverage-expansion | Validate EX-0013.02 erroneous-input flood | Backlog |
+| validate-bus-spoof | — | Task | coverage-expansion | Validate EX-0014.02 bus traffic spoofing | Backlog |
+| validate-inhibit-sc | — | Task | coverage-expansion | Validate DE-0002.03 inhibit spacecraft functionality | Backlog |
+| validate-safemode-evasion | — | Task | coverage-expansion | Validate DE-0005 safe-mode subversion | Backlog |
+| validate-audit-overflow | — | Task | coverage-expansion | Validate DE-0010 overflow audit log | Backlog |
+| validate-memory-compromise | — | Task | coverage-expansion | Validate PER-0001 memory compromise | Backlog |
+| validate-bus-segregation | — | Task | coverage-expansion | Validate LM-0002 bus-segregation lateral movement | Backlog |
+
+## Sprint 24 (prior)
 
 | Slug | Jira | Type | Epic (parent) | Title | Status |
 |---|---|---|---|---|---|
@@ -49,6 +99,7 @@ How to use it:
 | corpus-instance-4 | AINOS3-45 | Task | — | 4th corpus instance | Backlog |
 | demo-tier-bc | AINOS3-46 | Story | — | Demo app Tier B/C (live execution / agent) | Backlog |
 | foundation-baseline | AINOS3-47 | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
+| appdata-slot-map | — | Task | explainability | EVS AppData slot→app reference map (enables counter-reliance-audit) | Backlog |
 
 ## Sprint 23 (prior)
 

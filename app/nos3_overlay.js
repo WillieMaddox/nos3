@@ -68,9 +68,16 @@
     document.querySelectorAll(".technique-card[data-id]").forEach(badge);
   }
 
-  // Render the pipe-separated "field:pct|field:pct|…" explanation string as a
-  // compact horizontal bar chart — one row per field, fill width ∝ contribution.
-  function whyCell(expl) {
+  // "Top fields / review" column. For detected techniques: the pipe-separated
+  // "field:pct|…" SHAP explanation, rendered as a compact bar chart. For
+  // out-of-scope techniques: a prose review (why it can't be seen / what would
+  // be needed) so no out-of-scope cell is ever blank/unexplained.
+  function whyCell(c) {
+    if (c && c.review) {
+      const t = String(c.review).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return "<td class='nos3-why nos3-review'>" + t + "</td>";
+    }
+    const expl = c ? c.explanation : "";
     if (!expl) return "<td class='nos3-why'>—</td>";
     const rows = expl.split("|").map(function (tok) {
       const i = tok.lastIndexOf(":");
@@ -103,7 +110,7 @@
         "<td>" + c.tier + "</td><td>" + c.signal + "</td>" +
         "<td>" + (c.frame_rate != null ? Math.round(c.frame_rate * 100) + "%" : "—") + "</td>" +
         "<td class='nos3-inc'>" + rec + lab + "</td>" +
-        whyCell(c.explanation) + "</tr>"
+        whyCell(c) + "</tr>"
       );
     }).join("");
     const div = document.createElement("div");
@@ -116,8 +123,8 @@
       "<th>Sub-technique</th><th>Name</th><th>Status</th><th>Classifier tier</th>" +
       "<th>Signal class</th><th title='frame-level SUNSAFE catch rate'>Frame catch</th>" +
       "<th title='incident-level recall across corpus instances'>Incident</th>" +
-      "<th title='top telemetry fields that drive this classification (SHAP, NOS3-311/312)'>" +
-      "Top fields (why)</th>" +
+      "<th title='detected: top telemetry fields (SHAP, NOS3-311/312). out-of-scope: why it can%27t be seen / what would be needed.'>" +
+      "Top fields / review</th>" +
       "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
       "<div class='nos3-foot'>Status = incident-level detection on the labeled corpus " +
       "(an attack counts as caught if it raised ≥1 alert). \"Frame catch\" is the per-frame " +
@@ -178,6 +185,8 @@
     ".nos3-lab{opacity:.6;font-size:.62rem}" +
     ".nos3-table-wrap{overflow-x:auto}" +
     ".nos3-table td.nos3-why{min-width:230px;vertical-align:middle}" +
+    ".nos3-table td.nos3-review{font-size:.72rem;line-height:1.35;color:#64748b;" +
+    "font-style:italic;white-space:normal;max-width:340px;vertical-align:middle}" +
     ".nos3-why-row{position:relative;display:flex;align-items:center;height:15px;margin:2px 0;" +
     "border-radius:3px;overflow:hidden;background:var(--bg-primary,#0f0f23);font-size:.62rem}" +
     ".nos3-why-fill{position:absolute;left:0;top:0;bottom:0;background:rgba(59,130,246,.30);z-index:0}" +
