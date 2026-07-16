@@ -2,7 +2,15 @@
 import numpy as np
 import pytest
 
-from attribution import aggregate_incident, base_field, explain_incident
+from attribution import (
+    aggregate_incident,
+    base_field,
+    explain_incident,
+    load_appid_slot_map,
+)
+
+_SLOTS = ["CFE_EVS", "CFE_SB", "CFE_ES", "CFE_TIME", "CFE_TBL", "SCH", "CI", "TO",
+          "CI_LAB_APP", "TO_LAB_APP", "CF", "DS", "FM", "LC", "SBN", "SC"]
 
 
 # ── base_field name normalization ────────────────────────────────────────────
@@ -125,3 +133,57 @@ def test_explain_incident_real_shap_path():
     assert scores == sorted(scores, reverse=True)
     # the driving field (feature index 2 → "TARGET.field") should rank #1
     assert out[0]["field"] == "TARGET.field"
+
+
+# ── AINOS3-48: AppData slot->app-name resolution ─────────────────────────────
+def test_base_field_appdata_resolves_slot_and_field_with_map():
+    # slot 5 = SCH, field 2 = AppEnableStatus
+    assert base_field("CFE_EVS_HK.AppData[5_2]", _SLOTS) == (
+        "CFE_EVS_HK.AppData[SCH].AppEnableStatus", False)
+    # slot 0 = CFE_EVS, field 0 = AppID
+    assert base_field("CFE_EVS_HK.AppData[0_0]", _SLOTS) == (
+        "CFE_EVS_HK.AppData[CFE_EVS].AppID", False)
+
+
+def test_base_field_appdata_delta_with_map():
+    assert base_field("d_CFE_EVS_HK.AppData[0_1]", _SLOTS) == (
+        "CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter", True)
+
+
+def test_base_field_appdata_falls_back_to_collapse_without_map():
+    # no map (default) → unchanged legacy behavior (still one row per array)
+    assert base_field("CFE_EVS_HK.AppData[5_2]") == ("CFE_EVS_HK.AppData", False)
+
+
+def test_base_field_appdata_out_of_range_slot_is_labeled_not_crashed():
+    assert base_field("CFE_EVS_HK.AppData[99_2]", _SLOTS) == (
+        "CFE_EVS_HK.AppData[slot99].AppEnableStatus", False)
+
+
+def test_base_field_non_appdata_array_unaffected_by_map():
+    # a map must NOT change how other arrays collapse
+    assert base_field("ADCS_GNC.bvb[0_1]", _SLOTS) == ("ADCS_GNC.bvb", False)
+
+
+def test_aggregate_incident_names_appdata_by_app_with_map():
+    # Two AppData elements from different slots + a scalar; the map must split
+    # them into per-app fields instead of one lumped "CFE_EVS_HK.AppData".
+    names = ["CFE_EVS_HK.AppData[5_2]", "CFE_EVS_HK.AppData[10_1]", "EPS.Voltage"]
+    shap = np.array([[0.9, 0.4, 0.2]])
+    out = aggregate_incident(shap, names, top_n=8, appid_slot_map=_SLOTS)
+    fields = {r["field"] for r in out}
+    assert "CFE_EVS_HK.AppData[SCH].AppEnableStatus" in fields
+    assert "CFE_EVS_HK.AppData[CF].AppMessageSentCounter" in fields
+    assert "CFE_EVS_HK.AppData" not in fields  # no opaque lump when resolved
+    assert out[0]["field"] == "CFE_EVS_HK.AppData[SCH].AppEnableStatus"  # top
+
+
+def test_load_appid_slot_map_reads_committed_crosswalk():
+    slots = load_appid_slot_map()
+    assert slots is not None, "committed cfe_appid_crosswalk.json should load"
+    assert len(slots) == 16
+    assert slots[0] == "CFE_EVS" and slots[5] == "SCH" and slots[15] == "SC"
+
+
+def test_load_appid_slot_map_missing_file_returns_none():
+    assert load_appid_slot_map("/nonexistent/crosswalk.json") is None

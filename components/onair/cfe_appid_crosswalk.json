@@ -1,0 +1,222 @@
+{
+  "_comment": "AINOS3-48 EVS AppData AppID->name crosswalk. Pinned against one live CFE_ES_QUERY_ALL dump. AppData holds the first 16 EVS-registered apps (AppIDs 0x110001-0x110010). `appdata_slots` is the slot-index->name array for attribution rendering. Regenerate with `appid_crosswalk.py --write`; guard with `--check`.",
+  "record_stride": 184,
+  "appdata_slots": [
+    "CFE_EVS",
+    "CFE_SB",
+    "CFE_ES",
+    "CFE_TIME",
+    "CFE_TBL",
+    "SCH",
+    "CI",
+    "TO",
+    "CI_LAB_APP",
+    "TO_LAB_APP",
+    "CF",
+    "DS",
+    "FM",
+    "LC",
+    "SBN",
+    "SC"
+  ],
+  "apps": {
+    "0x00110001": {
+      "appid": 1114113,
+      "name": "CFE_EVS",
+      "type": 1,
+      "type_name": "CORE_APP"
+    },
+    "0x00110002": {
+      "appid": 1114114,
+      "name": "CFE_SB",
+      "type": 1,
+      "type_name": "CORE_APP"
+    },
+    "0x00110003": {
+      "appid": 1114115,
+      "name": "CFE_ES",
+      "type": 1,
+      "type_name": "CORE_APP"
+    },
+    "0x00110004": {
+      "appid": 1114116,
+      "name": "CFE_TIME",
+      "type": 1,
+      "type_name": "CORE_APP"
+    },
+    "0x00110005": {
+      "appid": 1114117,
+      "name": "CFE_TBL",
+      "type": 1,
+      "type_name": "CORE_APP"
+    },
+    "0x00110006": {
+      "appid": 1114118,
+      "name": "SCH",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110007": {
+      "appid": 1114119,
+      "name": "CI",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110008": {
+      "appid": 1114120,
+      "name": "TO",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110009": {
+      "appid": 1114121,
+      "name": "CI_LAB_APP",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011000A": {
+      "appid": 1114122,
+      "name": "TO_LAB_APP",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011000B": {
+      "appid": 1114123,
+      "name": "CF",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011000C": {
+      "appid": 1114124,
+      "name": "DS",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011000D": {
+      "appid": 1114125,
+      "name": "FM",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011000E": {
+      "appid": 1114126,
+      "name": "LC",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011000F": {
+      "appid": 1114127,
+      "name": "SBN",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110010": {
+      "appid": 1114128,
+      "name": "SC",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110011": {
+      "appid": 1114129,
+      "name": "ADCS",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110012": {
+      "appid": 1114130,
+      "name": "CSS",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110013": {
+      "appid": 1114131,
+      "name": "EPS",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110014": {
+      "appid": 1114132,
+      "name": "FSS",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110015": {
+      "appid": 1114133,
+      "name": "NAV",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110016": {
+      "appid": 1114134,
+      "name": "IMU",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110017": {
+      "appid": 1114135,
+      "name": "MGR",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110018": {
+      "appid": 1114136,
+      "name": "MAG",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00110019": {
+      "appid": 1114137,
+      "name": "RADIO",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011001A": {
+      "appid": 1114138,
+      "name": "RW",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011001B": {
+      "appid": 1114139,
+      "name": "SAMPLE",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011001C": {
+      "appid": 1114140,
+      "name": "ST",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011001D": {
+      "appid": 1114141,
+      "name": "THRUSTER",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x0011001E": {
+      "appid": 1114142,
+      "name": "TORQUER",
+      "type": 2,
+      "type_name": "EXTERNAL_APP"
+    },
+    "0x00120001": {
+      "appid": 1179649,
+      "name": "CRYPTOLIB",
+      "type": 3,
+      "type_name": "LIBRARY"
+    },
+    "0x00120002": {
+      "appid": 1179650,
+      "name": "HW_LIB",
+      "type": 3,
+      "type_name": "LIBRARY"
+    },
+    "0x00120003": {
+      "appid": 1179651,
+      "name": "IO_LIB",
+      "type": 3,
+      "type_name": "LIBRARY"
+    }
+  }
+}

@@ -58,6 +58,9 @@ def main():
     present = sorted(a for a in set(aid[incorr]) - {""} if a in cls_col)
 
     explainer = A.build_explainer(clf)
+    slot_map = A.load_appid_slot_map()  # AINOS3-48: AppData[<app>].<field> rendering
+    print(f"AppData slot map: {'loaded '+str(len(slot_map))+' slots' if slot_map else 'ABSENT (opaque AppData)'}",
+          flush=True)
     classes = {}
     for atk in present:
         rows = np.where(incorr & (aid == atk))[0]
@@ -66,7 +69,8 @@ def main():
             rows = rows[:: max(1, n_all // args.max_frames)][:args.max_frames]
         top = A.explain_incident(clf, feat_names, X[rows],
                                  target_class_id=cls_col[atk],
-                                 explainer=explainer, top_n=args.top_n)
+                                 explainer=explainer, top_n=args.top_n,
+                                 appid_slot_map=slot_map)
         classes[atk] = {
             "n_frames": n_all,
             "top_features": top,
@@ -82,8 +86,12 @@ def main():
             "agg": "max",
             "top_n": args.top_n,
             "max_frames": args.max_frames,
+            "appdata_resolved": slot_map is not None,
             "note": "faithful ranking; generic activity counters may top the list "
-                    "(NOS3-311). Attack-specific field is within top-N.",
+                    "(NOS3-311). Attack-specific field is within top-N. "
+                    "AINOS3-48: CFE_EVS_HK.AppData resolved to AppData[<app>].<field> "
+                    "via cfe_appid_crosswalk.json (per-app-per-field, so a widely-"
+                    "distributed EVS signal may occupy several top-N slots).",
         },
         "classes": classes,
     }
