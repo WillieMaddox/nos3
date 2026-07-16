@@ -171,12 +171,15 @@ disable. **VALIDATED live (`ex_0011_exploit_safe_mode.py --attack-level 3`,
   ordinal — must be a 2-byte `{uint8 BitMask; uint8 Spare}` with bit values
   (DEBUG=0x01…CRIT=0x08); corrected form is accepted (no cmd errors).
 - **New observable — `LC.CurrentLCState` (a monitoring-STATE field):** with the
-  fixed command it flips 1→3 (DISABLED). The **rule-gate is blind to it** (0
-  non-R3 alerts — no rule watches LC state). IF-detectability of the *pure* LC
-  flip is inconclusive here (confounded by settling dynamics from the thruster
-  cleanup), but structurally it's a CDH-layer state field the per-mode GNC IF
-  under-weights (same family as DE-0010). → **candidate R5 rule** (LC/HS/monitoring
-  state → DISABLED), a natural extension of the rule-gate.
+  fixed command it flips 1→3 (DISABLED). The rule-gate WAS blind to it (0 non-R3
+  alerts — no rule watched LC state). IF-detectability of the *pure* LC flip is
+  inconclusive here (confounded by settling dynamics from the thruster cleanup),
+  but structurally it's a CDH-layer state field the per-mode GNC IF under-weights
+  (same family as DE-0010). **→ RESOLVED: rule-gate R5 built + deployed
+  2026-07-16** (fsw commit 39969a6). R5 watches monitoring/limit-check state fields
+  (default `LC.CurrentLCState`, configurable) and fires on any deviation from the
+  protective session baseline; live-verified emitting a closed EX-0011 incident on
+  an LC disable→restore cycle while the IF stayed blind.
 **AC:** footprint ON_BOARD ✓, detected by both gates ✓, script fixed ✓. Cleanup
 verified (thruster disarmed, CSS/EPS/LC/EVS restored).
 
