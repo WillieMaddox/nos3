@@ -89,9 +89,10 @@ spoof perturbs fused dynamics, and the rule-gate's leaky integrator can't latch 
 1-2 frame flicker. Catching it needs a new detector primitive: **per-sample
 range/schema/monotonicity consistency** (counter went backwards, value out of
 physical bounds), orthogonal to both the dynamics-IF and the sustained-signal
-rule-gate. So the detector roadmap now has three complementary gates:
-dynamics-IF (physics), rule-gate (sustained state/counter), and a proposed
-consistency-checker (per-sample sanity).
+rule-gate. **BUILT + DEPLOYED 2026-07-16** (consistency_check plugin, fsw b58a2b4).
+The detector roadmap now has THREE deployed complementary gates: dynamics-IF
+(physics), rule-gate (sustained state/counter, incl. R5 monitor-state), and
+consistency-check (per-sample counter-monotonicity, 0 FP / 810 live frames).
 
 **Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
 dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
@@ -254,9 +255,18 @@ raw UDP injection):
   the ADCS fuses (vs a counter) could still perturb the physics → IF-catchable.
 **AC:** exercisability confirmed (overturns triage) ✓; footprint = transient
 subscribed-telemetry flicker; detection gap documented. No FSW state changed
-(telemetry spoof, not commands) — nothing to clean up. **Follow-up:** the demo/
-triage should be updated to reclassify EX-0014.02 from MARKDOWN-ONLY to
-exercisable-but-detector-blind; candidate for a schema/range-consistency detector.
+(telemetry spoof, not commands) — nothing to clean up.
+**→ RESOLVED: consistency_check plugin built + deployed 2026-07-16** (fsw commit
+b58a2b4, parent 5eb0cf2c). A third OnAIR gate, parallel to the IF and rule-gate,
+that catches the per-sample spoof the other two miss. Primitive: a watched WIDE
+monotonic counter dropping below its recent rolling-window floor to a mid value
+(window-min beats OnAIR's double-buffer flicker; name+uint8 filters beat wraps and
+physical fields). **0 FP over 810 live nominal frames; a spoofed
+`IMU.DeviceHK.DeviceCounter=100` (real ~56900) produced one EX-0014.02 incident
+while the rule-gate stayed silent.** Coverage caveat: catches spoofs that move a
+wide (uint32, non-wrapping) counter backwards; uint8 sensor-count spoofs are
+excluded (wrap-noisy). **Follow-up:** update demo/triage to reclassify EX-0014.02
+from MARKDOWN-ONLY to exercisable-and-now-detected.
 
 ### validate-inhibit-sc — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium
 **Summary:** Validate disabling/inhibiting a spacecraft subsystem as evasion.
