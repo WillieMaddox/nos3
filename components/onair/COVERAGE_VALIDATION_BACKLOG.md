@@ -38,7 +38,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | validate-cdh-subsystem | EX-0012.10 | Task | Med | — | `CFE_ES`/`CFE_SB` counters |
 | validate-flood-valid | EX-0013.01 | Task | Med | ✅ | cmd counters + `CFE_SB` errors |
 | validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | `CFE_SB` error family |
-| validate-bus-spoof | EX-0014.02 | Task | High | ✅ | injected SB msgs vs `CFE_SB_SUBS` |
+| validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
 | validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | subsystem HK quiet / errors |
 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | mode change (sibling of EX-0011) |
 | validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
@@ -79,6 +79,19 @@ trained on — exactly like the already-caught EX-0012.07/08/09 corruption attac
 (ROBUST tier). So the rule "IF sees dynamics perturbation, is blind to pure
 state/counter changes" holds across all validated cases. (The rule-gate ALSO
 caught EX-0011 via CSS-disable + EVS cmd-errors, so it's double-covered.)
+
+**5th (2026-07-16): EX-0014.02 bus-spoof — a THIRD detector-gap class.** Not a
+flag/counter state-change and not a dynamics attack: a spoofed telemetry packet
+injected onto the SB via CI_LAB (:5012). Overturned its MARKDOWN-ONLY triage
+(injection demonstrably works). Its footprint is a **transient out-of-distribution
+value flicker** that BOTH gates miss — the IF is counter/value-blind unless the
+spoof perturbs fused dynamics, and the rule-gate's leaky integrator can't latch a
+1-2 frame flicker. Catching it needs a new detector primitive: **per-sample
+range/schema/monotonicity consistency** (counter went backwards, value out of
+physical bounds), orthogonal to both the dynamics-IF and the sustained-signal
+rule-gate. So the detector roadmap now has three complementary gates:
+dynamics-IF (physics), rule-gate (sustained state/counter), and a proposed
+consistency-checker (per-sample sanity).
 
 **Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
 dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
@@ -200,14 +213,47 @@ force it through all_modes_dwell).
 sbn_adapter unknown-MsgId path. Same script family.
 **AC:** common criteria; standalone window; confirm the error-counter footprint.
 
-### validate-bus-spoof — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High
+### validate-bus-spoof — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High · ✔ VALIDATED 2026-07-16 (overturns MARKDOWN-ONLY)
 **Summary:** Validate Software-Bus traffic spoofing.
-**Description:** Inject spoofed SB messages impersonating a legitimate app.
-Distinct from EX-0001 replay (which is byte-identical valid traffic) — spoofing
-introduces messages/values inconsistent with the sender's normal pattern.
-Observable via `CFE_SB_SUBS` (unexpected source) + the impersonated app's HK
-diverging. High priority: broad relevance. Script exists at technique level.
-**AC:** common criteria; show the spoofed-vs-genuine divergence.
+**Description:** Inject spoofed SB messages impersonating a legitimate app. The
+`.md` had this MARKDOWN-ONLY ("internal SB injection not reachable from external
+UDP"). **That is WRONG — empirically overturned 2026-07-16** (per the
+no-closed-by-construction rule, verified against live FSW, no script needed —
+raw UDP injection):
+- **Mechanism (code-confirmed):** `:5012` IS CI_LAB (`CI_LAB_BASE_UDP_PORT 5012`).
+  CI_LAB ingest does `CFE_SB_TransmitBuffer(NextIngestBufPtr, false)`
+  (`ci_lab_app.c:348`) — it republishes ANY received packet onto the SB **by its
+  MID, with no command/telemetry filter**. So an external attacker can place a
+  spoofed *telemetry* MID onto the internal SB, not just commands.
+- **DEMONSTRATED:** injected a hand-crafted 29-byte `GENERIC_IMU_Hk_tlm_t`
+  (MID 0x0925) with `CommandErrorCount=222` (a value that never occurs naturally).
+  **OnAIR — a SB subscriber via SBN — observed `IMU.CommandErrorCount=222`** (2/80
+  frames single-shot). Signal class: **ON_BOARD (spoof reaches the bus + a
+  subscriber).**
+- **Caveat 1 — SBN forwarding:** OnAIR only sees the MIDs SBN forwards to it.
+  NOVATEL_HK/CI/ST read `[0]` (never forwarded) so a first spoof attempt on
+  NOVATEL_HK (0x0870) was invisible at OnAIR — not because injection failed but
+  because OnAIR is blind to that MID. (Also corrects the old DE-0010 note: "CI
+  IngestPackets didn't move" was the `[0]` sentinel, i.e. CI HK not forwarded —
+  NOT commands bypassing CI_LAB.) The spoof still lands on the FSW SB where
+  consuming *apps* would act on it.
+- **Caveat 2 — transient:** for a continuously-published MID the real publisher
+  overwrites the spoof. Even a sustained 32 pkt/s flood (256 pkts/8s) held the
+  observed value only ~1/40 frames — the real IMU + SBN/OnAIR sampling dominates.
+  So the observed footprint is a brief FLICKER, not a durable value.
+- **DETECTION GAP (both gates miss it):** the IF is counter-blind (a spoofed
+  counter doesn't perturb dynamics); the rule-gate's leaky integrator can't LATCH
+  a 1-2 frame flicker (R4 never reached AlertLevel). A brief/flickering spoof
+  evades sustained-signal hysteresis. Detecting bus-spoofing needs a **per-sample
+  out-of-range / schema-consistency check** (e.g. counter went backwards, value
+  out of physical range), not an integrator — a distinct detector class from both
+  the dynamics-IF and the rule-gate. A spoof of a *dynamics-relevant* value that
+  the ADCS fuses (vs a counter) could still perturb the physics → IF-catchable.
+**AC:** exercisability confirmed (overturns triage) ✓; footprint = transient
+subscribed-telemetry flicker; detection gap documented. No FSW state changed
+(telemetry spoof, not commands) — nothing to clean up. **Follow-up:** the demo/
+triage should be updated to reclassify EX-0014.02 from MARKDOWN-ONLY to
+exercisable-but-detector-blind; candidate for a schema/range-consistency detector.
 
 ### validate-inhibit-sc — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium
 **Summary:** Validate disabling/inhibiting a spacecraft subsystem as evasion.
