@@ -57,19 +57,35 @@ From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALID
 
 | Slug | Jira | Type | Epic (parent) | Title (SPARTA) | Status |
 |---|---|---|---|---|---|
-| validate-pnt-geofence | — | Task | coverage-expansion | Validate EX-0002 PNT geofencing | Backlog |
-| validate-hw-commands | — | Task | coverage-expansion | Validate EX-0005.02 malicious hardware commands | Backlog |
-| validate-safemode-exploit | — | Task | coverage-expansion | Validate EX-0011 safe-mode exploit | Backlog |
-| validate-routing-tables | — | Task | coverage-expansion | Validate EX-0012.02 internal routing tables | Backlog |
-| validate-cdh-subsystem | — | Task | coverage-expansion | Validate EX-0012.10 C&DH subsystem | Backlog |
-| validate-flood-valid | — | Task | coverage-expansion | Validate EX-0013.01 valid-command flood | Backlog |
-| validate-flood-erroneous | — | Task | coverage-expansion | Validate EX-0013.02 erroneous-input flood | Backlog |
-| validate-bus-spoof | — | Task | coverage-expansion | Validate EX-0014.02 bus traffic spoofing | Backlog |
-| validate-inhibit-sc | — | Task | coverage-expansion | Validate DE-0002.03 inhibit spacecraft functionality | Backlog |
-| validate-safemode-evasion | — | Task | coverage-expansion | Validate DE-0005 safe-mode subversion | Backlog |
-| validate-audit-overflow | — | Task | coverage-expansion | Validate DE-0010 overflow audit log | Backlog |
-| validate-memory-compromise | — | Task | coverage-expansion | Validate PER-0001 memory compromise | Backlog |
-| validate-bus-segregation | — | Task | coverage-expansion | Validate LM-0002 bus-segregation lateral movement | Backlog |
+| validate-pnt-geofence | AINOS3-50 | Task | coverage-expansion | Validate EX-0002 PNT geofencing | Backlog |
+| validate-hw-commands | AINOS3-51 | Task | coverage-expansion | Validate EX-0005.02 malicious hardware commands | Backlog |
+| validate-safemode-exploit | AINOS3-52 | Task | coverage-expansion | Validate EX-0011 safe-mode exploit | Backlog |
+| validate-routing-tables | AINOS3-53 | Task | coverage-expansion | Validate EX-0012.02 internal routing tables | Backlog |
+| validate-cdh-subsystem | AINOS3-54 | Task | coverage-expansion | Validate EX-0012.10 C&DH subsystem | Backlog |
+| validate-flood-valid | AINOS3-55 | Task | coverage-expansion | Validate EX-0013.01 valid-command flood | Backlog |
+| validate-flood-erroneous | AINOS3-56 | Task | coverage-expansion | Validate EX-0013.02 erroneous-input flood | Backlog |
+| validate-bus-spoof | AINOS3-57 | Task | coverage-expansion | Validate EX-0014.02 bus traffic spoofing | Backlog |
+| validate-inhibit-sc | AINOS3-58 | Task | coverage-expansion | Validate DE-0002.03 inhibit spacecraft functionality | Backlog |
+| validate-safemode-evasion | AINOS3-59 | Task | coverage-expansion | Validate DE-0005 safe-mode subversion | Backlog |
+| validate-audit-overflow | AINOS3-60 | Task | coverage-expansion | Validate DE-0010 overflow audit log | Backlog |
+| validate-memory-compromise | AINOS3-61 | Task | coverage-expansion | Validate PER-0001 memory compromise | Backlog |
+| validate-bus-segregation | AINOS3-62 | Task | coverage-expansion | Validate LM-0002 bus-segregation lateral movement | Backlog |
+
+### Detector gates (parallel to the IF) — mid-sprint 25 (slugs reserved; create tickets)
+
+Four complementary runtime detector gates built during the Section-A validation
+campaign (2026-07-16), each catching an attack class the deployed v5 IF structurally
+misses (state-change / spoof / telemetry-freeze). Proposed as a dedicated epic
+`detector-gates`; alternatively park all four under `coverage-expansion` (AINOS3-41).
+`—` = ticket not yet created / key not yet entered.
+
+| Slug | Jira | Type | Epic (parent) | Title | Status |
+|---|---|---|---|---|---|
+| detector-gates | — | Epic | — | Complementary detector gates (parallel to the IF) | — |
+| rule-gate-detector | — | Story | detector-gates | Rule-gate: parallel state-change detector (R1–R5) + incident wiring | ✅ Done, deployed |
+| consistency-gate | — | Story | detector-gates | Consistency-check: per-sample bus-spoof detector | ✅ Done, deployed |
+| staleness-gate | — | Story | detector-gates | Staleness-check: telemetry-denial / frozen-stream detector | ✅ Done, deployed |
+| sb-command-rule | — | Task | detector-gates | Rule-gate R6: CFE_SB routing/subscription command rule | ○ To Do |
 
 ## Sprint 24 (prior)
 
@@ -99,7 +115,7 @@ From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALID
 | corpus-instance-4 | AINOS3-45 | Task | — | 4th corpus instance | Backlog |
 | demo-tier-bc | AINOS3-46 | Story | — | Demo app Tier B/C (live execution / agent) | Backlog |
 | foundation-baseline | AINOS3-47 | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
-| appdata-slot-map | — | Task | explainability | EVS AppData slot→app reference map (enables counter-reliance-audit) | Backlog |
+| appdata-slot-map | AINOS3-48 | Task | explainability | EVS AppData slot→app reference map (enables counter-reliance-audit) | Backlog |
 
 ## Sprint 23 (prior)
 

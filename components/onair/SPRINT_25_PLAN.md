@@ -67,20 +67,22 @@ changes, transient spoofs, and frozen streams. That drove the four new gates.
 - **staleness-check** — telemetry-denial / frozen-stream gate (wide-counter
   **max-advancement**, not "value constant" — OnAIR's double buffer makes a frozen
   field OSCILLATE between two stale values, so the invariant is "the max stops
-  advancing"). Algorithm validated **offline: 0 FP / 1275 frames, detects an
-  injected freeze at ~57 frames**. **NOT deployed — live discovery is fragile:**
-  because OnAIR polls faster than the MIDs publish (nominal no-advance gaps 14–27+
-  frames), the discovery-measured cadence — and thus the watched set — varies run
-  to run (`IMU.DeviceHK.DeviceCounter` was watched offline but not on one live run).
-  Needs a more robust discovery (continuous/long-baseline cadence learning) before
-  it can be trusted live. Built, unit-tested (7), synced; **not in the deploy set.**
-- **(candidate R6)** — CFE_SB.CommandCounter rule for the route command itself. Not built.
+  advancing"). **DEPLOYED + HARDENED.** The initial version was live-fragile (the
+  watched set flipped run-to-run); fixed by basing discovery on the **average**
+  advance interval (a stable count statistic) instead of the max no-advance run (a
+  high-variance extreme value). Result: **8 CDH/scheduler counters always watched
+  across 5 offline windows, 0 FP over 2200 offline + 160 live frames, detects an
+  injected freeze at ~53 frames**; live watched set matches offline. 7 unit tests.
+  *Documented limits:* high-latency by nature (~30–50s — poll-rate mismatch);
+  coverage is the CDH/scheduler MIDs (sensor DeviceHK counters publish too variably).
+- **(candidate R6)** — CFE_SB.CommandCounter rule for the route command itself — the
+  complementary, lower-latency EX-0012.02 catch. **Not built.**
 
-The detector roadmap is now **2 deployed gates + IF** (dynamics-IF · rule-gate ·
-consistency-check), with staleness-check as an offline-validated-but-live-fragile
-prototype (the freeze/telemetry-denial class is genuinely the hardest — no forward
-delta AND a poll-rate mismatch). **Owner action:** create Jira tickets for the gates
-(and the 8 remaining Section-A validations) — the crosswalk's reserved slugs hold this.
+The detector roadmap is now **3 deployed gates + IF** (dynamics-IF · rule-gate ·
+consistency-check · staleness-check). **Owner action:** create Jira tickets for the
+four gates (and the 8 remaining Section-A validations) — the crosswalk's reserved
+slugs hold this; a proposed `detector-gates` epic + Summary/Description for each is
+ready to drop in.
 
 ## Points — two metrics
 
@@ -119,8 +121,15 @@ prior `rollout-s24`).
 | selective-mode-hybrid | AINOS3-37 | Story | Medium | 5 | 1.5 | ○ STRETCH — bank INERTIAL/SUNSAFE/ROBUST gains, no BDOT/PASSIVE regression |
 | stakeholder-rollout | AINOS3-42 | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
 | rollout-s25 | AINOS3-49 | Task | Medium | 2 | 0.5 | ◑ COMMIT — Sprint-25 readout: DEAD-class recovery + audit findings |
+| detector-gates | — | Epic | — | — | — | 🔄 MID-SPRINT (unplanned) — complementary detector gates, parallel to the IF |
+| rule-gate-detector | — | Story | — | — | — | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
+| consistency-gate | — | Story | — | — | — | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
+| staleness-gate | — | Story | — | — | — | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
+| sb-command-rule | — | Task | — | — | — | ○ TODO — R6 CFE_SB.CommandCounter route-command rule |
 
-**Totals (all tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours).
+**Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours). The
+`detector-gates` epic below was unplanned mid-sprint work (see the mid-sprint update)
+— its three shipped Stories are the sprint's actual highest-value output.
 
 ---
 
@@ -445,6 +454,79 @@ reopening the graph model).
   signal.
 **Depends on:** AINOS3-30 + AINOS3-48 (so the readout shows new results,
 not a repeat of Sprint 24).
+
+---
+
+## 🟪 EPIC (proposed `detector-gates`) — Complementary detector gates (parallel to the IF)
+
+**Summary:** A family of lightweight runtime OnAIR gates running PARALLEL to the v5
+IF, each catching an attack class the dynamics-IF is structurally blind to.
+**Description:** **Unplanned mid-sprint work** that emerged from the Section-A
+validation campaign (AINOS3-50…62) — the sprint's actual highest-value output. The
+campaign proved the deployed v5 IF is a *dynamics* detector: it flags GNC/attitude
+physics anomalies but misses discrete state changes, transient spoofs, and frozen
+streams. These gates fill those gaps; an operator ORs their incident streams with the
+IF→classifier path (all emit the shared `Incident` format). Proposed as a dedicated
+epic; alternatively park under `coverage-expansion` (AINOS3-41). Slugs reserved in
+[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md) — create the tickets and enter keys.
+
+### rule-gate-detector — Rule-gate: parallel state-change detector · `Story` · ✅ DONE (deployed)
+**Summary:** As a defender I want the flag/counter state-change attacks the
+dynamics-IF misses (device disable, EVS/SB rate spikes, monitoring disable) caught by
+a rule/threshold gate beside the IF.
+**Description:** OnAIR learner `fsw/plugins/rule_gate/`, in `LearnersPluginDict` beside
+the IF + xgb_classifier. Rules: R1 any `*.DeviceEnabled` drops below session baseline;
+R2 `CFE_EVS_HK.MessageSendCounter` per-frame delta > threshold; R3
+`CFE_SB.MsgSendErrorCounter` delta (corroborator, excluded from incidents — noisy);
+R4 `*.CommandError*` delta; R5 `LC.CurrentLCState` (monitoring/limit-check) leaves its
+protective baseline. The firing rule IS the label (R1:NOVATEL→EX-0002, R1:IMU/CSS→
+EX-0014.03, R2→DE-0010, R5→EX-0011). Leaky-integrator hysteresis tolerates the OnAIR
+double-buffer flicker. Folds into the shared IncidentAggregator.
+**Status:** Deployed + live-verified; 11 unit tests. Validated against EX-0002,
+EX-0014.03, DE-0010, EX-0011.
+
+### consistency-gate — Consistency-check: per-sample bus-spoof detector · `Story` · ✅ DONE (deployed)
+**Summary:** As a defender I want externally-injected spoofed telemetry (bus-traffic
+spoofing, EX-0014.02) caught — a per-sample out-of-distribution value the IF and
+rule-gate both miss.
+**Description:** OnAIR learner `fsw/plugins/consistency_check/`. EX-0014.02 showed
+CI_LAB (:5012) republishes any MID onto the SB, so an attacker can inject a spoofed
+telemetry packet — a transient outlier the IF (counter-blind) and rule-gate (can't
+latch a 1–2 frame flicker) both miss. Primitive: a WIDE monotonic counter dropping
+below its recent rolling-window floor (window-min beats double-buffer flicker;
+name + uint8 filters beat wraps and physical fields). Labels EX-0014.02 incidents.
+**Status:** Deployed + live-verified; 8 unit tests. **0 FP / 810 live frames**; caught
+a spoofed `IMU.DeviceHK.DeviceCounter` while the rule-gate stayed silent. Caveat: wide
+(non-wrapping) counters only.
+
+### staleness-gate — Staleness-check: telemetry-denial / frozen-stream detector · `Story` · ✅ DONE (deployed)
+**Summary:** As a defender I want a route-disable telemetry-freeze (a MID stops
+reaching the monitor, EX-0012.02) caught — a frozen stream has no forward delta, so
+all three delta-based gates miss it.
+**Description:** OnAIR learner `fsw/plugins/staleness_check/`. From EX-0012.02: CFE_SB
+DISABLE_ROUTE severs a MsgId→SBN route, freezing that MID in OnAIR. Key finding — a
+frozen field OSCILLATES via the double buffer, so the primitive is "a wide monotonic
+counter's MAX stops advancing," not "value constant." Hardened for a stable watched
+set via **average-advance-interval** discovery (a stable count statistic; the initial
+max-gap version flipped run-to-run).
+**Status:** Deployed; 7 unit tests. **8 CDH/scheduler counters always watched; 0 FP /
+2200 offline + 160 live frames; detects an injected freeze at ~53 frames.** Limits:
+high-latency (~30–50s — OnAIR polls faster than MIDs publish); coverage = CDH/scheduler
+MIDs (sensor DeviceHK counters publish too variably). See `sb-command-rule` for the
+lower-latency complement.
+
+### sb-command-rule — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · ○ TODO
+**Summary:** As a defender I want the EX-0012.02 route-modification COMMAND itself
+caught — a cleaner, lower-latency signal than the freeze effect.
+**Description:** Add rule-gate R6 on `CFE_SB.CommandCounter`: any CFE_SB command
+(ENABLE/DISABLE_ROUTE, subscription report, WRITE_ROUTING_INFO) is rare/never in
+nominal ops, so an increment is a strong, immediate indicator of the routing-table
+attack — vs the staleness gate's intrinsically high-latency freeze detection. Small
+addition to the existing rule-gate plugin.
+**Acceptance criteria:** R6 fires on a `CFE_SB.CommandCounter` delta; labeled
+EX-0012.02 incident; nominal FP measured (expected ~0); unit test + live-verify against
+a DISABLE_ROUTE.
+**Status:** Not built.
 
 ---
 

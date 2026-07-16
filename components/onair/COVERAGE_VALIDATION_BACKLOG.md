@@ -103,20 +103,21 @@ frames) for the freeze, and a CFE_SB.CommandCounter rule (candidate rule-gate R6
 for the route COMMAND itself (SB route/subscription commands are rare in nominal
 ops). Also corrected the triage: CFE_SB_SUBS is NOT OnAIR-observable ([0]).
 
-**Staleness detector — BUILT + offline-validated, live-fragile, NOT deployed
-(2026-07-16).** `staleness_check` plugin (prototype 4th gate). Key correction found
-during tuning: a frozen field is NOT constant — OnAIR's double buffer makes it
-OSCILLATE between its two last stale values, so the primitive is "**a wide monotonic
-counter's max stops advancing**," not "value unchanged." Offline (real-CSV replay):
-**0 FP / 1275 frames, detects an injected freeze at ~57 frames** (7 unit tests).
-**But live discovery is fragile:** OnAIR polls FASTER than the MIDs publish (nominal
-no-advance gaps 14–27+ frames), so the discovery-measured cadence — and thus which
-counters are watched and their thresholds — varies run to run
-(`IMU.DeviceHK.DeviceCounter` watched offline but not on one live run). Needs
-robust/continuous cadence learning before live deployment. Built + synced but **kept
-OUT of the deployed LearnersPluginDict.** The R6 CFE_SB.CommandCounter rule remains
-unbuilt — it is the more robust catch for this technique (the route COMMAND is a
-clean subscribed signal; the freeze EFFECT is intrinsically hard).
+**Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16).** `staleness_check`
+plugin (4th gate; fsw e08a527, registered 0b3d688e). Key correction found during
+tuning: a frozen field is NOT constant — OnAIR's double buffer makes it OSCILLATE
+between its two last stale values, so the primitive is "**a wide monotonic counter's
+max stops advancing**," not "value unchanged." First version was live-fragile (the
+watched set flipped run-to-run because discovery used the max no-advance run, a
+high-variance extreme value). **Hardened** by using the **average** advance interval
+(window / advances — a stable count statistic) for both the watched-set criterion and
+the per-counter threshold. Result: **8 CDH/scheduler counters always watched across 5
+offline windows, 0 FP over 2200 offline + 160 live frames, detects an injected freeze
+at ~53 frames; live watched set matches offline.** 7 unit tests. *Limits:*
+high-latency (~30–50s, poll-rate mismatch); coverage = CDH/scheduler MIDs (sensor
+DeviceHK counters publish too variably). The **R6 CFE_SB.CommandCounter rule** remains
+unbuilt — the complementary, lower-latency catch (the route COMMAND is a clean
+subscribed signal; the freeze EFFECT is intrinsically high-latency).
 
 **Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
 dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
