@@ -39,7 +39,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | validate-flood-valid | EX-0013.01 | Task | Med | ✅ | cmd counters + `CFE_SB` errors |
 | validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | `CFE_SB` error family |
 | validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
-| validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | subsystem HK quiet / errors |
+| validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | mode change (sibling of EX-0011) |
 | validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
 | validate-memory-compromise | PER-0001 | Task | Med | ✅ | sibling of EX-0012.03 memory write |
@@ -103,7 +103,20 @@ updated in N frames) for the freeze, and a CFE_SB.CommandCounter rule (rule-gate
 for the route COMMAND itself (SB route/subscription commands are rare in nominal
 ops). Also corrected the triage: CFE_SB_SUBS is NOT OnAIR-observable ([0]).
 
-**Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16).** `staleness_check`
+**7th (2026-07-17): DE-0002.03 inhibit-spacecraft — same freeze class, and the
+staleness gate's first real-attack catch.** EVS event suppression (CFE_EVS
+DISABLE_EVENT_TYPE all types) FROZE `CFE_EVS_HK.MessageSendCounter` for 70s → the
+**staleness gate caught it** (true positive) — the inverse of DE-0010's EVS flood.
+Two lessons: (a) DE-0002.03 (EVS suppress) and EX-0012.02 (route disable) share the
+SAME frozen-counter footprint, so the staleness gate detects both but labels both
+EX-0012.02 — a CFE_EVS-command rule (candidate R7, sibling of R6) would catch/label
+this at the command; (b) it exposed a staleness **uint16-wrap FP** (DS.FileWriteCounter
+wraps 65535→0, pinning the running max) — fixed (fsw b9b37cb): a >50%-relative
+backwards drop is a wrap/reset, re-baseline the max. Re-validated over 194K frames,
+0 FP + TP preserved.
+
+**Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
+2026-07-17).** `staleness_check`
 plugin (4th gate; fsw e08a527, registered 0b3d688e). Key correction found during
 tuning: a frozen field is NOT constant — OnAIR's double buffer makes it OSCILLATE
 between its two last stale values, so the primitive is "**a wide monotonic counter's
@@ -322,12 +335,35 @@ wide (uint32, non-wrapping) counter backwards; uint8 sensor-count spoofs are
 excluded (wrap-noisy). **Follow-up:** update demo/triage to reclassify EX-0014.02
 from MARKDOWN-ONLY to exercisable-and-now-detected.
 
-### validate-inhibit-sc — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium
+### validate-inhibit-sc — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 **Summary:** Validate disabling/inhibiting a spacecraft subsystem as evasion.
-**Description:** Disable or inhibit a subsystem (e.g. via a disable command) so it
-stops functioning. Footprint: the target subsystem's HK goes quiet (stalled
-counters) and/or error counts rise. Script exists at technique level.
-**AC:** common criteria; confirm the "goes quiet" signal on a subscribed subsystem.
+**Description:** Suppress telemetry at the source. The shipped script is a STUB
+(only sends CFE_EVS NOOPs — doesn't execute the inhibit); validated directly via raw
+commands. The OnAIR-observable mechanism is **CFE_EVS DISABLE_EVENT_TYPE** (0x1801
+FC3, 2-byte {BitMask,Spare}) — disabling all 4 event types (bitmask 0x0F) stops the
+event stream. (Inverse of DE-0010's EVS flood.)
+**VALIDATED live 2026-07-17:**
+- **Signal class: ON_BOARD, staleness-detected.** `CFE_EVS_HK.MessageSendCounter`
+  **FROZE at 17102 for the full 70s** the event types were disabled (resumed to
+  17312 on ENABLE_EVENT_TYPE). The **staleness gate fired** on it
+  (`MessageSendCounter` max not advanced ≥78 frames → EX-0012.02/…-stale incident).
+  So DE-0002.03's freeze footprint is caught by the staleness gate.
+- **Note — shared freeze signature:** the staleness gate labels this EX-0012.02 (its
+  hardcoded freeze cluster), same as a route-disable — DE-0002.03 (EVS suppression)
+  and EX-0012.02 (route disable) produce the SAME frozen-counter footprint; the
+  distinguishing signal is the COMMAND (CFE_EVS DISABLE_EVENT_TYPE vs CFE_SB
+  DISABLE_ROUTE). R6 catches the CFE_SB command; an analogous CFE_EVS-command rule
+  (candidate R7) would catch/label this one at the command (low-latency).
+- **Bonus — found + fixed a staleness FP:** the run exposed a persistent false stale
+  on `DS.Payload.FileWriteCounter` (a uint16 counter that WRAPS 65535→0, pinning the
+  running max for its next 0→65515 climb) and `SCH.ScheduleActivitySuccessCount`.
+  Fixed in staleness_check (fsw b9b37cb): a large RELATIVE backwards drop (>50% of the
+  running max) is a wrap/reset, not a freeze → re-baseline the max. Re-validated
+  offline over **194,275 frames** (containing a real wrap): DS+SCH FP → 0, DE-0002.03
+  EVS-freeze TP preserved (669 frames).
+**AC:** footprint ON_BOARD (EVS event stream freeze) ✓, staleness-detected ✓; the
+"goes quiet" signal confirmed on a subscribed subsystem (EVS). Cleanup: event types
+re-enabled (EVS resumed).
 
 ### validate-safemode-evasion — Validate DE-0005 (Subvert Protections via Safe-Mode) · `Task` · Low
 **Summary:** Validate safe-mode subversion as a defense-evasion technique.
