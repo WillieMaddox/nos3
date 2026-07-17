@@ -117,11 +117,23 @@ DISABLE_EVENT_TYPE all types) FROZE `CFE_EVS_HK.MessageSendCounter` for 70s → 
 **staleness gate caught it** (true positive) — the inverse of DE-0010's EVS flood.
 Two lessons: (a) DE-0002.03 (EVS suppress) and EX-0012.02 (route disable) share the
 SAME frozen-counter footprint, so the staleness gate detects both but labels both
-EX-0012.02 — a CFE_EVS-command rule (candidate R7, sibling of R6) would catch/label
-this at the command; (b) it exposed a staleness **uint16-wrap FP** (DS.FileWriteCounter
-wraps 65535→0, pinning the running max) — fixed (fsw b9b37cb): a >50%-relative
-backwards drop is a wrap/reset, re-baseline the max. Re-validated over 194K frames,
-0 FP + TP preserved.
+EX-0012.02 — **R7, a CFE_EVS-command rule, is now BUILT** (rule_gate b586b7a; sibling
+of R6) and catches/labels it DE-0002.03 at the command (~1 frame, live-verified); (b)
+it exposed a staleness **uint16-wrap FP** (DS.FileWriteCounter wraps 65535→0, pinning
+the running max) — fixed (fsw b9b37cb): a >50%-relative backwards drop is a wrap/reset,
+re-baseline the max. Re-validated over 194K frames, 0 FP + TP preserved.
+
+**⚠ Degraded-test-stack finding (2026-07-17): R2:evs FP-blocks incidents after long
+uptime.** The R7 live run found the EVS rate at **~61/frame (max 228)** — far above
+R2's threshold (15) — because the disconnected-downlink RADIO device-HK spam
+("GENERIC_RADIO … error -1") accumulates over long uptime. So R2:evs fires
+continuously → since R2 drives incidents, EVERY rule-gate incident stays open (never
+closes → no incident file) in this state. This is a STACK-DEGRADATION artifact (a
+fresh stack has EVS rate <1/frame, as in the DE-0010 validation), not an R2/R7 design
+defect — but it means: (1) validate incident *emission* on a fresh stack; (2) consider
+whether R2 (like R3) needs a sustained-vs-burst guard or a higher threshold for
+degraded/high-EVS environments. Recommend a `make stop` + fresh `launch-quiet` before
+the next incident-level validation.
 
 **Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
 2026-07-17).** `staleness_check`
@@ -388,8 +400,11 @@ event stream. (Inverse of DE-0010's EVS flood.)
   hardcoded freeze cluster), same as a route-disable — DE-0002.03 (EVS suppression)
   and EX-0012.02 (route disable) produce the SAME frozen-counter footprint; the
   distinguishing signal is the COMMAND (CFE_EVS DISABLE_EVENT_TYPE vs CFE_SB
-  DISABLE_ROUTE). R6 catches the CFE_SB command; an analogous CFE_EVS-command rule
-  (candidate R7) would catch/label this one at the command (low-latency).
+  DISABLE_ROUTE). R6 catches the CFE_SB command; **R7 — a CFE_EVS-command rule — is
+  now BUILT** (rule_gate b586b7a): CFE_EVS_HK.CommandCounter is static in nominal
+  (verified 1 value / 4530 frames), so a new high labels this DE-0002.03/evs-command
+  at ~1 frame. Live-verified firing (a CFE_EVS NOOP → R7 alert) while R6 stayed
+  silent. So DE-0002.03 now has two catches: staleness (freeze effect) + R7 (command).
 
 - **Bonus — found + fixed a staleness FP:** the run exposed a persistent false stale
   on `DS.Payload.FileWriteCounter` (a uint16 counter that WRAPS 65535→0, pinning the
