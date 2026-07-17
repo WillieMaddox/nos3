@@ -39,7 +39,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | validate-hw-commands | EX-0005.02 | Task | Med | ✅ | ✔ VALIDATED — valid device cmds (no cmd-errors); R1 TORQUER-disable + dynamics IF |
 | validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
 | validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
-| validate-cdh-subsystem | EX-0012.10 | Task | Med | — | `CFE_ES`/`CFE_SB` counters |
+| validate-cdh-subsystem | EX-0012.10 | Task | Med | ✅ | ✔ VALIDATED — CFE_ES value mod; 4-gate MISS → NEW rule R8 (CFE_ES.CommandCounter) |
 | validate-flood-valid | EX-0013.01 | Task | Med | ✅ | ✔ VALIDATED — loud (R2+R3+R6+R7); labeled DE-0010 (shared EVS-flood footprint) |
 | validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | ✔ VALIDATED — cmd-error family (R4), NOT SB-recv; wave-2 crash fixed + not injection-triggerable |
 | validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
@@ -168,6 +168,18 @@ steady frames pre-attack): rule-gate **R1** on `TORQUER.DeviceEnabled 1→0` (cl
 re-enable) and the **dynamics IF** rising 0%→78% in the attack window from the
 thruster fire + injected RW momentum. Residual gap: a benign-magnitude single valid
 command with no device-disable and no dynamics kick would slip both.
+
+**11th (2026-07-17): EX-0012.10 modify C&DH on-board values — a 4-gate detector gap,
+closed by new rule R8.** A legitimate `CFE_ES SET_MAX_PR_COUNT` raises
+`CFE_ES.MaxProcessorResets 2→250` (defeating the auto power-on-reset safeguard) with
+no cmd-errors. First pass, ALL FOUR deployed gates missed it: the IF is CDH-blind
+(0/90, same as DE-0010), consistency-check watches for *backward* counters (this went
+up), staleness-check needs a *frozen* stream, and the rule-gate had no CFE_ES rule.
+Fix = **R8 (`CFE_ES.CommandCounter`)**, the third static-in-nominal command-counter
+rule after R6 (CFE_SB) and R7 (CFE_EVS), reusing the same generalized new-high + dwell
+mechanism. Live after redeploy: `R8:es-command` ALERT → EX-0012.10/es-command incident
+→ CLEAR. R8 also covers other CFE_ES-command techniques (memory write, app
+start/stop). Detector roadmap rules now R1–R8.
 
 **Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
 2026-07-17).** `staleness_check`
@@ -372,14 +384,44 @@ flow. **VALIDATED live 2026-07-16 (no script — raw UDP CFE_SB commands):**
 telemetry-freeze; triage observable corrected; detector gap (staleness) documented.
 No lasting state change (route restored).
 
-### validate-cdh-subsystem — Validate EX-0012.10 (C&DH Subsystem) · `Task` · Medium
+### validate-cdh-subsystem — Validate EX-0012.10 (C&DH Subsystem) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate on-board-value modification targeting the C&DH subsystem.
-**Description:** Modify Command & Data Handling values (the cFES core apps). Sibling
-of the done EX-0012.07/.08/.09 (propulsion/ADCS/EPS). Footprint in the subscribed
-`CFE_ES` / `CFE_SB` / `CFE_TBL` counters. No script yet — mirror the .07/.08/.09
-pattern.
-**AC:** common criteria; identify the C&DH field(s) perturbed.
+
+**Description:** Modify Command & Data Handling values (the cFE core apps). Sibling
+of the done EX-0012.07/.08/.09 (propulsion/ADCS/EPS), but the target is the FLIGHT
+EXECUTIVE itself. Script targets CFE_ES (Executive Services): `SET_MAX_PR_COUNT`
+raises `CFE_ES.MaxProcessorResets` (defeats the auto power-on-reset safeguard —
+the spacecraft keeps processor-resetting into a compromised state instead of
+falling back to a clean POR), plus `SET_PERF_FILTER_MASK` and `RESET_PR_COUNT`.
+
+**Script:** `gsw/attack_scripts/sparta/execution/ex_0012_modify_on_board_values/ex_0012_10_cdh_subsystem.py`
+(`--attack-level 3/4`). `CFE_ES_CMD_MID=0x1806`; SET_MAX_PR_COUNT=CC20,
+SET_PERF_FILTER_MASK=CC16, RESET_PR_COUNT=CC19.
+
+**VALIDATED live (2026-07-17, fresh stack):**
+
+- **Signal class: ON_BOARD. Footprint (all valid → NO cmd-errors):**
+  `CFE_ES.MaxProcessorResets 2→250` (reset safeguard defeated), `CFE_ES.PerfFilterMask[0]`
+  zeroed, `CFE_ES.CommandCounter 0→4`; `CFE_ES.CommandErrorCounter` stayed 0. Note
+  the double-buffer garbage alternate for these fields (`MaxProcessorResets`
+  flickers to `1684368489`, etc.) — read the stable value, not the flicker.
+
+- **⚠ DETECTOR GAP — all 4 deployed gates MISSED it (first pass):** rule-gate had no
+  CFE_ES rule (R6/R7 cover CFE_SB/CFE_EVS only); the dynamics IF is CDH-blind (0/90,
+  same class as DE-0010); consistency-check watches for a counter going *backward*
+  (this went UP); staleness-check needs a *frozen* stream (this one didn't freeze).
+
+- **GAP CLOSED — new rule R8 (`CFE_ES.CommandCounter`):** `CFE_ES.CommandCounter` is
+  static-in-nominal (~0) like CFE_SB (R6) and CFE_EVS (R7), so R8 reuses the
+  generalized `_cmd_rule` new-high + dwell mechanism — any increment is an attacker
+  CFE_ES command. After deploy + OnAIR restart, re-running the attack fired
+  **`R8:es-command` ALERT (frame 419) → EX-0012.10/es-command INCIDENT (frames
+  418-430, 13f, SUNSAFE) → CLEAR**. +3 unit tests (21 pass). R8 also covers other
+  CFE_ES-command techniques (memory write, app start/stop, EX-0012.03).
+
+**AC:** met — C&DH field `CFE_ES.MaxProcessorResets` (+`CommandCounter`) identified as
+the perturbed value, footprint confirmed live, and detection closed via R8.
 
 ### validate-flood-valid — Validate EX-0013.01 (Flooding — Valid Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
