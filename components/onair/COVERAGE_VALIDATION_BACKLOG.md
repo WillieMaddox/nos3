@@ -38,7 +38,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
 | Jira | Slug | SPARTA | Type | Pri | Script? | Observable via |
 |---|---|---|---|---|:--:|---|
-| AINOS3-50 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | ✔ VALIDATED — R1 NOVATEL DeviceEnabled→0 (live-verified at R1 build; 07-17 flag-repro quirk noted) |
+| AINOS3-50 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | ✔ VALIDATED — R1 NOVATEL DeviceEnabled→0 → EX-0002 incident (fresh-launch confirmed; HK freezes on aged stacks) |
 | AINOS3-51 | validate-hw-commands | EX-0005.02 | Task | Med | ✅ | ✔ VALIDATED — valid device cmds (no cmd-errors); R1 TORQUER-disable + dynamics IF |
 | AINOS3-52 | validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
 | AINOS3-53 | validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
@@ -104,6 +104,13 @@ detector or script bug**:
   flowed and the disable flipped `DeviceEnabled 1→0` → R1 fired). Detection is sound;
   the blocker is NOVATEL HK liveness on a long-uptime stack. R1 is live-proven
   generically today via `R1:TORQUER-disabled` (EX-0005.02).
+- **✔ FRESH-LAUNCH CONFIRMATION (2026-07-17).** After a full `make stop` /
+  `start-gsw` / `launch-quiet`, NOVATEL_HK was live again (`DeviceCount` advancing
+  across 84 distinct values vs the frozen `{61,65}`). The GPS disable then flipped
+  `NOVATEL_HK.DeviceEnabled 1→0` and produced `[rule_gate][INCIDENT] #1 frames 489-576
+  (88f) cluster=EX-0002 sub=NOVATEL_HK-disabled`; cleared on re-enable. Same-session
+  end-to-end catch — closes the repro caveat and directly confirms the uptime-freeze
+  root cause.
 
 ---
 
