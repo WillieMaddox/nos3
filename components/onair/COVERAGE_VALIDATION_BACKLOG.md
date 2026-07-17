@@ -42,7 +42,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | AINOS3-56 | validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | ✔ VALIDATED — cmd-error family (R4), NOT SB-recv; wave-2 crash fixed + not injection-triggerable |
 | AINOS3-57 | validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
 | AINOS3-58 | validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
-| AINOS3-59 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | mode change (sibling of EX-0011) |
+| AINOS3-59 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | ✔ VALIDATED — R5 LC-disable (shared w/ EX-0011); forced ADCS mode = IF warmup blind spot |
 | AINOS3-60 | validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
 | AINOS3-61 | validate-memory-compromise | PER-0001 | Task | Med | ✅ | sibling of EX-0012.03 memory write |
 | AINOS3-62 | validate-bus-segregation | LM-0002 | Task | Med | ✅ | `CFE_SB_SUBS` — traffic to unexpected apps |
@@ -399,15 +399,44 @@ event stream. (Inverse of DE-0010's EVS flood.)
 "goes quiet" signal confirmed on a subscribed subsystem (EVS). Cleanup: event types
 re-enabled (EVS resumed).
 
-### AINOS3-59 — Validate DE-0005 (Subvert Protections via Safe-Mode) · `Task` · Low
+### AINOS3-59 — Validate DE-0005 (Subvert Protections via Safe-Mode) · `Task` · Low · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate safe-mode subversion as a defense-evasion technique.
 
-**Description:** The defense-evasion sibling of EX-0011 — enter safe mode to relax
-protections and evade. Same footprint (mode transition). Low priority: near-
-duplicate of AINOS3-52 (validate-safemode-exploit); validate together.
+**Description:** The defense-evasion sibling of EX-0011 — send commands that safe-mode
+would normally reject (disable Limit Checker, force an ADCS mode, cut an EPS switch),
+betting on relaxed controls. NOS3 has no autonomous safe-mode, so the script just
+issues those commands. Shares EX-0011's LC-disable footprint; adds an explicit ADCS
+mode transition.
 
-**AC:** common criteria; may share a run with EX-0011.
+**Script:** `gsw/attack_scripts/sparta/defense_evasion/de_0005_subvert_safe_mode.py`.
+**3 script bugs fixed** (same class as EX-0011): LC `SET_LC_STATE` was `>H` → must be
+`<HH` (4-byte LE `uint16 NewLCState; uint16 Padding`); ADCS `SET_MODE` was `>I` →
+must be `uint8 Mode`; EPS `SWITCH` used FC 3 → must be FC 2. Corrected, all commands
+are now accepted (LC.CmdErrCount + EPS.CommandErrorCount stayed 0).
+
+**VALIDATED live (2026-07-17, exploit + 25s dwell + restore):**
+
+- **Signal class: ON_BOARD. Footprint (all valid → NO cmd-errors):**
+  `LC.CurrentLCState 1→3` (DISABLED), `ADCS_GNC.Mode 2→3` (SUNSAFE→INERTIAL),
+  `EPS.CommandCount 0→3`, `LC.CmdCount +2`. All fields oscillate old↔new via the OnAIR
+  double buffer while deviated.
+- **Detected by rule-gate R5** (monitor-state): `R5:LC-monstate` fired on
+  `LC.CurrentLCState` leaving its protective baseline — the rule's own label reads
+  "LC monitoring/limit-check state left its protective baseline (EX-0011 safe-mode
+  induction / **DE-0005**)". Cleared cleanly when LC was set back to ACTIVE. This is
+  the same catch as EX-0011 (AINOS3-52); the two share the R5 footprint as the backlog
+  predicted.
+- **⚠ New finding — the forced ADCS mode change is an IF blind spot.** The per-mode IF
+  did NOT flag `SET_MODE→INERTIAL`; instead its router SWITCHED models
+  (`MODE_SUNSAFE → MODE_INERTIAL at frame 84319`) and entered a **250-frame warmup**
+  with `is_anomaly=0` throughout. So a mode-forcing attacker not only evades the IF but
+  opens a ~250-frame detection-blind warmup window. R5 covers this case via the
+  LC-disable, but a pure mode-force with no monitoring change would slip the IF
+  entirely — a candidate for a dedicated mode-transition-legitimacy rule.
+
+**AC:** met — footprint ON_BOARD ✓, detected by R5 (shared with EX-0011) ✓, ran on the
+same safe-mode family as EX-0011 ✓; surfaced the mode-transition IF-warmup blind spot.
 
 ### AINOS3-60 — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ◑ FOOTPRINT-VALIDATED 2026-07-16
 
@@ -488,6 +517,13 @@ classifier is IF-gated, the non-dynamics classes are undetected end-to-end despi
 loud, already-subscribed signals — so "validate → fold into corpus → detector catches
 it" is the wrong remedy for them (more data won't teach a dynamics-IF to watch a
 flag). The fix is targeted detector primitives beside the IF.
+
+**Known residual gap — forced mode transitions (from DE-0005).** A commanded
+`ADCS SET_MODE` is worse than invisible to the per-mode IF: the router SWITCHES to the
+new mode's model and enters a ~250-frame warmup with detection suppressed, so a
+mode-forcing attacker gets a blind window rather than an alert. R5 covers it only when
+the attack also disables monitoring (as DE-0005/EX-0011 do); a pure mode-force would
+slip the IF. Candidate future work: a mode-transition-legitimacy rule.
 
 **The 4-gate detector roadmap (all DEPLOYED).** Each validation exposed a distinct gap
 the IF misses; the campaign built a complementary gate for each:
