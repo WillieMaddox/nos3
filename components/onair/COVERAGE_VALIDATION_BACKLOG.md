@@ -31,25 +31,25 @@ rule — never trust a footprint claim without a live run):
 
 Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
-| Slug | SPARTA | Type | Pri | Script? | Observable via |
-|---|---|---|---|:--:|---|
-| validate-pnt-geofence | EX-0002 | Task | Med | ✅ | NOVATEL/GPS position fields |
-| validate-hw-commands | EX-0005.02 | Task | Med | ✅ | ✔ VALIDATED — valid device cmds (no cmd-errors); R1 TORQUER-disable + dynamics IF |
-| validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
-| validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
-| validate-cdh-subsystem | EX-0012.10 | Task | Med | ✅ | ✔ VALIDATED — CFE_ES value mod; 4-gate MISS → NEW rule R8 (CFE_ES.CommandCounter) |
-| validate-flood-valid | EX-0013.01 | Task | Med | ✅ | ✔ VALIDATED — loud (R2+R3+R6+R7); labeled DE-0010 (shared EVS-flood footprint) |
-| validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | ✔ VALIDATED — cmd-error family (R4), NOT SB-recv; wave-2 crash fixed + not injection-triggerable |
-| validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
-| validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
-| validate-safemode-evasion | DE-0005 | Task | Low | ✅ | mode change (sibling of EX-0011) |
-| validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
-| validate-memory-compromise | PER-0001 | Task | Med | ✅ | sibling of EX-0012.03 memory write |
-| validate-bus-segregation | LM-0002 | Task | Med | ✅ | `CFE_SB_SUBS` — traffic to unexpected apps |
+| Jira | Slug | SPARTA | Type | Pri | Script? | Observable via |
+|---|---|---|---|---|:--:|---|
+| AINOS3-50 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | NOVATEL/GPS position fields |
+| AINOS3-51 | validate-hw-commands | EX-0005.02 | Task | Med | ✅ | ✔ VALIDATED — valid device cmds (no cmd-errors); R1 TORQUER-disable + dynamics IF |
+| AINOS3-52 | validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
+| AINOS3-53 | validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
+| AINOS3-54 | validate-cdh-subsystem | EX-0012.10 | Task | Med | ✅ | ✔ VALIDATED — CFE_ES value mod; 4-gate MISS → NEW rule R8 (CFE_ES.CommandCounter) |
+| AINOS3-55 | validate-flood-valid | EX-0013.01 | Task | Med | ✅ | ✔ VALIDATED — loud (R2+R3+R6+R7); labeled DE-0010 (shared EVS-flood footprint) |
+| AINOS3-56 | validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | ✔ VALIDATED — cmd-error family (R4), NOT SB-recv; wave-2 crash fixed + not injection-triggerable |
+| AINOS3-57 | validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
+| AINOS3-58 | validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
+| AINOS3-59 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | mode change (sibling of EX-0011) |
+| AINOS3-60 | validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
+| AINOS3-61 | validate-memory-compromise | PER-0001 | Task | Med | ✅ | sibling of EX-0012.03 memory write |
+| AINOS3-62 | validate-bus-segregation | LM-0002 | Task | Med | ✅ | `CFE_SB_SUBS` — traffic to unexpected apps |
 
 ---
 
-### validate-pnt-geofence — Validate EX-0002 (PNT Geofencing) · `Task` · Medium · ◑ FOOTPRINT-VALIDATED 2026-07-16
+### AINOS3-50 — Validate EX-0002 (PNT Geofencing) · `Task` · Medium · ◑ FOOTPRINT-VALIDATED 2026-07-16
 
 **Summary:** As a defender, I want EX-0002 (PNT geofencing manipulation) validated
 into the corpus so the detector is scored against it.
@@ -241,7 +241,7 @@ for EX-0014.03 (redundant + freeze not IF-detectable); the rule layer (flag / st
 covers it. (Correction: an earlier note said the device "keeps producing normal data"
 — that was misread stale double-buffer values; the packet actually stops.)
 
-### validate-hw-commands — Validate EX-0005.02 (Malicious Use of Hardware Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
+### AINOS3-51 — Validate EX-0005.02 (Malicious Use of Hardware Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate direct malicious hardware/device commands into the corpus.
 
@@ -289,7 +289,7 @@ degraded-stack note the incident layer is fragile at long uptime).
 **AC:** met — targeted subscribed actuators (TORQUER/RW/THRUSTER/EPS), confirmed the
 valid-command / no-cmd-error footprint live, and confirmed detection by R1 + IF.
 
-### validate-safemode-exploit — Validate EX-0011 (Exploit Reduced Protections in Safe-Mode) · `Task` · Medium · ✔ VALIDATED 2026-07-16
+### AINOS3-52 — Validate EX-0011 (Exploit Reduced Protections in Safe-Mode) · `Task` · Medium · ✔ VALIDATED 2026-07-16
 
 **Summary:** Validate the safe-mode exploitation technique.
 
@@ -333,7 +333,7 @@ disable. **VALIDATED live (`ex_0011_exploit_safe_mode.py --attack-level 3`,
 **AC:** footprint ON_BOARD ✓, detected by both gates ✓, script fixed ✓. Cleanup
 verified (thruster disarmed, CSS/EPS/LC/EVS restored).
 
-### validate-routing-tables — Validate EX-0012.02 (Internal Routing Tables) · `Task` · High · ✔ VALIDATED 2026-07-16
+### AINOS3-53 — Validate EX-0012.02 (Internal Routing Tables) · `Task` · High · ✔ VALIDATED 2026-07-16
 
 **Summary:** Validate SB internal-routing-table modification.
 
@@ -374,7 +374,7 @@ flow. **VALIDATED live 2026-07-16 (no script — raw UDP CFE_SB commands):**
 telemetry-freeze; triage observable corrected; detector gap (staleness) documented.
 No lasting state change (route restored).
 
-### validate-cdh-subsystem — Validate EX-0012.10 (C&DH Subsystem) · `Task` · Medium · ✔ VALIDATED 2026-07-17
+### AINOS3-54 — Validate EX-0012.10 (C&DH Subsystem) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate on-board-value modification targeting the C&DH subsystem.
 
@@ -411,7 +411,7 @@ SET_PERF_FILTER_MASK=CC16, RESET_PR_COUNT=CC19.
 **AC:** met — C&DH field `CFE_ES.MaxProcessorResets` (+`CommandCounter`) identified as
 the perturbed value, footprint confirmed live, and detection closed via R8.
 
-### validate-flood-valid — Validate EX-0013.01 (Flooding — Valid Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
+### AINOS3-55 — Validate EX-0013.01 (Flooding — Valid Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate a valid-command flood (DoS).
 
@@ -442,7 +442,7 @@ flood) is the sibling — malformed packets → CFE_SB MsgReceive/PipeOverflow e
 family + the sbn_adapter unknown-MsgId path (watch for the KeyError crash from
 wave-2); a distinct footprint from this valid flood.
 
-### validate-flood-erroneous — Validate EX-0013.02 (Flooding — Erroneous Input) · `Task` · Medium · ✔ VALIDATED 2026-07-17
+### AINOS3-56 — Validate EX-0013.02 (Flooding — Erroneous Input) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate an erroneous-input flood.
 
@@ -472,7 +472,7 @@ No cleanup (wrong-FC commands rejected, garbage dropped — no state change; FSW
 OnAIR healthy). Distinct footprint from EX-0013.01 (that = EVS-flood/R2; this =
 cmd-errors/R4).
 
-### validate-bus-spoof — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High · ✔ VALIDATED 2026-07-16 (overturns MARKDOWN-ONLY)
+### AINOS3-57 — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High · ✔ VALIDATED 2026-07-16 (overturns MARKDOWN-ONLY)
 
 **Summary:** Validate Software-Bus traffic spoofing.
 
@@ -527,7 +527,7 @@ wide (uint32, non-wrapping) counter backwards; uint8 sensor-count spoofs are
 excluded (wrap-noisy). **Follow-up:** update demo/triage to reclassify EX-0014.02
 from MARKDOWN-ONLY to exercisable-and-now-detected.
 
-### validate-inhibit-sc — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium · ✔ VALIDATED 2026-07-17
+### AINOS3-58 — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate disabling/inhibiting a spacecraft subsystem as evasion.
 
@@ -566,17 +566,17 @@ event stream. (Inverse of DE-0010's EVS flood.)
 "goes quiet" signal confirmed on a subscribed subsystem (EVS). Cleanup: event types
 re-enabled (EVS resumed).
 
-### validate-safemode-evasion — Validate DE-0005 (Subvert Protections via Safe-Mode) · `Task` · Low
+### AINOS3-59 — Validate DE-0005 (Subvert Protections via Safe-Mode) · `Task` · Low
 
 **Summary:** Validate safe-mode subversion as a defense-evasion technique.
 
 **Description:** The defense-evasion sibling of EX-0011 — enter safe mode to relax
 protections and evade. Same footprint (mode transition). Low priority: near-
-duplicate of validate-safemode-exploit; validate together.
+duplicate of AINOS3-52 (validate-safemode-exploit); validate together.
 
 **AC:** common criteria; may share a run with EX-0011.
 
-### validate-audit-overflow — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ◑ FOOTPRINT-VALIDATED 2026-07-16
+### AINOS3-60 — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ◑ FOOTPRINT-VALIDATED 2026-07-16
 
 **Summary:** Validate an EVS event-log overflow used to bury evidence.
 
@@ -613,7 +613,7 @@ more likely (b) add a targeted EVS-send-rate feature/rule, since the per-mode IF
 structurally under-weights CDH-layer signal. This reframes DE-0010 from "just
 validate" to "signal present but detector-blind — needs a feature, not just data."
 
-### validate-memory-compromise — Validate PER-0001 (Memory Compromise) · `Task` · Medium
+### AINOS3-61 — Validate PER-0001 (Memory Compromise) · `Task` · Medium
 
 **Summary:** Validate persistent memory compromise.
 
@@ -624,7 +624,7 @@ survival across a Tier-1.5 reset. Script exists at technique level.
 
 **AC:** common criteria; additionally show the change *persists* across a reset.
 
-### validate-bus-segregation — Validate LM-0002 (Exploit Lack of Bus Segregation) · `Task` · Medium
+### AINOS3-62 — Validate LM-0002 (Exploit Lack of Bus Segregation) · `Task` · Medium
 
 **Summary:** Validate lateral movement via unsegregated Software Bus.
 
