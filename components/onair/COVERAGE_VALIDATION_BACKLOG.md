@@ -36,7 +36,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | Slug | SPARTA | Type | Pri | Script? | Observable via |
 |---|---|---|---|:--:|---|
 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | NOVATEL/GPS position fields |
-| validate-hw-commands | EX-0005.02 | Task | Med | — | component HK command counters |
+| validate-hw-commands | EX-0005.02 | Task | Med | ✅ | ✔ VALIDATED — valid device cmds (no cmd-errors); R1 TORQUER-disable + dynamics IF |
 | validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
 | validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
 | validate-cdh-subsystem | EX-0012.10 | Task | Med | — | `CFE_ES`/`CFE_SB` counters |
@@ -157,6 +157,18 @@ forwards only subscribed MIDs) — so the wave-2 KeyError is NOT `:5012`-fuzz-tr
 (it came from a config-mismatch/FSW-init unmapped MID in the forward set). Distinct
 footprint from EX-0013.01 (R2 EVS-flood): EX-0013.02 = R4 cmd-errors.
 
+**10th (2026-07-17): EX-0005.02 malicious use of hardware commands — valid-command
+abuse, caught by R1 + dynamics IF.** Behavioral proxy for the non-simulatable
+firmware-corruption parent: an attacker issues *legitimate* device commands with
+malicious intent (TORQUER disable, RW torque injection, thruster arm/fire, EPS switch
+toggles). Defining footprint: `CommandCount` climbs across the targeted components
+(TORQUER +6, THRUSTER +4, EPS +3) while every `CommandErrorCount` stays FLAT — the
+mirror image of EX-0013.02. Detected two ways on a healthy stack (IF 0% for 12k
+steady frames pre-attack): rule-gate **R1** on `TORQUER.DeviceEnabled 1→0` (cleared on
+re-enable) and the **dynamics IF** rising 0%→78% in the attack window from the
+thruster fire + injected RW momentum. Residual gap: a benign-magnitude single valid
+command with no device-disable and no dynamics kick would slip both.
+
 **Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
 2026-07-17).** `staleness_check`
 plugin (4th gate; fsw e08a527, registered 0b3d688e). Key correction found during
@@ -217,14 +229,57 @@ for EX-0014.03 (redundant + freeze not IF-detectable); the rule layer (flag / st
 covers it. (Correction: an earlier note said the device "keeps producing normal data"
 — that was misread stale double-buffer values; the packet actually stops.)
 
-### validate-hw-commands — Validate EX-0005.02 (Malicious Use of Hardware Commands) · `Task` · Medium
+### validate-hw-commands — Validate EX-0005.02 (Malicious Use of Hardware Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate direct malicious hardware/device commands into the corpus.
-**Description:** Attacker issues valid-but-malicious device commands to a component
-(RW/EPS/THRUSTER/torquer). Footprint expected in the target component's HK command
-counters + resulting device state. No script yet — create one targeting a
-subscribed actuator.
-**AC:** common criteria; pick a target component whose HK is subscribed.
+
+**Description:** The parent EX-0005 (firmware/FPGA corruption) is NOT simulatable in
+NOS3. Sub-technique .02 IS its behavioral proxy: an attacker with command access
+issues *legitimate, well-formed* device commands whose OPERATIONAL INTENT is
+malicious — disable a magnetorquer, inject reaction-wheel torque, arm/fire a
+thruster, toggle EPS power switches. Because the commands are valid, the flight
+software accepts them: the component's `CommandCount` climbs and device STATE
+changes; `CommandErrorCount` does NOT move. This is deliberately the *quiet*
+counterpart to EX-0011 — there is NO monitoring-disable prelude.
+
+**Script:** `gsw/attack_scripts/sparta/execution/ex_0005_malicious_hw_commands/ex_0005_02_malicious_hw_commands.py`
+(`--attack-level 3`). Targets: TORQUER (0x193A), RW (0x1992), THRUSTER (0x18EA),
+EPS (0x191A) — all subscribed.
+
+**VALIDATED live (2026-07-17, healthy stack — IF 0% for 12k steady-state frames
+pre-attack):**
+
+- **Signal class: ON_BOARD. DETECTED BY TWO GATES.**
+
+- **Footprint (all commands valid → NO cmd-errors):** `TORQUER.DeviceEnabled 1→0`;
+  `TORQUER.CommandCount 1→7` (+6), `THRUSTER.CommandCount 94→98` (+4),
+  `EPS.CommandCount 95→98` (+3); `THRUSTER.DeviceEnabled 0→1`; RW `SET_TORQUE`
+  injected on 3 wheels. Every `*.CommandErrorCount` stayed FLAT (TORQUER 0, THRUSTER
+  47, EPS 46 — no new errors). This is the defining contrast with EX-0013.02, which
+  drives `CommandErrorCounter`.
+
+- **Rule-gate R1:** `R1:TORQUER-disabled` fired on the `DeviceEnabled 1→0` edge
+  (first at frame 15129), latched active, and **cleared cleanly** (alert_active 0)
+  once the torquer was re-enabled in cleanup.
+
+- **Dynamics IF:** `is_anomaly` **0% pre-attack (14700–15090) → 78% in the attack
+  window (15095–15275)**. The thruster fire + injected reaction-wheel momentum
+  perturb the attitude physics the per-mode IF is trained on. The IF *persists* at
+  ~100% after cleanup because the malicious `SET_TORQUE` genuinely loaded RW
+  momentum that the ADCS has to actively dump — an honest residual effect, not a
+  stack artifact (R1 and device states restored).
+
+- **Detection needs BOTH:** R1 catches the device-disable even if the vehicle never
+  moved; the IF catches the delta-V / momentum perturbation even when no device is
+  disabled. A pure valid-command actuator abuse with no disable and no dynamics
+  (e.g. a benign-magnitude single command) would be the residual gap.
+
+**Incident-level fold:** gate-confirmed; the shared IncidentAggregator fold for R1
+is best re-checked on a fresh launch (this stack was ~6 h uptime; per the known
+degraded-stack note the incident layer is fragile at long uptime).
+
+**AC:** met — targeted subscribed actuators (TORQUER/RW/THRUSTER/EPS), confirmed the
+valid-command / no-cmd-error footprint live, and confirmed detection by R1 + IF.
 
 ### validate-safemode-exploit — Validate EX-0011 (Exploit Reduced Protections in Safe-Mode) · `Task` · Medium · ✔ VALIDATED 2026-07-16
 
