@@ -12,6 +12,40 @@ cover, and what's the backlog?" and drives the MID-subscription decision.
 validated corpus (`app/gen_nos3_coverage.py::ENRICH`), the 4-class signal taxonomy
 (`V5_DETECTOR_COVERAGE.md` §C), and the telemetry-MID inventory.
 
+## Two verdicts that are easy to confuse: Not-Applicable vs Out-of-Scope
+
+This document rules techniques out for two *different* reasons, on two different
+axes. Both mean "not in the detection backlog," but they are not the same verdict —
+the tell is whether the attack could even *run* against the sim.
+
+- **Not-applicable (N/A, Section D)** — the attack **can't happen in NOS3**. It
+  targets something the simulation doesn't model at all (physical/RF/ground/off-board/
+  no-payload), so there is no attack surface and nothing to simulate. "Would we detect
+  it?" is moot because the *action itself* has no representation. Axis: **the target
+  doesn't exist in the model.** E.g. reconnaissance, jamming, ASAT, ground-segment.
+
+- **Out-of-scope (CONCEPTUAL, Section C)** — the attack **is applicable and could
+  actually run** on the modeled spacecraft (it hits the flight software, crypto lib,
+  or on-board values), but it produces **no observable telemetry footprint by
+  construction**, so a telemetry-based monitor can *never* catch it — and no added MID
+  or schema change fixes that. Axis: **the target exists, but is structurally
+  unobservable.** E.g. crypto (CryptoLib emits zero SB telemetry), self-hiding
+  rootkits/backdoors, untelemetered registers.
+
+| | Attack surface in NOS3? | Detectable in principle? | Would adding a MID help? |
+|---|:--:|:--:|:--:|
+| **Not-applicable** (D) | ❌ no | — (moot) | — |
+| **Out-of-scope / CONCEPTUAL** (C) | ✅ yes | ❌ never | ❌ no |
+
+Out-of-scope therefore lives *under* the "applicable" branch: the triage first asks
+*"does this attack apply to NOS3?"*, and only the applicable techniques split into
+**in-scope-now** (Section A — detectable, needs corpus validation), **unsubscribed**
+(Section B — detectable *if* a MID is added), and **CONCEPTUAL/OOS** (Section C —
+applicable but permanently undetectable). Not-applicable (Section D) is the separate,
+earlier fork where the attack never touches NOS3 at all. One-line contrast: an
+out-of-scope technique *does something you can't see*; a not-applicable one *has
+nothing to run against in the first place*.
+
 ## The filter: what an on-board FSW monitor can even see
 
 OnAIR sees only the cFS Software Bus telemetry it subscribes to. That makes five
@@ -85,7 +119,9 @@ re-measure** (the AINOS3-30 lesson: a MID only helps if an attack perturbs it).
 ## C. Applicable on-board but CONCEPTUAL — permanent out-of-scope
 
 No amount of telemetry helps; the technique has no observable on-board footprint by
-construction. Do **not** spend corpus/MID effort here.
+construction. Do **not** spend corpus/MID effort here. These attacks *could* run
+against the sim — they just leave no trace (see *Two verdicts that are easy to
+confuse* above: out-of-scope ≠ not-applicable).
 
 - **Crypto (CryptoLib has zero SB telemetry):** EX-0003 modify-auth, EX-0006
   disable-encryption, PER-0004 replace-keys, DE-0003.07 crypto-modes *(done, OOS)*.
@@ -102,7 +138,9 @@ construction. Do **not** spend corpus/MID effort here.
 
 ## D. Not applicable to NOS3 (physical / RF / ground / no-payload)
 
-Whole-tactic N/A (REC, RD, IA) plus: SEU (EX-0007), ASAT (EX-0017.*), directed
+The attack surface isn't modeled, so the technique can't even run against the sim —
+distinct from Section C's out-of-scope, which *can* run but leaves no footprint (see
+*Two verdicts that are easy to confuse* above). Whole-tactic N/A (REC, RD, IA) plus: SEU (EX-0007), ASAT (EX-0017.*), directed
 energy (EX-0018.*), jamming (EX-0016.*, DE-0002.02), missile spoof (EX-0014.05),
 side-channels (EX-0015, EXF-0002.*), boot ROM (EX-0004), science/payload (EX-0012.06,
 EXF-0010, LM-0001/0006), space-domain-awareness (DE-0009.*), ground-segment
