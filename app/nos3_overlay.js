@@ -21,6 +21,9 @@
 
   function statusOf(c) {
     if (c.tier === "OUT-OF-SCOPE") return { cls: "oos", label: "out of scope" };
+    // Gate-detected (rule-gate / consistency / staleness): live-verified raising an
+    // incident even though the dynamics-IF misses it.
+    if (c.gate) return { cls: "det", label: "detected (gate)" };
     const det = c.incident_detected, n = c.incident_total;
     if (det != null && n) {
       if (det === n) return { cls: "det", label: "detected" };
@@ -35,7 +38,8 @@
     entries.forEach(([, c]) => {
       if (c.tier === "OUT-OF-SCOPE") { oos++; return; }
       mon++;
-      if (c.incident_total) { tot += c.incident_total; det += (c.incident_detected || 0); }
+      if (c.gate) { tot += 1; det += 1; }  // gate-detected counts as caught
+      else if (c.incident_total) { tot += c.incident_total; det += (c.incident_detected || 0); }
     });
     return { mon, det, tot, oos, total: entries.length };
   }
@@ -127,7 +131,10 @@
       "Top fields / review</th>" +
       "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
       "<div class='nos3-foot'>Status = incident-level detection on the labeled corpus " +
-      "(an attack counts as caught if it raised ≥1 alert). \"Frame catch\" is the per-frame " +
+      "(an attack counts as caught if it raised ≥1 alert). <b>detected (gate)</b> = the " +
+      "dynamics-IF misses it by design but a complementary gate (rule-gate R1–R10, " +
+      "consistency-check, or staleness-check, shown under \"Top fields / review\") caught " +
+      "it live. \"Frame catch\" is the per-frame " +
       "SUNSAFE flag rate. Signal class = telemetry observability: ON_BOARD (visible) · " +
       "OBFUSCATION (self-hidden) · UNSUBSCRIBED (not monitored) · CONCEPTUAL (no-op).</div>";
     host.parentNode.insertBefore(div, host.nextSibling);

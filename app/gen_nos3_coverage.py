@@ -65,6 +65,29 @@ ENRICH = {
     "DE-0003.12": ("OUT-OF-SCOPE", "CONCEPTUAL",   None, "Poison AI/ML training"),
 }
 
+# ── Section-A gate-detected techniques (coverage-validation campaign, AINOS3-50…62,
+# live-verified through 2026-07-17). The deployed per-mode IF MISSES these by design —
+# their footprint is a discrete flag/counter/freeze/spoof the dynamics model doesn't
+# weight — so `frame_rate` is the IF SUNSAFE rate only where the exploit also perturbs
+# physics (EX-0005.02, EX-0011), else None. They are caught by the complementary gates
+# (rule-gate R1–R10, consistency-check, staleness-check), each live-verified raising an
+# incident. id -> (frame_rate, label, detector).
+GATE_DETECTED = {
+    "EX-0002":    (None, "PNT geofencing",                  "rule-gate R1 (NOVATEL disable) → EX-0002 incident"),
+    "EX-0005.02": (0.78, "Malicious use of HW commands",    "rule-gate R1 (TORQUER) + dynamics-IF (78%)"),
+    "EX-0011":    (0.52, "Exploit reduced protections in safe-mode", "rule-gate R5 (LC) / R1 (CSS) + dynamics-IF (52%)"),
+    "EX-0012.02": (None, "Internal routing tables",         "staleness-check (freeze) + rule-gate R6 (CFE_SB cmd)"),
+    "EX-0012.10": (None, "C&DH subsystem",                  "rule-gate R8 (CFE_ES command) → EX-0012.10 incident"),
+    "EX-0013.01": (None, "Flooding — valid commands",       "rule-gate R2 (EVS flood; labeled DE-0010)"),
+    "EX-0013.02": (None, "Flooding — erroneous input",      "rule-gate R4 (command-error family)"),
+    "EX-0014.02": (None, "Bus traffic spoofing",            "consistency-check (per-sample counter monotonicity)"),
+    "DE-0002.03": (None, "Inhibit spacecraft functionality", "staleness-check (EVS freeze) + rule-gate R7 (CFE_EVS cmd)"),
+    "DE-0005":    (None, "Subvert protections via safe-mode", "rule-gate R5 (LC) + staleness-check"),
+    "DE-0010":    (None, "Overflow audit log",              "rule-gate R2 (EVS send-rate) → DE-0010 incident"),
+    "PER-0001":   (None, "Memory compromise",               "rule-gate R9 (CFE_TBL command) → PER-0001 incident"),
+    "LM-0002":    (None, "Exploit lack of bus segregation", "rule-gate R10 bus-sweep meta (R6+R7+R8+R9) → LM-0002 incident"),
+}
+
 # Per-technique REVIEW rationale for out-of-scope techniques — WHY it can't be
 # seen and WHAT would be needed to detect it. Rendered into the "Top fields /
 # review" column so every out-of-scope cell shows it has been reviewed with a
@@ -150,6 +173,22 @@ def main():
             "cluster": cluster_of.get(tid),
             "explanation": explain_of.get(tid, ""),  # NOS3-312
             "review": REVIEW.get(tid, ""),           # why-OOS / what's-needed
+        }
+
+    # Section-A gate-detected techniques (rule-gate / consistency / staleness — the
+    # per-mode IF misses them). Each was live-verified raising an incident, so status is
+    # "detected" via the gate (see the overlay's `c.gate` handling); the detector is
+    # named in the review column. These do NOT come from the classifier incident-rescore.
+    for tid, (frame_rate, label, detector) in GATE_DETECTED.items():
+        if tid in coverage:
+            continue
+        coverage[tid] = {
+            "name": label, "tier": "RULE-GATE", "signal": "ON_BOARD",
+            "frame_rate": frame_rate, "incident_detected": None, "incident_total": None,
+            "incident_recall": None, "label_ok": None,
+            "cluster": cluster_of.get(tid), "explanation": "",
+            "review": "Caught by " + detector + " (dynamics-IF blind by design).",
+            "gate": detector,
         }
 
     # Reviewed-but-not-scored out-of-scope techniques: overlay the review verdict
