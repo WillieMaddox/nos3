@@ -2,12 +2,14 @@
 
 **Audience:** mission, security, and program stakeholders (no ML background assumed).
 
-**Scope:** the v5 anomaly detector + v3 attack classifier currently deployed in
-the OnAIR plugin against the NOS3 cFS flight software.
+**Scope:** the v5 anomaly detector + v3 attack classifier + the four parallel
+detector gates (rule-gate R1–R10, consistency-check, staleness-check) currently
+deployed in the OnAIR plugin against the NOS3 cFS flight software.
 
-**Last updated:** 2026-06-09. Numbers are from attack scripts empirically
-validated against live FSW (31 SPARTA entries) and from calibrated nominal
-soaks — not from simulation assumptions.
+**Last updated:** 2026-07-17 (added §5 — the detector gates and the 13 Section-A
+techniques they catch). Numbers are from attack scripts empirically validated
+against live FSW and from calibrated nominal soaks — not from simulation
+assumptions.
 
 ---
 
@@ -24,6 +26,13 @@ telemetry fields at ~5 Hz:
    classifier (gradient-boosted trees) labels the event with a SPARTA
    technique (e.g. *EX-0012.07 propulsion command*). **~63 % correct
    technique identification on novel runs.**
+3. **Parallel gate layer — "What the dynamics model can't see."** Four
+   complementary gates run *beside* the IF for attacks whose footprint is a
+   discrete flag/counter change, a transient spoof, or a frozen stream — none
+   of which perturb the physics Stage 1 watches: **rule-gate (R1–R10)**,
+   **consistency-check** (per-sample bus-spoof), and **staleness-check**
+   (telemetry-freeze). The firing rule *is* the label, so no classifier is
+   needed for this class. See *"Complementary detector gates"* below.
 
 **What this means operationally:**
 
@@ -32,7 +41,7 @@ telemetry fields at ~5 Hz:
 | Will it cry wolf? | Rarely — under 1 alarm per ~5 hours of nominal flight. |
 | Will it catch a real attack? | **Yes — at the incident level, 93 % of genuinely detectable state-change attacks raise an alert** (vs ~61 % of individual frames; one alert per attack is what matters). Detection is strongest in SUNSAFE; weaker in other modes. |
 | Will it tell me *which* attack? | For ~8 techniques, yes with high confidence. For others it narrows to a *family* of indistinguishable techniques. A handful it cannot label at all (documented below). |
-| Does Stage 2 catch things Stage 1 misses? | **No.** Stage 2 only *sharpens* what Stage 1 already flagged — it does not widen the net. |
+| Does Stage 2 catch things Stage 1 misses? | **No** — Stage 2 only *sharpens* what Stage 1 flagged. **But the parallel gate layer does** — it catches 13 validated Section-A techniques (flag/counter/spoof/freeze) the dynamics-IF is structurally blind to. |
 
 ---
 
@@ -128,6 +137,45 @@ cross-validation — i.e. accuracy on a spacecraft run the model never saw):
 Overall technique-identification accuracy is **~63 %** (top-1, novel run) —
 calibrated, not overfit (held-out and cross-validated numbers agree within
 ~1 point).
+
+### 5. Complementary detector gates (what the dynamics-IF can't see)
+
+The Section-A coverage campaign (AINOS3-50…62, live-verified through 2026-07-17)
+proved the IF is a *dynamics* detector: blind to attacks whose footprint is a
+discrete flag flip, a static-counter increment, a transient spoof, or a frozen
+stream. Four lightweight gates run in parallel with the IF to close that gap. The
+rule that fires *is* the label (no classifier needed), and each was live-verified
+raising an incident:
+
+- **rule-gate (R1–R10):** R1 device-disable · R2 EVS-rate · R3 SB-errors · R4
+  cmd-errors · R5 monitor-state (LC/HS) · R6/R7/R8/R9 static-in-nominal command
+  counters (CFE_SB / CFE_EVS / CFE_ES / CFE_TBL) · R10 bus-sweep meta-rule.
+- **consistency-check:** per-sample counter-monotonicity — catches an injected
+  spoof (a counter that jumps backwards) the IF and rule-gate both miss.
+- **staleness-check:** a wide monotonic counter's max stops advancing — catches
+  telemetry-denial / frozen streams (route-disable, EVS-suppress).
+
+**13 Section-A techniques now caught by the gate layer** (all ON_BOARD; the IF
+scores them is_anomaly≈0 unless noted):
+
+| SPARTA | Technique | Caught by |
+|---|---|---|
+| EX-0002 | PNT geofencing (GPS disable) | rule-gate R1 → EX-0002 incident |
+| EX-0005.02 | Malicious use of HW commands | rule-gate R1 + dynamics-IF (78 %) |
+| EX-0011 | Exploit reduced protections in safe-mode | rule-gate R5/R1 + dynamics-IF (52 %) |
+| EX-0012.02 | Internal routing tables | staleness-check + rule-gate R6 |
+| EX-0012.10 | C&DH subsystem (CFE_ES value mod) | rule-gate R8 → EX-0012.10 incident |
+| EX-0013.01 | Flooding — valid commands | rule-gate R2 (labeled DE-0010) |
+| EX-0013.02 | Flooding — erroneous input | rule-gate R4 (cmd-error family) |
+| EX-0014.02 | Bus traffic spoofing | consistency-check |
+| DE-0002.03 | Inhibit spacecraft functionality | staleness-check + rule-gate R7 |
+| DE-0005 | Subvert protections via safe-mode | rule-gate R5 + staleness-check |
+| DE-0010 | Overflow audit log | rule-gate R2 → DE-0010 incident |
+| PER-0001 | Memory compromise | rule-gate R9 → PER-0001 incident |
+| LM-0002 | Exploit lack of bus segregation | rule-gate R10 bus-sweep → LM-0002 incident |
+
+This is the direct answer to the old "Stage 2 doesn't widen the net" caveat: the
+gate layer *does* widen it, by a different mechanism than the classifier.
 
 ---
 

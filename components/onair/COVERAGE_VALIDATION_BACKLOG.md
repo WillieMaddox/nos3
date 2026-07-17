@@ -661,6 +661,18 @@ their own epic **AINOS3-63** (detector-gates) with tickets **AINOS3-64…67**; t
 detailed writeups live in [`SPRINT_25_PLAN.md`](SPRINT_25_PLAN.md) and the mapping in
 [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md) — not in this backlog.
 
+**Corpus & demo folding (AC 3-4, done 2026-07-17).** All 13 are **gate-detected, not
+classifier-trained**, so they are *validated standalone* (each footprint + detecting
+gate + live incident documented in its task block above) rather than folded into the
+mode-balanced training corpus — the classifier is IF-gated and does not learn the
+flag/counter/freeze/spoof class the gates own, so a `run_attack_batch.py` re-collection
+would not move it. Folded into the **demo** (`app/gen_nos3_coverage.py` `GATE_DETECTED`
+→ `nos3_coverage.js` → `sparta_coverage.html`; they render as **"detected (gate)"** with
+the detector named) and the **stakeholder doc** (`V5_DETECTOR_COVERAGE.md` §5
+"Complementary detector gates"). The 2 hybrid cases (EX-0005.02 78 %, EX-0011 52 %) are
+*also* IF-caught, so a future corpus regen could additionally teach the classifier to
+label them — deferred (not required for detection).
+
 **Two lessons carried to memory (recorded here for provenance):**
 
 - **Sensor-DEVICE-MID IF retrain — NOT justified** (from EX-0014.03): the device
