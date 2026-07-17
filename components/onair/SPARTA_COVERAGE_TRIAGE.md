@@ -1,16 +1,18 @@
 # SPARTA Coverage Triage — NOS3 OnAIR Monitor
 
 **Purpose.** The demo matrix renders the full SPARTA v3.0 framework (177 leaf
-technique IDs) but the NOS3 detector only carries a verdict for 32. This document
-triages *every* SPARTA technique into **not-applicable / applicable-not-validated
-/ done**, and — for the applicable ones — records the signal class and which MID
-(if any) would move it in-scope. It answers "how much of SPARTA can NOS3 actually
-cover, and what's the backlog?" and drives the MID-subscription decision.
+technique IDs). The NOS3 detector now carries a verdict for **45**: **32** in the
+classifier corpus + the **13 Section-A techniques gate-validated** in the 2026-07-17
+campaign. This document triages *every* SPARTA technique into **not-applicable /
+applicable-not-validated / done**, and — for the applicable ones — records the signal
+class and which MID (if any) would move it in-scope. It answers "how much of SPARTA can
+NOS3 actually cover, and what's the backlog?"
 
-**Created:** 2026-07-15. **Sources:** `SPARTA_DATA` in `app/sparta_coverage.html`
-(v3.0), the 154 scripts under `gsw/attack_scripts/sparta/`, the 32-technique
-validated corpus (`app/gen_nos3_coverage.py::ENRICH`), the 4-class signal taxonomy
-(`V5_DETECTOR_COVERAGE.md` §C), and the telemetry-MID inventory.
+**Created:** 2026-07-15. **Last updated:** 2026-07-17 (Section A all validated; Section
+B MIDs now subscribed). **Sources:** `SPARTA_DATA` in `app/sparta_coverage.html`
+(v3.0), the 154 scripts under `gsw/attack_scripts/sparta/`, the classifier corpus +
+`GATE_DETECTED` (`app/gen_nos3_coverage.py`), the 4-class signal taxonomy
+(`V5_DETECTOR_COVERAGE.md`), and the telemetry-MID inventory.
 
 ## Two verdicts that are easy to confuse: Not-Applicable vs Out-of-Scope
 
@@ -67,56 +69,66 @@ Of those, **32 are validated (done)** and **all 6 Impact techniques are done.**
 
 ## Headline
 
-- **177** SPARTA leaf techniques total; **154** scripts on disk; **32** validated in
-  the detection corpus.
-- **~90** are in the on-board-detectable universe. **32 done**, **~58 not done**.
-- Of the 58 not done: **13 are applicable + in-scope now** (the concrete Section A
-  enumeration below; the earlier "~18" was a loose estimate), **~7 are applicable but
-  UNSUBSCRIBED** (Section B — need a MID), **~33 are CONCEPTUAL** (Section C —
-  structurally unobservable, permanent out-of-scope), and **~5 are borderline ON_BOARD
-  candidates held out** pending a live footprint check (`EX-0001.02`, `DE-0006`,
-  `EX-0005.01`). That reconciles: 13 + 7 + 33 + 5 = 58.
+- **177** SPARTA leaf techniques total; **154** scripts on disk.
+- **~90** are in the on-board-detectable universe. **45 validated** = **32** in the
+  classifier detection corpus + **13 Section-A gate-validated** (all live-verified
+  through 2026-07-17; caught by the rule-gate / consistency / staleness gates the
+  dynamics-IF misses).
+- The remaining ~45 split: **~7 are Section B** (their MID is now SUBSCRIBED after the
+  16-MID pass, but detection isn't built/validated yet — no longer "needs a MID"),
+  **~33 are CONCEPTUAL** (Section C — structurally unobservable, permanent out-of-scope),
+  and **~5 are borderline ON_BOARD candidates held out** pending a footprint check
+  (`EX-0001.02`, `DE-0006`, `EX-0005.01`). That reconciles: 45 + 7 + 33 + 5 = 90.
 
-## A. Applicable · in-scope now · NOT yet validated (the real backlog)
+## A. Applicable · in-scope now · ✅ ALL 13 VALIDATED (campaign complete 2026-07-17)
 
-These have (or can trivially have) a script, produce a footprint in an
-**already-subscribed** MID, and just need to be run + validated + folded into the
-corpus. **Cheapest breadth wins.**
+All 13 have a script, produce a footprint in an **already-subscribed** MID, and were
+**validated live against the FSW** — see [`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md)
+for the per-technique writeups. Key finding: the dynamics-IF is *blind* to the
+flag/counter/freeze/spoof class, so most are caught by the parallel gates
+(rule-gate R1–R10, consistency-check, staleness-check); two also perturb physics enough
+for the IF. Several footprint guesses in the original table were **wrong** and are
+corrected below.
 
-| ID | Technique | Script? | Footprint / observable via |
-|---|---|:--:|---|
-| EX-0002 | PNT Geofencing | ✅ | NOVATEL/GPS position fields |
-| EX-0005.02 | Malicious Use of Hardware Commands | ✅ | component HK command counters |
-| EX-0011 | Exploit Reduced Protections in Safe-Mode | ✅ | ADCS/SC mode change |
-| EX-0012.02 | Internal Routing Tables | — | `CFE_SB_SUBS` (subscribed) — new/altered routes |
-| EX-0012.10 | Command & Data Handling Subsystem | — | `CFE_ES`/`CFE_SB` counters |
-| EX-0013.01 | Flooding — Valid Commands | ✅ | EVS send-rate + command counters (DoS flood; validate standalone — doesn't fit the all-modes-dwell window) |
-| EX-0013.02 | Flooding — Erroneous Input | ✅ | `CFE_SB`/subsystem CommandError family (garbage rejected upstream) |
-| EX-0014.02 | Bus Traffic Spoofing | ✅ | injected SB messages vs `CFE_SB_SUBS` |
-| DE-0002.03 | Inhibit Spacecraft Functionality | ✅ | subsystem HK going quiet / error counts |
-| DE-0005 | Subvert Protections via Safe-Mode | ✅ | mode change (sibling of EX-0011) |
-| DE-0010 | Overflow Audit Log | ✅ | **EVS sent-rate** — `CFE_EVS_HK.MessageSendCounter` + `AppData[CFE_EVS].AppMessageSentCounter` spike (validated 2026-07-16: ON_BOARD, but the deployed IF misses it — squelched-counter does NOT fire) |
-| PER-0001 | Memory Compromise | ✅ | sibling of EX-0012.03 memory write |
-| LM-0002 | Exploit Lack of Bus Segregation | ✅ | `CFE_SB_SUBS` — traffic crossing to unexpected apps |
+| ID | Technique | Script? | Detected by (validated) | Footprint / observable via |
+|---|---|:--:|---|---|
+| EX-0002 | PNT Geofencing | ✅ | rule-gate R1 | `NOVATEL_HK.DeviceEnabled 1→0` (position barely moves in SUNSAFE; HK freezes on aged stacks — repro on a fresh launch) |
+| EX-0005.02 | Malicious Use of Hardware Commands | ✅ | R1 + dynamics-IF (78 %) | device `CommandCount` climbs, NO cmd-errors; TORQUER disable + thruster/RW physics |
+| EX-0011 | Exploit Reduced Protections in Safe-Mode | ✅ | R5/R1 + dynamics-IF (52 %) | LC state + CSS/EPS/thruster (**NOT ADCS mode** — corrected) |
+| EX-0012.02 | Internal Routing Tables | ✅ | staleness + R6 | route-disable freezes the MID; `CFE_SB.CommandCounter` is the command signal (**`CFE_SB_SUBS` NOT observable**, reads `[0]`) |
+| EX-0012.10 | Command & Data Handling Subsystem | ✅ | R8 | `CFE_ES.CommandCounter` + `MaxProcessorResets` (SET_MAX_PR_COUNT) |
+| EX-0013.01 | Flooding — Valid Commands | ✅ | R2 (+R3/R6/R7) | EVS send-rate spike (labeled DE-0010 — shared footprint) |
+| EX-0013.02 | Flooding — Erroneous Input | ✅ | R4 | subsystem `CommandError` family (garbage rejected upstream; `MsgReceiveErrorCounter` stays 0) |
+| EX-0014.02 | Bus Traffic Spoofing | ✅ | consistency-check | per-sample wide counter jumps backwards (**`CFE_SB_SUBS` NOT observable**) |
+| DE-0002.03 | Inhibit Spacecraft Functionality | ✅ | staleness + R7 | `CFE_EVS_HK.MessageSendCounter` freeze (EVS event-type suppress) |
+| DE-0005 | Subvert Protections via Safe-Mode | ✅ | R5 + staleness | LC state (sibling of EX-0011); forced ADCS `SET_MODE` = an IF warmup blind spot |
+| DE-0010 | Overflow Audit Log | ✅ | R2 | EVS send-rate `CFE_EVS_HK.MessageSendCounter` (squelch does NOT fire; IF stays blind) |
+| PER-0001 | Memory Compromise | ✅ | R9 | `CFE_TBL.CommandCounter` (evidence-hiding `CFE_TBL_RESET` survived by the running-max) |
+| LM-0002 | Exploit Lack of Bus Segregation | ✅ | R10 bus-sweep | ≥3 static command counters trip together (**`CFE_SB_SUBS` NOT observable**) |
 
-## B. Applicable · UNSUBSCRIBED · needs a MID to become detectable
+## B. Applicable · MID now SUBSCRIBED · pending validation (was: UNSUBSCRIBED)
 
-Footprint exists but in a MID OnAIR does **not** subscribe to. **This section drives
-the MID decision** — a MID is only worth adding if it moves a technique here (or a
-DEAD class) in-scope. Map:
+**Updated 2026-07-16/17 — the MID bottleneck is largely resolved.** The 16-MID
+subscription pass (AINOS3-30) added *every* candidate MID below to OnAIR (pipe cap
+`CFE_SBN_CLIENT_MAX_MSG_IDS_PER_PIPE` raised **32 → 48**). They are now **recorded but
+not yet turned into features/detections** — subscribing only helps if an attack
+perturbs the MID *and* a feature/rule reads it (the AINOS3-30 lesson: the CFE_TBL
+change-detect features read constant-0 and were kept dormant). So this is no longer
+"needs a MID"; it is **"MID present, detection not yet built/validated"** — the
+successor backlog to Section A.
 
-| Candidate MID | Unlocks (moves in-scope) |
-|---|---|
-| **`TO_LAB_HK` (0x08E8)** — telemetry output | **EXF-0003.02** downlink exfiltration · sharpens **IMP-0006** theft (currently UNSUBSCRIBED, detected only by side-effect) |
-| **`LC_HK` (0x08A7)** — limit checker | **DE-0001** Disable Fault Management (watchpoint/actionpoint state) |
-| **`DS_HK` (0x08B8)** + **`FM_HK` (0x088A)** — data storage / file mgr | **EX-0010.01** Ransomware · **EX-0010.02** Wiper (file create/delete/write counters) |
-| **`CI_LAB_HK` (0x08E0)** — command ingest | sharpens the command-injection family (EX-0013.*, DE-0003.01/02) at the ingress |
-| **sensor DEVICE pkts** (0x0911/21/26/2B/36) | sharpens **EX-0014.03** sensor spoof (currently DEAD) at the source, beyond the fused `ADCS_DI` view |
-| *(watchdog MID — may not exist)* | **EX-0012.11 / DE-0003.11** WDT — verify a subscribable WDT/health packet exists before counting on this |
+| MID (now subscribed as) | Could unlock | Status / finding |
+|---|---|---|
+| **`TO` (TO_LAB_HK 0x08E8)** | **EXF-0003.02** downlink exfil · sharpen **IMP-0006** theft | subscribed (`TO.Payload.*`); not yet validated |
+| **`LC` (LC_HK 0x08A7)** | **DE-0001** disable fault management | subscribed + **already in use** (R5 `LC.CurrentLCState`, staleness `LC.MonitoredMsgCount`); DE-0001 itself not yet validated |
+| **`DS` + `FM` (0x08B8 / 0x088A)** | **EX-0010.01** ransomware · **EX-0010.02** wiper | subscribed (`DS.Payload.FileWriteCounter` etc., `FM.*`); not yet validated |
+| **`CI` (CI_LAB_HK 0x08E0)** | command-injection family at the ingress | subscribed, but **NOT a cmd-injection signal in NOS3** — externally injected commands hit the `:5012` UDP→SB bridge and **bypass CI_LAB**, so `CI.Payload.IngestPackets` doesn't move (found during DE-0010) |
+| **sensor DEVICE pkts** (`IMU_DEV`/`CSS_DEV`/`MAG_DEV`/`FSS_DEV`/`ST_DEV`) | sharpen **EX-0014.03** sensor spoof (DEAD) | subscribed, but **redundant** with the fused `ADCS_DI` view and the freeze isn't IF-detectable (AINOS3-30 NULL / EX-0014.03 finding); kept dormant |
+| *(watchdog MID)* | **EX-0012.11 / DE-0003.11** WDT | **still UNSUBSCRIBED — no subscribable WDT/health packet exists** in this build (verified 2026-07-17) |
 
-Note the pipe budget: `CFE_SBN_CLIENT_MAX_MSG_IDS_PER_PIPE = 32`, **21 used → ~11
-free**. Prioritize MIDs by how many rows above they unlock, then **re-collect +
-re-measure** (the AINOS3-30 lesson: a MID only helps if an attack perturbs it).
+Net: the remaining work is **turning the newly-recorded MIDs into validated detections**
+(a new backlog), not adding MIDs. Watchdog (EX-0012.11 / DE-0003.11) is the only genuine
+UNSUBSCRIBED holdout, and it may have no telemeterable packet at all.
 
 ## C. Applicable on-board but CONCEPTUAL — permanent out-of-scope
 
@@ -148,19 +160,25 @@ EXF-0010, LM-0001/0006), space-domain-awareness (DE-0009.*), ground-segment
 
 ## Recommended sequencing
 
-1. **Cheapest breadth first (Section A):** validate the ~11 in-scope-now techniques
-   into the corpus. Most already have scripts; this roughly *doubles* validated
-   coverage of the detectable universe with no new MIDs and no schema change.
-2. **Then targeted MIDs (Section B), backward from the taxonomy:** add the MID(s)
-   that unlock the most rows — `TO_LAB_HK` (exfil + theft) and `DS_HK`/`FM_HK`
-   (wiper/ransomware) are the highest-leverage; the sensor DEVICE packets are the
-   bet on the EX-0014.03 DEAD class. Re-collect + re-measure after each.
+1. **Section A — ✅ DONE (2026-07-17).** All 13 in-scope-now techniques are validated
+   live; the campaign built the 4 detector gates (rule-gate R1–R10, consistency-check,
+   staleness-check) for the classes the IF misses. Folded into the demo +
+   `V5_DETECTOR_COVERAGE.md`. (Gate-detected → validated standalone, not folded into the
+   classifier training corpus — the classifier is IF-gated and wouldn't learn them.)
+2. **Section B — MIDs now SUBSCRIBED; build the detections (the current backlog).** The
+   16-MID pass already added `TO`/`DS`/`FM`/`CI`/`LC` HK + sensor DEVICE packets, so the
+   remaining work is turning them into validated detections, not adding MIDs. Highest
+   leverage: `TO` (exfil + theft) and `DS`/`FM` (wiper/ransomware). Two findings narrow
+   it: `CI` is not a command-injection signal (`:5012` bypass) and the sensor DEVICE
+   packets are redundant with `ADCS_DI` (AINOS3-30 NULL). Watchdog (EX-0012.11/DE-0003.11)
+   is the only genuine unsubscribed holdout — verify a WDT packet even exists.
 3. **Document C/D as closed:** the CONCEPTUAL and N/A sets are out-of-scope *by
    construction*; recording that is itself a coverage answer (we cover ~X of ~90
    detectable techniques, not X of 177).
 
 **Note on numbers:** counts are "~" because a handful of techniques are judgment
-calls at the ON_BOARD/UNSUBSCRIBED/CONCEPTUAL boundary (e.g. DE-0006 modify-
-whitelist, LM-0002 bus-segregation). Each such call is resolved the same way any
-footprint is — run it against the live FSW and read the telemetry (evaluation-
+calls at the ON_BOARD/UNSUBSCRIBED/CONCEPTUAL boundary (e.g. `DE-0006` modify-
+whitelist, still held out). LM-0002 bus-segregation *was* one such call — it has since
+been resolved ON_BOARD and validated (Section A). Each such call is resolved the same
+way any footprint is — run it against the live FSW and read the telemetry (evaluation-
 provenance), not by assumption.
