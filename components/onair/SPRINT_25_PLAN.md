@@ -117,22 +117,22 @@ Sprint-25 tickets now have keys (`appdata-slot-map → AINOS3-48` and
 epic slug and tags each instance with the Jira sprint number (`rollout-s25`,
 prior `rollout-s24`).
 
-| Slug | Jira | Type | Pri | E | T | Summary |
+| Jira | Slug | Type | Pri | E | T | Summary |
 |---|---|---|---|--:|--:|---|
-| coverage-expansion | AINOS3-41 | Epic | — | — | — | Detection coverage expansion (add signal) |
-| extra-mids | AINOS3-30 | Story | Highest | 8 | 2.5 | ◑ COMMIT — subscribe pruned MIDs to recover nominal-ambiguous DEAD classes |
-| explainability | AINOS3-32 | Epic | — | — | — | Explainability (Phase 7) |
-| appdata-slot-map | AINOS3-48 | Task | High | 3 | 0.75 | ◑ COMMIT — EVS `AppData` slot→app crosswalk; unblocks the counter-reliance audit |
-| classification-trust | AINOS3-31 | Epic | — | — | — | Classification trust (close the mode gap) |
-| counter-reliance-audit | AINOS3-39 | Spike | Medium | 3 | 0.75 | ◑ COMMIT — audit classifier reliance on generic activity counters |
-| selective-mode-hybrid | AINOS3-37 | Story | Medium | 5 | 1.5 | ○ STRETCH — bank INERTIAL/SUNSAFE/ROBUST gains, no BDOT/PASSIVE regression |
-| stakeholder-rollout | AINOS3-42 | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
-| rollout-s25 | AINOS3-49 | Task | Medium | 2 | 0.5 | ◑ COMMIT — Sprint-25 readout: DEAD-class recovery + audit findings |
-| detector-gates | — | Epic | — | — | — | 🔄 MID-SPRINT (unplanned) — complementary detector gates, parallel to the IF |
-| rule-gate-detector | — | Story | — | 8 | 2.5 | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
-| consistency-gate | — | Story | — | 5 | 1.5 | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
-| staleness-gate | — | Story | — | 8 | 2.5 | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
-| sb-command-rule | — | Task | Med | 2 | 0.5 | ✅ DONE — R6 CFE_SB.CommandCounter route-command rule (low-latency EX-0012.02 catch) |
+| AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion (add signal) |
+| AINOS3-30 | extra-mids | Story | Highest | 8 | 2.5 | ◑ COMMIT — subscribe pruned MIDs to recover nominal-ambiguous DEAD classes |
+| AINOS3-32 | explainability | Epic | — | — | — | Explainability (Phase 7) |
+| AINOS3-48 | appdata-slot-map | Task | High | 3 | 0.75 | ◑ COMMIT — EVS `AppData` slot→app crosswalk; unblocks the counter-reliance audit |
+| AINOS3-31 | classification-trust | Epic | — | — | — | Classification trust (close the mode gap) |
+| AINOS3-39 | counter-reliance-audit | Spike | Medium | 3 | 0.75 | ◑ COMMIT — audit classifier reliance on generic activity counters |
+| AINOS3-37 | selective-mode-hybrid | Story | Medium | 5 | 1.5 | ○ STRETCH — bank INERTIAL/SUNSAFE/ROBUST gains, no BDOT/PASSIVE regression |
+| AINOS3-42 | stakeholder-rollout | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
+| AINOS3-49 | rollout-s25 | Task | Medium | 2 | 0.5 | ◑ COMMIT — Sprint-25 readout: DEAD-class recovery + audit findings |
+| — | detector-gates | Epic | — | — | — | 🔄 MID-SPRINT (unplanned) — complementary detector gates, parallel to the IF |
+| — | rule-gate-detector | Story | — | 8 | 2.5 | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
+| — | consistency-gate | Story | — | 5 | 1.5 | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
+| — | staleness-gate | Story | — | 8 | 2.5 | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
+| — | sb-command-rule | Task | Med | 2 | 0.5 | ✅ DONE — R6 CFE_SB.CommandCounter route-command rule (low-latency EX-0012.02 catch) |
 
 **Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours).
 
@@ -601,13 +601,13 @@ incident; **0 FP** (CommandCounter static at its boot value across the run).
 
 ## 📋 Backlog (carryover)
 
-| Slug | Jira | Type | E | T | Summary |
+| Jira | Slug | Type | E | T | Summary |
 |---|---|---|--:|--:|---|
-| tcn-feature | AINOS3-44 | Story | 5 | 1.5 | TCN reconstruction-error as a feature, scoped to EX-0008 ATS/RTS |
-| corpus-instance-4 | AINOS3-45 | Task | 3 | 0.75 | 4th corpus instance (LOIO variance already ±3.6%; ~5h wall-clock) |
-| demo-tier-bc | AINOS3-46 | Story | 3 | 1.0 | Demo app Tier B/C (live execution / agent) |
-| foundation-baseline | AINOS3-47 | Story | 8 | 2.5 | Optional: foundation-model (MOMENT/THEMIS) zero-shot baseline |
-| deepsad-revisit | — | Spike | 3 | 0.75 | Reopen Phase 5 DeepSAD **only after** AINOS3-30 broadens signal (`NOS3_330` gate) |
+| AINOS3-44 | tcn-feature | Story | 5 | 1.5 | TCN reconstruction-error as a feature, scoped to EX-0008 ATS/RTS |
+| AINOS3-45 | corpus-instance-4 | Task | 3 | 0.75 | 4th corpus instance (LOIO variance already ±3.6%; ~5h wall-clock) |
+| AINOS3-46 | demo-tier-bc | Story | 3 | 1.0 | Demo app Tier B/C (live execution / agent) |
+| AINOS3-47 | foundation-baseline | Story | 8 | 2.5 | Optional: foundation-model (MOMENT/THEMIS) zero-shot baseline |
+| — | deepsad-revisit | Spike | 3 | 0.75 | Reopen Phase 5 DeepSAD **only after** AINOS3-30 broadens signal (`NOS3_330` gate) |
 
 ---
 

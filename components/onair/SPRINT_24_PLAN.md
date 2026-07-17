@@ -42,24 +42,24 @@ section bodies below, a ticket is referenced by its **Jira key** where one exist
 or the crosswalk. Recurring work keeps a stable epic slug and tags each instance
 with the Jira sprint number (`rollout-s24`, next `rollout-s25`).
 
-| Slug | Jira | Type | Pri | E | T | Summary |
+| Jira | Slug | Type | Pri | E | T | Summary |
 |---|---|---|---|--:|--:|---|
-| classification-trust | AINOS3-31 | Epic | — | — | — | Classification trust (close the mode gap) |
-| mode-aware-classifier | AINOS3-33 | Story | Highest | 8 | 3.0 | ✅ CLOSED (negative result) — PASSIVE labeling is an info limit, not modeling; keep v3 |
-| oof-label-accuracy | AINOS3-34 | Task | High | 5 | 1.25 | ✅ DONE (2026-06-29) — out-of-fold incident-label accuracy = 34.6% |
-| warmup-tuning | AINOS3-35 | Task | Medium | 3 | 1.0 | ✅ DONE + DEPLOYED — 36-switch soak: transient ~36s; ModeSwitchWarmupFrames 600→250 live (blind window 124s→52s) |
-| mode-lock-artifact | AINOS3-36 | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
-| selective-mode-hybrid | AINOS3-37 | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
-| counter-reliance-audit | AINOS3-39 | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
-| explainability | AINOS3-32 | Epic | — | — | — | Explainability (Phase 7 start) |
-| shap-attribution | AINOS3-38 | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
-| surface-explanations | AINOS3-40 | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
-| appdata-slot-map | — | Task | Medium | 3 | 0.75 | Backlog — EVS AppData slot→app reference map; unblocks counter-reliance-audit + targeted event-suppression features |
-| coverage-expansion | AINOS3-41 | Epic | — | — | — | Detection coverage expansion |
-| extra-mids | AINOS3-30 | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
-| next-ml-bet | — | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
-| stakeholder-rollout | AINOS3-42 | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
-| rollout-s24 | AINOS3-43 | Task | High | 2 | 0.5 | ◑ READY — under stakeholder-rollout; rollout materials + demo prepared; owner presents |
+| AINOS3-31 | classification-trust | Epic | — | — | — | Classification trust (close the mode gap) |
+| AINOS3-33 | mode-aware-classifier | Story | Highest | 8 | 3.0 | ✅ CLOSED (negative result) — PASSIVE labeling is an info limit, not modeling; keep v3 |
+| AINOS3-34 | oof-label-accuracy | Task | High | 5 | 1.25 | ✅ DONE (2026-06-29) — out-of-fold incident-label accuracy = 34.6% |
+| AINOS3-35 | warmup-tuning | Task | Medium | 3 | 1.0 | ✅ DONE + DEPLOYED — 36-switch soak: transient ~36s; ModeSwitchWarmupFrames 600→250 live (blind window 124s→52s) |
+| AINOS3-36 | mode-lock-artifact | Bug | High | 2 | 0.5 | ✅ RESOLVED — "FSW idle mode-lock" was a CSV-parsing artifact |
+| AINOS3-37 | selective-mode-hybrid | Story | Medium | 5 | 1.5 | Backlog — selective per-mode hybrid (bank INERTIAL/SUNSAFE/ROBUST, no BDOT/PASSIVE regression) |
+| AINOS3-39 | counter-reliance-audit | Spike | Low | 3 | 0.75 | Backlog — audit classifier reliance on activity counters |
+| AINOS3-32 | explainability | Epic | — | — | — | Explainability (Phase 7 start) |
+| AINOS3-38 | shap-attribution | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
+| AINOS3-40 | surface-explanations | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
+| — | appdata-slot-map | Task | Medium | 3 | 0.75 | Backlog — EVS AppData slot→app reference map; unblocks counter-reliance-audit + targeted event-suppression features |
+| AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion |
+| AINOS3-30 | extra-mids | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
+| — | next-ml-bet | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
+| AINOS3-42 | stakeholder-rollout | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
+| AINOS3-43 | rollout-s24 | Task | High | 2 | 0.5 | ◑ READY — under stakeholder-rollout; rollout materials + demo prepared; owner presents |
 
 **Totals (all tickets):** E = 41 · T = 12.0 (≈ 96 ideal hours).
 
