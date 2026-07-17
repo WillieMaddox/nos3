@@ -52,13 +52,13 @@ structurally misses.
 [`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md)) were opened and
 validated against the live FSW under the evaluation-provenance rule. **5 of 13 done:**
 
-| Technique | Ticket | Result |
+| Jira | Technique | Result |
 |---|---|---|
-| DE-0010 audit-log overflow | AINOS3-60 | ✔ ON_BOARD (EVS sent counter); v5 IF blind |
-| EX-0002 PNT geofencing | AINOS3-50 | ✔ ON_BOARD (GPS DeviceEnabled→0); IF blind |
-| EX-0011 safe-mode exploit | AINOS3-52 | ✔ First technique the IF catches itself (thruster perturbs physics); +2 attack-script bug fixes (LC `<HH`, EVS bitmask) |
-| EX-0014.02 bus spoof | AINOS3-57 | ✔ **Overturned its MARKDOWN-ONLY triage** — CI_LAB (:5012) republishes any MID → external SB spoof demonstrated |
-| EX-0012.02 routing tables | AINOS3-53 | ✔ CFE_SB DISABLE_ROUTE → telemetry freeze; **corrected the triage** (CFE_SB_SUBS not OnAIR-observable) |
+| AINOS3-60 | DE-0010 audit-log overflow | ✔ ON_BOARD (EVS sent counter); v5 IF blind |
+| AINOS3-50 | EX-0002 PNT geofencing | ✔ ON_BOARD (GPS DeviceEnabled→0); IF blind |
+| AINOS3-52 | EX-0011 safe-mode exploit | ✔ First technique the IF catches itself (thruster perturbs physics); +2 attack-script bug fixes (LC `<HH`, EVS bitmask) |
+| AINOS3-57 | EX-0014.02 bus spoof | ✔ **Overturned its MARKDOWN-ONLY triage** — CI_LAB (:5012) republishes any MID → external SB spoof demonstrated |
+| AINOS3-53 | EX-0012.02 routing tables | ✔ CFE_SB DISABLE_ROUTE → telemetry freeze; **corrected the triage** (CFE_SB_SUBS not OnAIR-observable) |
 
 Running finding: the v5 IF is a *dynamics* detector — blind to discrete state
 changes, transient spoofs, and frozen streams. That drove the four new gates.
