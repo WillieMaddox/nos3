@@ -23,7 +23,6 @@ the tell is whether the attack could even *run* against the sim.
   no-payload), so there is no attack surface and nothing to simulate. "Would we detect
   it?" is moot because the *action itself* has no representation. Axis: **the target
   doesn't exist in the model.** E.g. reconnaissance, jamming, ASAT, ground-segment.
-
 - **Out-of-scope (CONCEPTUAL, Section C)** — the attack **is applicable and could
   actually run** on the modeled spacecraft (it hits the flight software, crypto lib,
   or on-board values), but it produces **no observable telemetry footprint by
@@ -70,9 +69,7 @@ Of those, **32 are validated (done)** and **all 6 Impact techniques are done.**
 
 - **177** SPARTA leaf techniques total; **154** scripts on disk; **32** validated in
   the detection corpus.
-
 - **~90** are in the on-board-detectable universe. **32 done**, **~58 not done**.
-
 - Of the ~58 not done: **~18 are applicable + in-scope now** (ON_BOARD — just need
   validation into the corpus), **~7 are applicable but UNSUBSCRIBED** (need a MID),
   and **~33 are CONCEPTUAL** (structurally unobservable — permanent out-of-scope).
@@ -125,14 +122,11 @@ confuse* above: out-of-scope ≠ not-applicable).
 
 - **Crypto (CryptoLib has zero SB telemetry):** EX-0003 modify-auth, EX-0006
   disable-encryption, PER-0004 replace-keys, DE-0003.07 crypto-modes *(done, OOS)*.
-
 - **Self-hiding malware:** EX-0010.03/.04 rootkit/bootkit, DE-0007/08 evasion-via-
   rootkit/bootkit, PER-0002.01/.02 backdoors, DE-0004 masquerading, DE-0011
   credentialed-evasion.
-
 - **OS/vuln/registers/AI-poison:** EX-0009.02 OS, EX-0009.03 known-vuln, EX-0012.01
   registers (not telemetered), EX-0012.13 / DE-0003.12 poison-AI/ML *(off-board)*.
-
 - **Already-classified OOS from the corpus:** EX-0001.01 replay, EX-0009.01 FSW
   exploit, IMP-0004 degradation, DE-0003.04 RSSI, DE-0003.05 lock-modes.
 
@@ -152,12 +146,10 @@ EXF-0010, LM-0001/0006), space-domain-awareness (DE-0009.*), ground-segment
 1. **Cheapest breadth first (Section A):** validate the ~11 in-scope-now techniques
    into the corpus. Most already have scripts; this roughly *doubles* validated
    coverage of the detectable universe with no new MIDs and no schema change.
-
 2. **Then targeted MIDs (Section B), backward from the taxonomy:** add the MID(s)
    that unlock the most rows — `TO_LAB_HK` (exfil + theft) and `DS_HK`/`FM_HK`
    (wiper/ransomware) are the highest-leverage; the sensor DEVICE packets are the
    bet on the EX-0014.03 DEAD class. Re-collect + re-measure after each.
-
 3. **Document C/D as closed:** the CONCEPTUAL and N/A sets are out-of-scope *by
    construction*; recording that is itself a coverage answer (we cover ~X of ~90
    detectable techniques, not X of 177).

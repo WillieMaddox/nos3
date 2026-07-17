@@ -11,19 +11,15 @@ How to use it:
 - **Enter/maintain Jira keys here, and only here.** This file is canonical. A
   sprint plan's Index may show a *read-only* Jira mirror for convenience (keys are
   immutable, so it can't drift), but keys are only ever added/changed in this file.
-
 - **Append-only + immutable.** Add a row when a ticket is created. Once the
   `slug → Jira key` binding is set it never changes — safe to reference from any
   doc, any sprint, at any future point, even after the ticket is Done/Closed.
-
 - **Slugs go in planning docs; Jira keys go in Jira.** Never paste a slug or an
   old `NOS3-###` draft ID into a Jira summary/description/attachment — use the
   real Jira key there.
-
 - **Recurring work:** the epic slug is stable (`stakeholder-rollout`); each
   occurrence is a new row tagged with the Jira sprint number (`rollout-s24`,
   `rollout-s25`, …), never an arbitrary counter.
-
 - `—` in the Jira column = not yet created / not yet entered.
 
 ## Sprint 25 (current)

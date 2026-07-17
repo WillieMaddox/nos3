@@ -14,7 +14,6 @@ per-attack results instead of raw frame scores.
 
 - **E — effort points** (Fibonacci 1·2·3·5·8): relative effort × **uncertainty**
   × coordination. Comparative, not time.
-
 - **T — time points** (**8 h = 1 point = 1 ideal engineering day**): estimated
   hands-on-keyboard hours ÷ 8. Pure duration; excludes the risk premium and
   unattended wall-clock (soak / collection), noted separately.
@@ -63,9 +62,7 @@ incident-level calls.
 
 - Given a corruption window, the plugin emits one incident record:
   `{t_start, t_end, duration_s, cluster, sub_technique, accumulated_confidence}`.
-
 - Persistence + dedup thresholds configurable in `nos3_security.ini`.
-
 - Incident confidence ≥ best single-frame confidence on the live `EX-0012.07`
   integration test (~0.86 baseline).
 
@@ -87,7 +84,6 @@ the incident-label format in AINOS3-25.
 
 - Plugin loads `cluster_taxonomy.json`; render_reasoning + side-file include a
   `cluster` field.
-
 - ini synced to `fsw/build/exe/cpu1/cf/onair/`.
 
 ### AINOS3-27 — Incident-granularity corpus re-score · `Task` · High · E 5 · T 1.0 (~8h)
@@ -102,7 +98,6 @@ numbers as the project's headline metrics and feed the coverage doc.
 **Acceptance criteria:**
 
 - Incident-level TP/FP table across the 3 instances committed.
-
 - `V5_DETECTOR_COVERAGE.md` updated with incident metrics.
 
 ---
@@ -125,7 +120,6 @@ out of scope (see AINOS3-46).
 **Acceptance criteria:**
 
 - Tier A ladder implemented; per-technique cells driven by real coverage data.
-
 - No console errors; Tier B/C explicitly deferred.
 
 **Stretch goal** (depends on AINOS3-27 for live incident data).
@@ -188,11 +182,8 @@ stakeholders.
 ## Definition of Done (sprint)
 
 - Incident records emitted live + offline; incident-level TP/FP documented.
-
 - Plugin reports clusters; ini synced to `fsw/build/exe/cpu1/cf/onair/`.
-
 - Demo app shows real results; no console errors.
-
 - `V5_DETECTOR_COVERAGE.md` updated with incident metrics.
 
 ---
@@ -207,9 +198,6 @@ ultimately delivered.
 ## Suggested execution order (as run)
 
 1. **AINOS3-26** (smallest, unblocks the rest) — plugin cluster reporting.
-
 2. **AINOS3-25** — incident aggregation layer.
-
 3. **AINOS3-27** — incident-granularity corpus re-score.
-
 4. **AINOS3-29** (stretch) — demo app Tier A wired to real results.

@@ -19,7 +19,6 @@ Each item carries two independent estimates:
 
 - **E — effort points** (Fibonacci 1·2·3·5·8): relative effort × **uncertainty**
   × coordination. Sized for risk; comparative, not time.
-
 - **T — time points** (**8 h = 1 point = 1 ideal engineering day**): estimated
   hands-on-keyboard hours ÷ 8. Pure duration; excludes the risk premium and
   excludes unattended wall-clock (soak / corpus-collection runs), which is noted
@@ -100,10 +99,8 @@ not deployed wholesale. **The deployed v3 classifier is kept as-is.**
 **Acceptance criteria — outcome:**
 
 - ✅ Per-mode LOIO label accuracy reported for all four modes (table above).
-
 - ⛔ "PASSIVE improves vs v3" — **not met, and provably so** (criterion reframed:
   PASSIVE is an information limit). ROBUST tier not regressed (kept v3).
-
 - ➡️ Deploy criterion intentionally **not** exercised — no model change shipped.
 
 **Honest deliverable:** the per-mode LOIO table, the provable negative result,
@@ -125,7 +122,6 @@ accuracy per mode and per cluster.
 **Acceptance criteria:**
 
 - Incident-label accuracy computed from out-of-fold predictions.
-
 - Coverage doc updated to replace the in-sample caveat with the real number.
 
 **Estimate note:** ~80 min of LOIO retrain wall-clock is excluded from T.
@@ -185,7 +181,6 @@ addressing columns by header name) shows the mode changing normally.
   gate, or fault-clearance check that could "reject" an upward transition.
   Only the control *laws* are sensor-gated (`generic_adcs_adac.c`: BDOT needs
   `MAGV(bvb) > b_range`, SUNSAFE needs `SunValid`).
-
 - Live test on a fresh stack: sent SET_MODE BDOT→SUNSAFE→INERTIAL→PASSIVE; the
   live OnAIR `ADCS_GNC.Mode` (read via `csv.DictReader`) cycled `1→2→3→0`
   exactly as commanded, `ADCS_HK.CommandErrorCount` stayed `0`, `CommandCount`
@@ -203,7 +198,6 @@ only ever affected ad-hoc shell one-liners and the operational mode-lock belief.
 - Memory corrected (`project_fsw_autonomy_mode_lock.md`): the "Why" and
   workaround now flag the artifact; added the rule *always parse the OnAIR CSV
   with `csv.DictReader` by header name*.
-
 - Auto-runnable confirmation script committed:
   `components/onair/training/scenarios/idle_mode_lock_retest.py` (parses
   correctly; PASS/FAIL verdict). Run it after a multi-hour idle to retire the
@@ -213,9 +207,7 @@ only ever affected ad-hoc shell one-liners and the operational mode-lock belief.
 
 - Root cause identified and demonstrated (fresh-stack live test + artifact
   reproduction). ✅
-
 - Confirmed the ML pipeline is unaffected (pandas + alignment guard). ✅
-
 - Corrected memory + committed a re-test harness. ✅
 
 **Confirmation run (2026-06-30):** ran `idle_mode_lock_retest.py` after ~4.7 h
@@ -248,12 +240,9 @@ realized ROBUST-tier gain is **to be measured**, not assumed.
 
 - LOIO shows the INERTIAL/SUNSAFE mode gains retained and **no** BDOT/PASSIVE
   regression vs deployed v3.
-
 - ROBUST-tier accuracy **measured** under the hybrid and shown not to regress vs
   v3 (any gain is upside, not a requirement).
-
 - Per-mode calibration validated (confidences comparable across heads).
-
 - Model + routing + calibration deployed; ini updated; build tree synced.
 
 **Estimate note:** E carries integration risk (routing + multi-head calibration
@@ -294,7 +283,6 @@ IF-gated frames.
 **Acceptance criteria:**
 
 - Each incident carries a ranked top-N contributing fields.
-
 - Attributions validated against ≥3 known attacks (the fields match the
   attack's actual footprint from the SPARTA validation).
 
@@ -306,12 +294,10 @@ across an incident and need a second approach.
   `HistGradientBoostingClassifier` (shap 0.49.1; output `(frames, 894, 26)`),
   path-dependent so cheap. shap added to the `~/.virtualenvs/nos3` dev env only,
   NOT the OnAIR flight runtime.
-
 - `attribution.py` — TreeExplainer wrapper + per-frame target-class SHAP
   (handles 3-D multiclass and 2-D binary) + `aggregate_incident()` ranking
   operator-readable telemetry fields (collapses `d_` deltas + `[i_j]` array
   elements; flags delta-dominant). `test_attribution.py` = 10 passing tests.
-
 - `validate_attribution.py` — real-corpus footprints. 3/4 ROBUST-tier attacks
   match their catalog target cleanly: EX-0008.02→SC.CmdCtr (RTS),
   IMP-0005→THRUSTER.CommandCount (destruction), DE-0003.10→NOVATEL_HK.CommandCount
@@ -327,7 +313,6 @@ across an incident and need a second approach.
   genuinely leans on generic high-traffic counters. They are high-IMPORTANCE but
   low-DISCRIMINATION (they top many attacks); the attack-specific field
   (SC.CmdCtr / THRUSTER.CommandCount / NOVATEL_HK.CommandCount) ranks just below.
-
 - `incident_attribution.py` + 4 tests: `enrich_incident_record()` attaches
   `top_features` + `top_features_str` to a real `IncidentAggregator` Incident,
   OFFLINE (no submodule/runtime change). **Criterion 1 met** (incidents carry
@@ -361,13 +346,11 @@ catalog** (`data/onair/models/explanation_catalog.json`, built offline by
 
 - `build_explanation_catalog.py` → 25-class catalog (class → top-N telemetry
   fields via offline SHAP; faithful ranking per AINOS3-38).
-
 - Plugin (`xgb_classifier_plugin.py`, submodule): loads the catalog (sibling of
   the classifier pickle, so it resolves at runtime with no ini change),
   `_explanation_for()` looks it up by winning sub-technique→cluster, and
   `_handle_incident` appends an `explanation` column to the incident side-file +
   console line. Missing catalog ⇒ column omitted (backward compatible).
-
 - Demo: `gen_nos3_coverage.py` reads the catalog and adds `explanation` per
   technique; `nos3_overlay.js` renders a "Top fields (why)" column;
   `nos3_coverage.js` regenerated.
@@ -400,13 +383,11 @@ stakeholder readout):**
 - **Unblocks AINOS3-39** (activity-counter reliance audit): lets us ask the sharp
   question — is the `AppData` signal the *attacked* subsystem's event stream
   (genuine) or a generic busy app like SCH (a shortcut)?
-
 - **Enables targeted features:** the struct docstring (`message_headers.py:769`)
   flags `AppEnableStatus = 0` as the *event-suppression* attack signal (an
   attacker silencing a subsystem to hide activity). A named map lets us build an
   explicit `AppData[<app>].AppEnableStatus` feature instead of leaving it buried
   in a 64-wide array for the model to discover.
-
 - **Sharpens footprint assertions:** attack-validation / soaks can assert "attack
   Y suppresses app Z ⇒ `AppData[Z].AppEnableStatus`→0 and
   `AppMessageSquelchedCounter` climbs" rather than "AppData changed somewhere."
@@ -424,10 +405,8 @@ problem we don't have and adds permanent flight-runtime surface.
 
 - Committed `AppID→name` crosswalk JSON covering the 16 populated slots, pinned
   against one live ES App Info dump.
-
 - Attribution / demo render `AppData` contributions by app name (e.g.
   `AppData[ADCS].AppEnableStatus`) where a specific slot dominates.
-
 - **Diff-guard:** a script that re-dumps ES App Info and fails if the committed
   map no longer matches the running build (ties into the existing
   schema-fingerprint discipline), so an intentional rebuild that shifts app
@@ -501,7 +480,6 @@ feedback as backlog candidates.
 **Materials prepared 2026-07-05:**
 
 - `STAKEHOLDER_ROLLOUT.md` — presenter's 5-min flow + a feedback-capture table.
-
 - Demo made current: regenerated `nos3_coverage.js` and rebuilt the inlined
   overlay in `app/sparta_coverage.html` (now shows the `AINOS3-40` "Top fields
   (why)" column). **Fixed a `build_overlay.py` bug** (`re.sub` mis-parsed `\u`
@@ -510,7 +488,6 @@ feedback as backlog candidates.
 **Acceptance criteria:**
 
 - Doc + demo presented — ⏳ **owner action** (cannot be automated).
-
 - Feedback captured as tickets — ⏳ fill the `STAKEHOLDER_ROLLOUT.md` table, then
   file rows as backlog tickets.
 
@@ -554,7 +531,6 @@ chains beyond the shipped explanations.
 
 - **Effort:** committed E across AINOS3-33/AINOS3-34/AINOS3-35/AINOS3-38/AINOS3-40/AINOS3-43/next-ml-bet = **32**
   vs ~16/sprint capacity.
-
 - **Time:** the same set = **~9.25 T** (≈ 74 ideal hours) vs ~7–8 T realistic
   solo capacity for a 2-week sprint (10 working days × ~0.7 focus factor).
 
@@ -567,9 +543,6 @@ gap is closed.
 ## Suggested execution order
 
 1. **AINOS3-34** (honest out-of-fold numbers — grounds everything else).
-
 2. **AINOS3-33** (mode-aware classifier — the core trust fix).
-
 3. **AINOS3-38 → 312** (explainability on the improved model).
-
 5. **AINOS3-43** (rollout) + **next-ml-bet** (next-bet spike) in parallel.

@@ -11,41 +11,23 @@ is represented.
 ## Table of Contents
 
 1. [Logging Pipeline Overview](#1-logging-pipeline-overview)
-
 2. [CSV Structure and Column Ordering](#2-csv-structure-and-column-ordering)
-
 3. [Value Types and Encoding](#3-value-types-and-encoding)
-
 4. [Missing and Stale Data](#4-missing-and-stale-data)
-
 5. [Attack Surface Categories and Threats](#5-attack-surface-categories-and-threats)
-
    - [5.1 Unauthorized Software Execution](#51-unauthorized-software-execution--cdh)
-
    - [5.2 Event Suppression and Flooding](#52-event-suppression-and-flooding--cdh)
-
    - [5.3 Software Bus Attacks](#53-software-bus-attacks--cdh)
-
    - [5.4 Table Injection](#54-table-injection--cdh)
-
    - [5.5 Time Manipulation](#55-time-manipulation--cdh)
-
    - [5.6 Stored Command Injection](#56-stored-command-injection--cdh)
-
    - [5.7 Schedule Disruption](#57-schedule-disruption--cdh)
-
    - [5.8 GPS Spoofing](#58-gps-spoofing--gnc)
-
    - [5.9 ADCS Hijack and Actuator Bypass](#59-adcs-hijack-and-actuator-bypass--gnc)
-
    - [5.10 Sensor Spoofing](#510-sensor-spoofing--gnc)
-
    - [5.11 Orbit Modification](#511-orbit-modification--gnc)
-
    - [5.12 Power System Attack](#512-power-system-attack--power)
-
    - [5.13 Communications Attack](#513-communications-attack--comm)
-
 6. [Full Column Reference by Subsystem](#6-full-column-reference-by-subsystem)
 
 ---
@@ -80,11 +62,9 @@ Key implementation details:
 - **Double buffer**: two copies of `currentData` alternate as "write" and "read"
   buffers. `get_next()` swaps them. Data persists in the read buffer until a new
   packet arrives for that MID.
-
 - **Blocking recv**: the listener thread blocks on `sbn.recv_msg()`. Each received
   packet updates only the fields belonging to that packet's MID; all other columns
   retain their previous value.
-
 - **Frame rate**: OnAIR's sim loop drives the CSV write rate. Each row is one frame.
   Multiple SBN packets may arrive between frames, but only the most recent value per
   MID is written per row.
@@ -384,9 +364,7 @@ command sequences to execute at wrong times, or create replay-attack opportuniti
 **`ClockStateFlags` bit map:**
 
 - Bit 0 (`0x0001`): time has been set
-
 - Bit 1 (`0x0002`): flywheel mode (no external sync)
-
 - Bit 2 (`0x0004`): clock has been set at least once
 
 ---
