@@ -133,6 +133,19 @@ prior `rollout-s24`).
 | AINOS3-65 | consistency-gate | Story | — | 5 | 1.5 | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
 | AINOS3-66 | staleness-gate | Story | — | 8 | 2.5 | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
 | AINOS3-67 | sb-command-rule | Task | Med | 2 | 0.5 | ✅ DONE — R6 CFE_SB.CommandCounter route-command rule (low-latency EX-0012.02 catch) |
+| AINOS3-50 | validate-pnt-geofence | Task | Med | 2 | 0.5 | ✅ DONE (mid-sprint) — EX-0002 PNT geofencing → rule-gate R1 (fresh-launch) |
+| AINOS3-51 | validate-hw-commands | Task | Med | 2 | 0.5 | ✅ DONE — EX-0005.02 malicious HW commands → R1 + dynamics-IF |
+| AINOS3-52 | validate-safemode-exploit | Task | Med | 2 | 0.5 | ✅ DONE — EX-0011 safe-mode exploit → R5/R1 + dynamics-IF |
+| AINOS3-53 | validate-routing-tables | Task | High | 3 | 0.75 | ✅ DONE — EX-0012.02 routing tables → staleness + R6 |
+| AINOS3-54 | validate-cdh-subsystem | Task | Med | 3 | 0.75 | ✅ DONE — EX-0012.10 C&DH → NEW rule R8 (CFE_ES) |
+| AINOS3-55 | validate-flood-valid | Task | Med | 2 | 0.5 | ✅ DONE — EX-0013.01 valid-cmd flood → R2 (labeled DE-0010) |
+| AINOS3-56 | validate-flood-erroneous | Task | Med | 2 | 0.5 | ✅ DONE — EX-0013.02 erroneous-input flood → R4 |
+| AINOS3-57 | validate-bus-spoof | Task | High | 3 | 0.75 | ✅ DONE — EX-0014.02 bus spoof → consistency-check |
+| AINOS3-58 | validate-inhibit-sc | Task | Med | 2 | 0.5 | ✅ DONE — DE-0002.03 inhibit → staleness + R7 |
+| AINOS3-59 | validate-safemode-evasion | Task | Low | 2 | 0.5 | ✅ DONE — DE-0005 safe-mode subversion → R5 + staleness |
+| AINOS3-60 | validate-audit-overflow | Task | High | 2 | 0.5 | ✅ DONE — DE-0010 audit-log overflow → R2 |
+| AINOS3-61 | validate-memory-compromise | Task | Med | 3 | 0.75 | ✅ DONE — PER-0001 memory compromise → NEW rule R9 (CFE_TBL) |
+| AINOS3-62 | validate-bus-segregation | Task | Med | 3 | 0.75 | ✅ DONE — LM-0002 bus segregation → NEW rule R10 (bus-sweep) |
 
 **Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours).
 
@@ -141,6 +154,12 @@ prior `rollout-s24`).
 are **retrospective (realized effort/time)**, not forward estimates, since uncertainty
 is resolved. `sb-command-rule` (E 2 · T 0.5) also shipped (its E/T came in on
 estimate). All four gates are now DONE + deployed.
+
+**Unplanned Section-A coverage validation (mid-sprint actuals):** E = 31 · T ≈ 7.75
+(≈ 62 h) — the **13** validation Tasks AINOS3-50…62 under `coverage-expansion`, all
+✅ Done (live-verified through 2026-07-17). Retrospective E/T. Distinct from the
+`detector-gates` epic above (the gates are the *deliverables*; these Tasks are the
+*validations* that drove them). Folded into the demo + `V5_DETECTOR_COVERAGE.md`.
 
 ---
 
