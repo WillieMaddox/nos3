@@ -70,11 +70,12 @@ Of those, **32 are validated (done)** and **all 6 Impact techniques are done.**
 - **177** SPARTA leaf techniques total; **154** scripts on disk; **32** validated in
   the detection corpus.
 - **~90** are in the on-board-detectable universe. **32 done**, **~58 not done**.
-- Of the ~58 not done: **13 are applicable + in-scope now** (ON_BOARD — the concrete
-  enumeration in Section A below; the earlier "~18" was a loose estimate), **~7 are
-  applicable but UNSUBSCRIBED** (need a MID), and **~33 are CONCEPTUAL** (structurally
-  unobservable — permanent out-of-scope). The UNSUBSCRIBED/CONCEPTUAL buckets remain
-  estimates, so the sub-buckets are approximate against the ~90 total.
+- Of the 58 not done: **13 are applicable + in-scope now** (the concrete Section A
+  enumeration below; the earlier "~18" was a loose estimate), **~7 are applicable but
+  UNSUBSCRIBED** (Section B — need a MID), **~33 are CONCEPTUAL** (Section C —
+  structurally unobservable, permanent out-of-scope), and **~5 are borderline ON_BOARD
+  candidates held out** pending a live footprint check (`EX-0001.02`, `DE-0006`,
+  `EX-0005.01`). That reconciles: 13 + 7 + 33 + 5 = 58.
 
 ## A. Applicable · in-scope now · NOT yet validated (the real backlog)
 
