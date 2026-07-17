@@ -30,6 +30,7 @@ was disproven) but by building the gates for the attack classes the deployed v5 
 structurally misses.
 
 **Committed items — status:**
+
 - **AINOS3-30 (extra-mids) — ✅ CLOSED, NULL result, DORMANT** (details below). The
   16 extra MIDs are subscribed + RECORDING (pipe cap 32→48); the CFE_TBL
   change-detection features read constant-0 (premise disproven — these aren't
@@ -59,13 +60,12 @@ changes, transient spoofs, and frozen streams. That drove the four new gates.
 **NEW deliverables — four complementary detector gates** (belong under AINOS3-41;
 **no crosswalk rows yet** — reserved slugs proposed: `rule-gate-detector`,
 `consistency-gate`, `staleness-gate`, `sb-command-rule`):
+
 - **rule-gate** — state-change gate (R1 device-disable · R2 EVS-rate · R3 SB-err ·
   R4 cmd-err · **R5 monitor-state/LC-disable**) + incident wiring into the shared
   aggregator. DEPLOYED + live-verified.
-- **consistency-check** — per-sample bus-spoof gate (wide-counter monotonicity;
-  **0 FP / 810 live frames**). DEPLOYED + live-verified.
-- **staleness-check** — telemetry-denial / frozen-stream gate (wide-counter
-  **max-advancement**, not "value constant" — OnAIR's double buffer makes a frozen
+- **consistency-check** — per-sample bus-spoof gate (wide-counter monotonicity; **0 FP / 810 live frames**). DEPLOYED + live-verified.
+- **staleness-check** — telemetry-denial / frozen-stream gate (wide-counter **max-advancement**, not "value constant" — OnAIR's double buffer makes a frozen
   field OSCILLATE between two stale values, so the invariant is "the max stops
   advancing"). **DEPLOYED + HARDENED.** The initial version was live-fragile (the
   watched set flipped run-to-run); fixed by basing discovery on the **average**
@@ -87,6 +87,7 @@ ready to drop in.
 ## Points — two metrics
 
 Each item carries two independent estimates:
+
 - **E — effort points** (Fibonacci 1·2·3·5·8): relative effort × **uncertainty**
   × coordination. Sized for risk; comparative, not time.
 - **T — time points** (**8 h = 1 point = 1 ideal engineering day**): estimated
@@ -140,6 +141,7 @@ estimate). All four gates are now DONE + deployed.
 
 **Summary:** Broaden what the detector can *see* and classify — add signal, not
 model capacity.
+
 **Description:** The `next-ml-bet` spike found the binding constraint is
 observability, not architecture, so this epic invests in coverage — *adding
 signal*, not changing the model. `AINOS3-30` is the first and highest-value
@@ -147,9 +149,11 @@ lever: restore the MIDs that csv-format-v2 pruned so the nominal-ambiguous DEAD
 classes can separate. It is the headliner of Sprint 25.
 
 ### AINOS3-30 — Recover nominal-ambiguous DEAD classes · `Story` · Highest · E 8 · T 2.5 (~20h) · ◑ COMMIT
+
 **Summary:** As an analyst, I want `DE-0003.03/.08/.09` and `EX-0014.03` to be
 detectable/classifiable — subscribe the MIDs that currently make them
 indistinguishable from nominal.
+
 **Description:** Carried from the Sprint 23 → 24 backlog and now promoted to the
 sprint headliner per the `next-ml-bet` verdict. These techniques' frames are
 indistinguishable from nominal because their discriminating MIDs
@@ -159,7 +163,9 @@ Add them back to `nos3_security_tlm.json` (+ `message_headers.py` structs and
 the MID→channel map if the types aren't already defined), re-collect a fresh
 mode-balanced corpus slice, retrain, and **measure whether the four classes
 separate** above the DEAD floor.
+
 **Acceptance criteria:**
+
 - Targeted MIDs added to the telemetry schema (source + runtime build tree in
   sync); schema-fingerprint / `.meta.json` sidecar updated so the new columns are
   recorded and drift-detected.
@@ -169,6 +175,7 @@ separate** above the DEAD floor.
   classifier (ini pointer + build-tree sync); if it stays dead even with the new
   MIDs, document *why* (the signal genuinely isn't in those MIDs) and leave the
   class flagged as DEAD.
+
 **Estimate note:** ~5h of corpus-collection wall-clock excluded from T; E carries
 the real risk that the classes stay dead even with the new MIDs (in which case
 the deliverable is the negative finding + the ruled-out MIDs, not a deploy).
@@ -179,6 +186,7 @@ that data-sufficiency picture.
 **Investigation (2026-07-15) — the story splits three ways, not one:**
 The "subscribe extra MIDs" framing only partly holds once verified against the
 live schema:
+
 - **DE-0003.03/.08/.09 (table-load) — NOT an unsubscribed-MID problem.** `CFE_TBL`
   (0x0804) is already subscribed and `LastFileLoaded` / `LastUpdatedTable` /
   `LastTableLoaded` are still in `nos3_security_tlm.json` — only suppressed by
@@ -200,6 +208,7 @@ live schema:
 
 **Progress (2026-07-15) — DE-0003 encoding DONE at code level (change-detection,
 approved approach):**
+
 - `sbn_adapter.py`: `_DERIVED_TBL_FIELDS` + pure `_tbl_change_detect()` +
   `_update_tbl_derived()`. Emits **6 numeric derived columns** — per field a
   `…Changed` (0/1, name differs from previous frame = a load/update event) and a
@@ -220,6 +229,7 @@ approved approach):**
 Collected a fresh mode-balanced corpus (32/32 attacks, new 256-col schema,
 `data/onair/csv_ainos3_30/`) and ran a classifier feature-ablation
 (`ablation_ainos3_30.py`, `data/onair/models/ablation_ainos3_30.json`):
+
 - The 6 derived columns are **constant 0 across the entire 63,261-row corpus** —
   every attack window and all nominal frames. Ablation delta = **exactly +0.000**
   for all four targets and overall (acc 0.718, macro-F1 0.5525, identical arms).
@@ -256,6 +266,7 @@ Collected a fresh mode-balanced corpus (32/32 attacks, new 256-col schema,
 ## 🟪 EPIC AINOS3-32 — Explainability (Phase 7)
 
 **Summary:** Attach a human-readable, *actionable* reason to every incident.
+
 **Description:** Sprint 24 shipped per-incident SHAP attribution (AINOS3-38) and
 surfaced it in the incident record + demo (AINOS3-40). The remaining gap is that
 the field that dominates almost every attribution — `CFE_EVS_HK.AppData` — is an
@@ -264,10 +275,12 @@ resolves the slots to app names, which is the missing piece that makes the
 attribution useful *and* unblocks the counter-reliance audit.
 
 ### AINOS3-48 — EVS AppData slot→app reference map · `Task` · High · E 3 · T 0.75 (~6h) · ◑ COMMIT
+
 **Summary:** As a developer/analyst, I want a reference map from each
 `CFE_EVS_HK.AppData` slot to the human-readable app it represents, so the
 top-field that dominates most attack attributions becomes actionable at the
 subsystem level instead of an anonymous array.
+
 **Description:** `CFE_EVS_HK.AppData` is an array of 16 `CFE_EVS_AppTlmData_t`
 records (`message_headers.py:756`); each record's field 0 is an **opaque cFE
 resource `AppID`** (`CFE_ES_APPID_BASE 0x110000 + N`, e.g. observed
@@ -275,8 +288,10 @@ resource `AppID`** (`CFE_ES_APPID_BASE 0x110000 + N`, e.g. observed
 EVS-registered apps (the build has >16). SHAP attribution (AINOS3-38) shows
 `AppData` in the top-6 for nearly every attack, but we currently cannot say
 *which* app drives it — a diagnostic dead-end.
+
 **Why this is dual-use (primary beneficiary is the engineering loop, not the
 stakeholder readout):**
+
 - **Unblocks AINOS3-39** (counter-reliance audit): lets us ask the sharp
   question — is the `AppData` signal the *attacked* subsystem's event stream
   (genuine) or a generic busy app like SCH (a shortcut)?
@@ -288,6 +303,7 @@ stakeholder readout):**
 - **Sharpens footprint assertions:** attack-validation / soaks can assert "attack
   Y suppresses app Z ⇒ `AppData[Z].AppEnableStatus`→0 and
   `AppMessageSquelchedCounter` climbs" rather than "AppData changed somewhere."
+
 **Approach — static crosswalk (build-static, no runtime change):** the
 `AppID→name` binding is deterministic for a fixed cFS image (same
 `cfe_es_startup.scr` + cFE core apps every launch), so it does **not** need
@@ -298,6 +314,7 @@ position, so EVS registration-order variation can't misname). Explicitly **not**
 subscribing the ES App Info MID at runtime — that solves a per-run-dynamic
 problem we don't have and adds permanent flight-runtime surface.
 **Acceptance criteria:**
+
 - Committed `AppID→name` crosswalk JSON covering the 16 populated slots, pinned
   against one live ES App Info dump.
 - Attribution / demo render `AppData` contributions by app name (e.g.
@@ -306,6 +323,7 @@ problem we don't have and adds permanent flight-runtime surface.
   map no longer matches the running build (ties into the existing
   schema-fingerprint discipline), so an intentional rebuild that shifts app
   registration order is flagged rather than silently misnaming.
+
 **Depends on:** AINOS3-38 (attribution, DONE). **Feeds:** AINOS3-39 (counter-reliance
 audit); optionally the AINOS3-37 targeted-feature work.
 **Escape hatch:** if a future need makes live app-registration state worthwhile
@@ -316,6 +334,7 @@ IDs to names correctly the first time); T ~0.75 (~6h) is the table + render +
 guard once the dump is in hand.
 
 **Progress (2026-07-15) — crosswalk + diff-guard DONE + live-validated:**
+
 - Dumped app info from the live FSW via `CFE_ES_QUERY_ALL` (MID 0x1806, FC 9, raw
   UDP:5012 — no COSMOS needed). Parsed the binary file (64-byte FS header + 184-byte
   `CFE_ES_AppInfo_t` records; `ResourceId` u32, `Type`, `Name[20]`).
@@ -331,6 +350,7 @@ guard once the dump is in hand.
 - Gotcha logged: OSAL `OS_MAX_FILE_NAME`=20 silently drops longer dump basenames.
 
 **Rendering DONE + live-verified (2026-07-15):**
+
 - Crosswalk emits a validated `appdata_slots[16]` array (`CFE_EVS`…`SC`).
 - `attribution.py` resolves `CFE_EVS_HK.AppData[i_j]` → `AppData[<app>].<field>`
   (`load_appid_slot_map` + optional `appid_slot_map` through `base_field` /
@@ -348,6 +368,7 @@ guard once the dump is in hand.
   (25 classes, `appdata_resolved=True`), read from `data/onair/models/` (mounted;
   no build-tree copy needed). Runtime now reports `AppData[<app>].<field>` in
   incident explanations.
+
 **AINOS3-48 COMPLETE.** Unblocks AINOS3-39 (the AppID→name map + per-app
 attribution are exactly its inputs).
 
@@ -357,6 +378,7 @@ attribution are exactly its inputs).
 
 **Summary:** Make attack-type labels reliable across ADCS modes and honestly
 measured.
+
 **Description:** Sprint 24 established the honest baseline (out-of-fold
 accuracy), proved PASSIVE labeling is an information limit, and kept the deployed
 v3 classifier as-is. Two backlog items remain under this epic: an audit of *how*
@@ -365,8 +387,10 @@ and the selective per-mode hybrid that banks the dynamic-mode upside AINOS3-33
 uncovered. Both are sequenced after AINOS3-30 per `NOS3_330` ("306 → 305").
 
 ### AINOS3-39 — Audit classifier reliance on activity counters · `Spike` · Medium · E 3 · T 0.75 (~6h) · ◑ COMMIT
+
 **Summary:** Determine whether v3's heavy reliance on generic high-traffic
 counters is genuine discriminative signal or an activity-level shortcut.
+
 **Description:** AINOS3-38 attribution showed v3 keys heavily on generic
 high-traffic counters (`CFE_EVS_HK.AppData`, `CFE_ES.CommandCounter`,
 `CFE_TBL.*`) across many attacks — they are high-IMPORTANCE but
@@ -374,12 +398,14 @@ low-DISCRIMINATION (they top many attacks; the attack-specific field ranks just
 below). Audit whether these are genuine signal or a busy-app shortcut, and
 whether regularizing / dropping them would improve per-attack discrimination
 without hurting LOIO accuracy.
+
 **Approach:** with AINOS3-48 in hand, resolve the `AppData` contribution
 to specific apps and test the sharp question — is it the *attacked* subsystem's
 event stream (genuine) or a generic busy app (shortcut)? Prototype a
 drop/regularize experiment over the frozen `csv_corpus_v3stage` under LOIO and
 compare per-attack cluster accuracy.
 **Acceptance criteria:**
+
 - The `AppData` / `CFE_ES.CommandCounter` contributions resolved to named apps
   (via AINOS3-48) and classified genuine-vs-shortcut per attack.
 - Drop/regularize experiment run under LOIO; net effect on discrimination and
@@ -387,15 +413,19 @@ compare per-attack cluster accuracy.
 - Recommendation: leave v3 as-is, or a scoped feature change for a *future*
   retrain (any model change interacts with AINOS3-33's "keep v3" decision, so
   this spike only *recommends*, it does not deploy).
+
 **Prerequisite:** AINOS3-48 — the `AppData` half of this audit can't
 distinguish genuine attacked-subsystem signal from a generic busy-app shortcut
 until each of the 16 slots is resolved to an app name.
+
 **Placement:** a model-behaviour concern, so it lives under EPIC AINOS3-31, not
 Explainability — even though it's fed by an Explainability task.
 
 ### AINOS3-37 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · ○ STRETCH
+
 **Summary:** Bank the INERTIAL/SUNSAFE/ROBUST gains from per-mode heads without
 the BDOT/PASSIVE regressions, via mode-routed classification.
+
 **Description:** AINOS3-33 showed full `per_mode` routing helps the two signal-rich
 dynamic **modes** (INERTIAL +0.058, SUNSAFE +0.061, overall +0.012) and the
 cross-mode ROBUST **tier** (+0.068) but regresses the signal-poor modes
@@ -404,23 +434,28 @@ frames to per-mode heads, keep the global v3 head for PASSIVE/BDOT — should
 capture the dynamic-mode upside while leaving the weak modes on the model that
 serves them best. Requires classifier mode-routing in the plugin + per-mode
 probability calibration so confidences stay comparable across heads.
+
 **NOTE — ROBUST is a tier, not a routed mode:** the ROBUST tier is a set of four
 attack clusters that span *all* ADCS modes, so its accuracy is a downstream
 *consequence* of routing, not a routing target. The full +0.068 came from
 routing every mode; under selective (INERTIAL/SUNSAFE-only) routing, only the
 portion of ROBUST-tier frames that fall in INERTIAL/SUNSAFE benefits — the
 realized ROBUST-tier gain is **to be measured**, not assumed.
+
 **Acceptance criteria:**
+
 - LOIO shows the INERTIAL/SUNSAFE mode gains retained and **no** BDOT/PASSIVE
   regression vs deployed v3.
 - ROBUST-tier accuracy **measured** under the hybrid and shown not to regress vs
   v3 (any gain is upside, not a requirement).
 - Per-mode calibration validated (confidences comparable across heads).
 - Model + routing + calibration deployed; ini updated; build tree synced.
+
 **Sequencing:** STRETCH — pull in only after AINOS3-39's audit clears (the audit
 may change *which* features the per-mode heads should train on, so doing the
 hybrid first risks a rework). If AINOS3-30 slips or the corpus re-collection eats
 the sprint, AINOS3-37 rolls to Sprint 26 with no loss.
+
 **Estimate note:** E carries integration risk (routing + multi-head calibration
 in the live plugin). Independent of AINOS3-33's outcome.
 
@@ -430,6 +465,7 @@ in the live plugin). Independent of AINOS3-33's outcome.
 
 **Summary:** Recurring stakeholder readout — show the coverage overlay + doc each
 sprint (or every other) and turn feedback into backlog.
+
 **Description:** A standing readout, not a one-off. Present the current
 `app/sparta_coverage.html` detection-coverage overlay + `V5_DETECTOR_COVERAGE.md`,
 walk stakeholders through "what it catches / what it doesn't," and log feedback as
@@ -438,9 +474,11 @@ occurrence is a fresh child slug tagged with the Jira sprint number
 (`rollout-s25` follows `rollout-s24`).
 
 ### AINOS3-49 — Stakeholder rollout (Sprint 25) · `Task` · Medium · E 2 · T 0.5 (~4h) · ◑ COMMIT
+
 **Summary:** Present the Sprint-25 result — DEAD-class recovery + the
 counter-reliance audit findings — on top of the existing coverage overlay, and
 capture feedback.
+
 **Description:** Second instance of the recurring `AINOS3-42` readout. Refresh
 `STAKEHOLDER_ROLLOUT.md` and regenerate the demo overlay
 (`gen_nos3_coverage.py` → `nos3_coverage.js` → `app/sparta_coverage.html`) so it
@@ -449,12 +487,15 @@ improvements. Walk stakeholders through what changed since Sprint 24, and — pe
 the `NOS3_330` Phase-6 hold — explicitly ask whether operators want causal-chain
 root-cause beyond the current top-fields explanations (that answer is the gate on
 reopening the graph model).
+
 **Acceptance criteria:**
+
 - Demo overlay + coverage doc refreshed to Sprint-25 state.
 - Doc + demo presented — **owner action** (cannot be automated).
 - Feedback captured in the `STAKEHOLDER_ROLLOUT.md` table, then filed as backlog
   tickets — including an explicit read on the Phase-6 (causal chains) demand
   signal.
+
 **Depends on:** AINOS3-30 + AINOS3-48 (so the readout shows new results,
 not a repeat of Sprint 24).
 
@@ -464,6 +505,7 @@ not a repeat of Sprint 24).
 
 **Summary:** A family of lightweight runtime OnAIR gates running PARALLEL to the v5
 IF, each catching an attack class the dynamics-IF is structurally blind to.
+
 **Description:** **Unplanned mid-sprint work** that emerged from the Section-A
 validation campaign (AINOS3-50…62) — the sprint's actual highest-value output. The
 campaign proved the deployed v5 IF is a *dynamics* detector: it flags GNC/attitude
@@ -474,9 +516,11 @@ epic; alternatively park under `coverage-expansion` (AINOS3-41). Slugs reserved 
 [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md) — create the tickets and enter keys.
 
 ### rule-gate-detector — Rule-gate: parallel state-change detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
+
 **Summary:** As a defender I want the flag/counter state-change attacks the
 dynamics-IF misses (device disable, EVS/SB rate spikes, monitoring disable) caught by
 a rule/threshold gate beside the IF.
+
 **Description:** OnAIR learner `fsw/plugins/rule_gate/`, in `LearnersPluginDict` beside
 the IF + xgb_classifier. Rules: R1 any `*.DeviceEnabled` drops below session baseline;
 R2 `CFE_EVS_HK.MessageSendCounter` per-frame delta > threshold; R3
@@ -485,33 +529,40 @@ R4 `*.CommandError*` delta; R5 `LC.CurrentLCState` (monitoring/limit-check) leav
 protective baseline. The firing rule IS the label (R1:NOVATEL→EX-0002, R1:IMU/CSS→
 EX-0014.03, R2→DE-0010, R5→EX-0011). Leaky-integrator hysteresis tolerates the OnAIR
 double-buffer flicker. Folds into the shared IncidentAggregator.
+
 **Status:** Deployed + live-verified; 11 unit tests. Validated against EX-0002,
 EX-0014.03, DE-0010, EX-0011.
 
 ### consistency-gate — Consistency-check: per-sample bus-spoof detector · `Story` · E 5 · T 1.5 (~12h, actual) · ✅ DONE (deployed)
+
 **Summary:** As a defender I want externally-injected spoofed telemetry (bus-traffic
 spoofing, EX-0014.02) caught — a per-sample out-of-distribution value the IF and
 rule-gate both miss.
+
 **Description:** OnAIR learner `fsw/plugins/consistency_check/`. EX-0014.02 showed
 CI_LAB (:5012) republishes any MID onto the SB, so an attacker can inject a spoofed
 telemetry packet — a transient outlier the IF (counter-blind) and rule-gate (can't
 latch a 1–2 frame flicker) both miss. Primitive: a WIDE monotonic counter dropping
 below its recent rolling-window floor (window-min beats double-buffer flicker;
 name + uint8 filters beat wraps and physical fields). Labels EX-0014.02 incidents.
+
 **Status:** Deployed + live-verified; 8 unit tests. **0 FP / 810 live frames**; caught
 a spoofed `IMU.DeviceHK.DeviceCounter` while the rule-gate stayed silent. Caveat: wide
 (non-wrapping) counters only.
 
 ### staleness-gate — Staleness-check: telemetry-denial / frozen-stream detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
+
 **Summary:** As a defender I want a route-disable telemetry-freeze (a MID stops
 reaching the monitor, EX-0012.02) caught — a frozen stream has no forward delta, so
 all three delta-based gates miss it.
+
 **Description:** OnAIR learner `fsw/plugins/staleness_check/`. From EX-0012.02: CFE_SB
 DISABLE_ROUTE severs a MsgId→SBN route, freezing that MID in OnAIR. Key finding — a
 frozen field OSCILLATES via the double buffer, so the primitive is "a wide monotonic
 counter's MAX stops advancing," not "value constant." Hardened for a stable watched
 set via **average-advance-interval** discovery (a stable count statistic; the initial
 max-gap version flipped run-to-run).
+
 **Status:** Deployed; 7 unit tests. **8 CDH/scheduler counters always watched; 0 FP /
 2200 offline + 160 live frames; detects an injected freeze at ~53 frames.** Limits:
 high-latency (~30–50s — OnAIR polls faster than MIDs publish); coverage = CDH/scheduler
@@ -519,14 +570,17 @@ MIDs (sensor DeviceHK counters publish too variably). See `sb-command-rule` for 
 lower-latency complement.
 
 ### sb-command-rule — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · Medium · E 2 · T 0.5 (~4h) · ✅ DONE (deployed)
+
 **Summary:** As a defender I want the EX-0012.02 route-modification COMMAND itself
 caught — a cleaner, lower-latency signal than the freeze effect.
+
 **Description:** Rule-gate R6 on `CFE_SB.CommandCounter`: any CFE_SB command
 (ENABLE/DISABLE_ROUTE, subscription report, WRITE_ROUTING_INFO) is rare/never in
 nominal ops, so an increment is an immediate indicator of the routing-table attack —
 vs the staleness gate's intrinsically high-latency freeze detection. Fires on a new
 running-max of the counter (robust to double-buffer flicker) and holds a short dwell
 so the single-step signal latches the leaky integrator into one bounded incident.
+
 **Status:** Deployed (rule_gate a268852); 4 unit tests (15 total). Live-verified: a
 CFE_SB NOOP produced an R6 alert **1 frame** after the command and a closed EX-0012.02
 incident; **0 FP** (CommandCounter static at its boot value across the run).
@@ -548,6 +602,7 @@ incident; **0 FP** (CommandCounter static at its boot value across the run).
 ## Capacity note
 
 **Two readings of the same commitment:**
+
 - **Effort:** committed E across AINOS3-30 / AINOS3-48 / AINOS3-39 /
   AINOS3-49 = **16** — right at the ~16/sprint capacity. Adding the AINOS3-37
   stretch pushes it to **21**.
