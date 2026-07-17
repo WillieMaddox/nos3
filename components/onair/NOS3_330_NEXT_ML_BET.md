@@ -13,8 +13,11 @@
 Every recent result points the same way — more modeling won't move the gaps, more signal will:
 
 - **AINOS3-33:** PASSIVE attack-labeling is an **information limit, not a modeling one** — mode-aware / rebalanced / per-mode heads *all* left it flat. A deeper model (Phase 5) inherits the same limit.
+
 - **Phase 4 (TCN):** a global deep detector reached AUCPR 0.67 (**below** the v5 IF's SUNSAFE recall); the per-subsystem TCN ensemble landed **within v3's noise band** (LOIO 0.654). Deep architectures already plateaued here → closed as diminishing returns.
+
 - **DEAD classes:** the *nominal-ambiguous* ones (`DE-0003.03/.08/.09`, `EX-0014.03`) are unlabelable because their discriminating MIDs were **pruned** — a signal problem, fixed by AINOS3-30, not by a new model.
+
 - **AINOS3-39:** the classifier may be leaning on generic activity counters — a signal-quality question, not a capacity one.
 
 A VAE or a GNN is a bigger hammer. The problem isn't hammer size; it's that some nails aren't in the board (unobserved signal).
@@ -30,7 +33,9 @@ A VAE or a GNN is a bigger hammer. The problem isn't hammer size; it's that some
 ## Recommended path
 
 1. **Consolidate + add signal.** Make AINOS3-30 the next headliner; it's the lever the evidence keeps pointing at. Pair with 306 → 305.
+
 2. **Re-evaluate Phase 5 (DeepSAD only) *after* AINOS3-30** — with more MIDs and a larger corpus the data-sufficiency picture changes; that's the trigger to reopen this.
+
 3. **Hold Phase 6** until coverage is broad and stakeholders (AINOS3-43) explicitly want causal-chain root-cause beyond the shipped top-fields explanations.
 
 **Net:** no new big-ML phase now. Invest in observability (signal), not architecture.

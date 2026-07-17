@@ -69,7 +69,9 @@ without SMOTE (which violates physical constraints of counter fields).
 ### Data Augmentation Strategies
 
 - **Time-warping**: Stretch/compress attack temporal profiles
+
 - **Additive noise**: Gaussian noise at detection boundary thresholds (hard negatives)
+
 - **NOS3-native**: Just re-run attacks with different parameters — the
   simulation IS the augmentation engine
 
@@ -80,9 +82,13 @@ without SMOTE (which violates physical constraints of counter fields).
 ### Feature Engineering Hierarchy
 
 **Level 0 — Raw Values** (273 fields from `nos3_security_tlm.json`):
+
 - Counters: `CommandCounter`, `CommandErrorCounter`, `MessageSendCounter`
+
 - State flags: `DeviceEnabled`, `LogFullFlag`, `AppEnableStatus`
+
 - Continuous: GPS position/velocity, IMU accel/gyro, EPS voltage/current
+
 - Checksums: `CFECoreChecksum` (should be constant after boot)
 
 **Level 1 — Rate-of-Change** (most security-relevant):
@@ -95,19 +101,29 @@ delta_SysLogBytesUsed[t]       -- log fill rate
 ```
 
 **Level 2 — Rolling Window Statistics** (windows: 10s, 60s, 300s):
+
 - `mean`, `std`, `max-min`, `count(state_changes)`, `slope`
+
 - 273 fields × 3 windows × 5 stats = 4,095 derived features
+
 - Prune to top 200-500 via mutual information / permutation importance
 
 **Level 3 — Cross-Channel Correlations**:
+
 - EPS current vs. active subsystem count
+
 - IMU angular rate vs. reaction wheel speed
+
 - GPS velocity vs. IMU integrated acceleration
+
 - CommandCounter vs. CommandErrorCounter ratio
 
 **Level 4 — Temporal/Lag Features**:
+
 - `x[t-1], x[t-5], x[t-30]` for sequence models
+
 - Time-since-last-state-change for discrete fields
+
 - FFT periodicity features (HK at 1 Hz — detect period changes)
 
 ### The 5 ML Feature Groups for SPARTA Detection
@@ -125,36 +141,53 @@ delta_SysLogBytesUsed[t]       -- log fill rate
 ## 3. Training Paradigm: Supervised vs. Unsupervised vs. RL
 
 ### Short Answer
+
 **Start unsupervised, layer in supervised, defer RL.**
 
 ### Detailed Rationale
 
 **Unsupervised (primary approach):**
+
 - Train on ONLY nominal data — model learns the manifold of normal behavior
+
 - Anything far from that manifold is anomalous
+
 - **Sidesteps class imbalance entirely** — no labeled attacks needed for training
+
 - Evaluation still uses labeled attack data (from SPARTA scripts)
+
 - Best models: Isolation Forest, Autoencoder, One-Class SVM, VAE
 
 **Semi-supervised (intermediate):**
+
 - Train primarily on nominal data but incorporate small set of labeled attacks
   to guide the boundary
+
 - **DeepSAD** (Ruff et al., 2020) is ideal — NN maps normal data to a
   hypersphere; labeled anomalies push the boundary
+
 - Best for attack-type classification ("this is EX-0013 flooding" vs. just "anomaly")
 
 **Supervised (attack classification layer):**
+
 - XGBoost/Random Forest on labeled data from comprehensive attack campaigns
+
 - Feature importance output tells you exactly which fields matter per attack type
+
 - Use as a meta-learner over unsupervised anomaly scores
 
 **Reinforcement Learning (later-stage enhancement):**
+
 - **NOT for detection itself** — RL is not a natural fit for anomaly detection
+
 - Three relevant applications:
+
   1. **Adaptive thresholding**: RL adjusts detection thresholds by operational
      mode (relax during maneuvers, tighten during quiet ops)
+
   2. **Automated response**: After detection, RL learns optimal response
      (isolate subsystem, safe mode, alert)
+
   3. **Active learning**: RL decides which unlabeled windows to present to
      human experts for labeling
 
@@ -241,8 +274,10 @@ dependencies (POWER → all, GNC sensors → ADCS → actuators, CFE_SB → all 
 
 - **MOMENT** (Goswami et al., 2024) — 385M parameter T5-based model. Zero-shot
   anomaly detection with no NOS3-specific training.
+
 - **THEMIS** (2025) — Extracts embeddings from Chronos foundation model +
   outlier detection. **Requires NO training on your telemetry.**
+
 - **Foundation Auto-Encoders** (2025) — VAE-based pretrained model. Strong
   zero-shot performance claims.
 
@@ -252,24 +287,33 @@ it catches 50% of attacks with zero training, that's a floor to beat.
 ### Graph Neural Networks for Root Cause Isolation
 
 Beyond "anomaly detected" → "here's WHY and WHERE it started":
+
 - Model spacecraft as graph: nodes = subsystems, edges = physical/logical deps
+
 - When anomaly fires, trace causal chain backward through the graph
+
 - **GTAD** and **MST-GAT** architectures designed for exactly this
 
 ### Digital Twin + Curriculum Learning
 
 **LATTICE framework** (ACM TOSEM, 2023):
+
 1. Generate unlimited normal data from NOS3 (digital twin)
+
 2. Generate labeled attack data by running SPARTA scripts
+
 3. **Curriculum learning**: Train on easy attacks first (massive counter spikes),
    progressively introduce subtle ones (slow-drift sensor spoofing)
+
 4. Model learns a difficulty-ordered decision boundary
 
 ### Causal Inference for Attack Attribution
 
 - **Granger causality** tests between channels reveal directional dependencies
+
 - When `CommandErrorCounter` and `NoSubscribersCounter` both spike, causal
   analysis determines which caused which
+
 - Maps detected anomalies back to SPARTA kill chain sequences
 
 ### SPARTEND (Aerospace Corporation)
@@ -318,16 +362,21 @@ multiple detectors with a meta-classifier.
 1. **YOLO Crater Detection** (IEEE Aerospace 2025) — Deep learning model plugged
    into OnAir running on Teledyne LS1046 + Google Coral TPU. Proves arbitrary ML
    works as OnAir plugins.
+
 2. **DASS Workshop 2025** — OnAir as part of standard for distributed multi-asset
    missions.
+
 3. **SPAICE 2024** — Overview with onboard experimental flight payload.
+
 4. **cFS Integration Example** — `github.com/the-other-james/cFS/tree/OnAIR-integration`
 
 ### Our Integration Is Already More Advanced Than Upstream
 
 - Upstream SBN adapter has `# note does not work for arrays?` comment. Our
   `_ctypes_to_python()` recursive converter fixes this.
+
 - 20 subscribed MIDs vs. upstream's single-MID example.
+
 - 273 fields with security-annotated metadata.
 
 ### OnAir Plugin Pipeline (what plugs in where)
@@ -453,6 +502,7 @@ for attack in attack_scenarios:
 
 - **Marker-based**: Send `CFE_ES_NOOP` at each phase boundary — shows up as a
   command counter step in telemetry
+
 - **Companion label file**: JSON with `{attack_id, phase, start_time, end_time}`
   per segment
 
@@ -551,6 +601,7 @@ alongside the 273 telemetry fields.
 
 5. **Start with Tier 1 (FSW-only reset).** Most SPARTA attacks target flight
    software, not dynamics. `docker exec sc01_nos_fsw kill -TERM $(pidof core-cpu1)`
+
    + `fsw_respawn.sh` = ~10s reset cycle. Reserve Tier 2+ for attacks that
    fire thrusters or corrupt attitude.
 

@@ -18,6 +18,7 @@ telemetry fields at ~5 Hz:
    (Isolation Forest) raises an alarm when telemetry leaves the envelope it
    learned from nominal flight. **Tuned to ≤ 1 % false-alarm rate; measured
    0.0–0.2 % in steady-state flight.**
+
 2. **Stage 2 — "What kind of attack?"** When Stage 1 alarms, an attack
    classifier (gradient-boosted trees) labels the event with a SPARTA
    technique (e.g. *EX-0012.07 propulsion command*). **~63 % correct
@@ -117,10 +118,13 @@ cross-validation — i.e. accuracy on a spacecraft run the model never saw):
 
 - **ROBUST (trust the label):** `DE-0003.01`, `DE-0003.10`, `EX-0008.02`,
   `IMP-0005` — F1 ≥ 0.85 on every split.
+
 - **STABLE-MID (good as a top-3 suggestion):** `IMP-0002`, `IMP-0003`,
   `IMP-0006`, plus the `nominal` label.
+
 - **HIGH-VARIANCE (label is a hint, not a verdict):** `EX-0008.01`,
   `EX-0012.07/.08/.09`, `EX-0014.04` — correct on some runs, not others.
+
 - **DEAD (cannot be labeled as-is):** see next section.
 
 Overall technique-identification accuracy is **~63 %** (top-1, novel run) —
@@ -150,8 +154,10 @@ matter differently:
    impossible. Derived empirically from the confusion matrix (two classes are
    clustered only when each one's frames land on the *other* — genuine mutual
    indistinguishability, not a rare class dumping one-way onto a reliable one):
+
    - `EX-0012.03` ≡ `EX-0012.04` ≡ `EX-0012.05` — propulsion / app-table /
      scheduler command family
+
    - `EX-0012.12` ≡ `EX-0014.01` — system-clock vs time-spoof
 
    **Fix (no model change):** report the *cluster* ("propulsion-command-class
@@ -201,18 +207,22 @@ identical either way (78/115), exactly as expected: only the label source
 changed, not the IF gate.
 
 The label collapse is tier- and mode-dependent:
+
 - **By tier** (coherent with §4): ROBUST clusters keep their labels out-of-fold
   (`EX-0008.02` 100 %, `IMP-0005` 100 %, the `IMP-0001/2/3/6` family ~67 %);
   HIGH-VARIANCE and DEAD clusters collapse (`EX-0012.08/.09`, `EX-0014.03/.04`
   → 0 %). The aggregate is dragged down by the many always-*detected*-but-not-
   *labelable* HIGH-VAR attacks.
+
 - **By mode** — two views that must not be confused:
+
   - *Incident-level* (attack attributed to its **first** corruption-frame's
     mode): PASSIVE 48 % (26/54), INERTIAL 4 % (1/23), no SUNSAFE attacks. This
     view is **misleading**: the corpus uses `scenario_all_modes_dwell`, so one
     attack's window spans every mode and is attributed to wherever it *started*
     (mostly PASSIVE, where the FSW boots/locks), and incident voting then
     recovers the label from the *good* frames in other modes.
+
   - *Frame-level* (each frame's actual mode — the operationally real "attacked
     while persistently in mode X" question): **PASSIVE 0.148 cluster-acc is the
     WORST**, vs INERTIAL 0.341, SUNSAFE 0.395, BDOT 0.419. This **confirms** the
@@ -299,13 +309,16 @@ telemetry detection.)*
 - **Detection / FP numbers:** per-mode Isolation Forest
   `iforest_per_mode_v5_invariant_bolstered`, calibrated to 1 % FP; soak FP
   rates measured on nominal-flight side-files.
+
 - **Classification numbers:** v3 classifier
   `xgb_attack_classifier_v3`, leave-one-instance-out over a 3-instance,
   mode-balanced corpus (independently reproduced 2026-06-09 at
   0.627 ± 0.040, matching the deployed 0.645 ± 0.036).
+
 - **Attack realism:** all cited techniques were executed against live NOS3 FSW
   and confirmed to actually change spacecraft state; no number here derives
   from an unvalidated script.
+
 - **Known undertraining:** the BDOT detector is trained on few samples (296
   rows). It produces no false alarms but also little attack signal — low
   operational impact, since attacks don't manifest in BDOT.

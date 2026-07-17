@@ -14,6 +14,7 @@ per-attack results instead of raw frame scores.
 
 - **E — effort points** (Fibonacci 1·2·3·5·8): relative effort × **uncertainty**
   × coordination. Comparative, not time.
+
 - **T — time points** (**8 h = 1 point = 1 ideal engineering day**): estimated
   hands-on-keyboard hours ÷ 8. Pure duration; excludes the risk premium and
   unattended wall-clock (soak / collection), noted separately.
@@ -48,6 +49,7 @@ cluster, and accumulated confidence — and re-baselines the project's headline
 metrics on incidents rather than frames.
 
 ### AINOS3-25 — One alert per attack · `Story` · Highest · E 8 · T 2.25 (~18h)
+
 **Summary:** As an operator, I want one alert per attack (start, duration,
 cluster, confidence) instead of a stream of per-frame flags.
 **Description:** Build an incident-aggregation layer on top of the existing
@@ -58,16 +60,21 @@ highest-value item of the sprint: frame-level confidence on a single attack is
 already ~0.86 median, so aggregation should produce markedly stronger
 incident-level calls.
 **Acceptance criteria:**
+
 - Given a corruption window, the plugin emits one incident record:
   `{t_start, t_end, duration_s, cluster, sub_technique, accumulated_confidence}`.
+
 - Persistence + dedup thresholds configurable in `nos3_security.ini`.
+
 - Incident confidence ≥ best single-frame confidence on the live `EX-0012.07`
   integration test (~0.86 baseline).
+
 **Sub-tasks:** ▫ persistence/debounce window ▫ cross-frame confidence
 accumulation ▫ incident side-file schema ▫ unit tests on a labeled window.
 **Depends on:** AINOS3-26.
 
 ### AINOS3-26 — Wire cluster reporting into the plugin · `Task` · High · E 3 · T 0.5 (~4h)
+
 **Summary:** Wire cluster reporting (`cluster_taxonomy.json`) into the live
 `xgb_classifier_plugin.py` → emit `cluster + top sub-technique`.
 **Description:** Week-1 produced `cluster_taxonomy.json` (the τ=0.10 mutual-
@@ -77,11 +84,14 @@ sub-technique. Update the plugin to load the taxonomy and emit both the cluster
 output matches the honest classification granularity. Smallest item; unblocks
 the incident-label format in AINOS3-25.
 **Acceptance criteria:**
+
 - Plugin loads `cluster_taxonomy.json`; render_reasoning + side-file include a
   `cluster` field.
+
 - ini synced to `fsw/build/exe/cpu1/cf/onair/`.
 
 ### AINOS3-27 — Incident-granularity corpus re-score · `Task` · High · E 5 · T 1.0 (~8h)
+
 **Summary:** Re-score the 75-manifest corpus at incident granularity; publish
 incident TP/FP as the new headline metric.
 **Description:** Run the incident-aggregation logic over the existing 3-instance
@@ -90,7 +100,9 @@ labeled corpus and compute incident-level true-positive / false-positive rates
 period firing an incident is a false positive). These replace the frame-level
 numbers as the project's headline metrics and feed the coverage doc.
 **Acceptance criteria:**
+
 - Incident-level TP/FP table across the 3 instances committed.
+
 - `V5_DETECTOR_COVERAGE.md` updated with incident metrics.
 
 ---
@@ -103,6 +115,7 @@ epic wires it to the validated detection/classification data and builds out the
 sketched A/B/C interaction ladder, starting with Tier A.
 
 ### AINOS3-29 — Demo app Tier A with real results · `Story` · Medium · E 5 · T 1.25 (~10h)
+
 **Summary:** As a stakeholder, I want the demo app to show real detection status
 per SPARTA technique (Tier A of the A/B/C ladder).
 **Description:** Implement Tier A of the May-15 demo-feedback ladder and drive
@@ -110,8 +123,11 @@ each technique cell from real data in `V5_DETECTOR_COVERAGE.md` (detection
 flag-rate, classifier tier, signal class) instead of placeholders. Tier B/C are
 out of scope (see AINOS3-46).
 **Acceptance criteria:**
+
 - Tier A ladder implemented; per-technique cells driven by real coverage data.
+
 - No console errors; Tier B/C explicitly deferred.
+
 **Stretch goal** (depends on AINOS3-27 for live incident data).
 
 ---
@@ -119,6 +135,7 @@ out of scope (see AINOS3-46).
 ## ✅ Resolved — no work this sprint
 
 ### sunsafe-pivot — SUNSAFE-only pivot decision · `Spike` · Resolved · E — · T —
+
 **Summary:** Decide whether to pivot to a SUNSAFE-only detector if other modes
 are too noisy or v5 drifts.
 **Description:** The Week-1 6.6h drift soak (0.01% FP, no drift) and the
@@ -131,6 +148,7 @@ planned; the SUNSAFE-routed detection caveat stays documented, not "fixed."
 ## 📋 Backlog (deferred — pulled in only if capacity frees up)
 
 ### AINOS3-30 — Recover nominal-ambiguous DEAD classes · `Story` · E 8 · T 2.5 (~20h)
+
 **Summary:** Subscribe extra MIDs so the nominal-ambiguous DEAD classes become
 detectable/classifiable. *(Promoted to Sprint 24 as `extra-mids` / AINOS3-30.)*
 **Description:** Week-1 showed `DE-0003.03/.08/.09` and `EX-0014.03` are
@@ -141,6 +159,7 @@ pruned by csv-format-v2. Add those MIDs to `nos3_security_tlm.json`,
 re-collect + retrain, and measure whether these classes separate.
 
 ### AINOS3-44 — TCN-as-feature for EX-0008 ATS/RTS · `Story` · E 5 · T 1.5 (~12h)
+
 **Summary:** Add TCN reconstruction-error as an XGBoost feature scoped to the
 EX-0008 family.
 **Description:** The Phase-4 spike found a global TCN reaches 0.96 recall on
@@ -150,6 +169,7 @@ DE-0003.10). Goal: lift `EX-0008.01` out of HIGH-VARIANCE without harming the
 ROBUST classes.
 
 ### AINOS3-45 — 4th corpus instance · `Task` · E 3 · T 0.75 (~6h active; ~5h wall-clock)
+
 **Summary:** Collect a 4th corpus instance to tighten LOIO variance.
 **Description:** Run `run_attack_batch.py` once more (~5h wallclock) to add a
 4th LOIO fold. Low value — LOIO variance is already characterized at ±3.6% — so
@@ -157,6 +177,7 @@ this is a Task, and stays in backlog unless a specific class's confidence
 interval needs tightening.
 
 ### AINOS3-46 — Demo app Tier B/C · `Story` · E 3 · T 1.0 (~8h)
+
 **Summary:** Implement Tier B/C of the demo-app A/B/C ladder.
 **Description:** Extends AINOS3-29 (Tier A) with the deeper interactive layers
 sketched in the May-15 demo. Deferred until Tier A is validated with
@@ -167,8 +188,11 @@ stakeholders.
 ## Definition of Done (sprint)
 
 - Incident records emitted live + offline; incident-level TP/FP documented.
+
 - Plugin reports clusters; ini synced to `fsw/build/exe/cpu1/cf/onair/`.
+
 - Demo app shows real results; no console errors.
+
 - `V5_DETECTOR_COVERAGE.md` updated with incident metrics.
 
 ---
@@ -183,6 +207,9 @@ ultimately delivered.
 ## Suggested execution order (as run)
 
 1. **AINOS3-26** (smallest, unblocks the rest) — plugin cluster reporting.
+
 2. **AINOS3-25** — incident aggregation layer.
+
 3. **AINOS3-27** — incident-granularity corpus re-score.
+
 4. **AINOS3-29** (stretch) — demo app Tier A wired to real results.
