@@ -41,7 +41,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
 | validate-cdh-subsystem | EX-0012.10 | Task | Med | — | `CFE_ES`/`CFE_SB` counters |
 | validate-flood-valid | EX-0013.01 | Task | Med | ✅ | ✔ VALIDATED — loud (R2+R3+R6+R7); labeled DE-0010 (shared EVS-flood footprint) |
-| validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | `CFE_SB` error family |
+| validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | ✔ VALIDATED — cmd-error family (R4), NOT SB-recv; wave-2 crash fixed + not injection-triggerable |
 | validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
 | validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | mode change (sibling of EX-0011) |
@@ -146,6 +146,16 @@ NOT EX-0013 — a valid-command flood IS an EVS flood at the source (command-suc
 events), so R2 dominates. Confirms the rule-gate detects the flood class but has no
 dedicated "flood" label; a mass-command-rate rule would separate EX-0013 from DE-0010.
 First validation on the FRESH stack (post the degraded-stack fix).
+
+**9th (2026-07-17): EX-0013.02 erroneous-input flood — cmd-error family (R4), and the
+wave-2 crash is doubly-guarded.** 700 malformed packets → the WRONG-FC packets drive
+`CommandErrorCounter` across subsystems (IMU +47, ADCS +45, CFE_SB/EVS +34/36) →
+R4:cmd-errors → 251-frame incident. `MsgReceiveErrorCounter` stayed 0 (CI_LAB/CFE_SB
+reject garbage upstream). **No OnAIR crash:** the sbn_adapter has the `except KeyError:
+skip` fix (`sbn_adapter.py:231`), AND injected unknown MIDs never reach it (SBN
+forwards only subscribed MIDs) — so the wave-2 KeyError is NOT `:5012`-fuzz-triggerable
+(it came from a config-mismatch/FSW-init unmapped MID in the forward set). Distinct
+footprint from EX-0013.01 (R2 EVS-flood): EX-0013.02 = R4 cmd-errors.
 
 **Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
 2026-07-17).** `staleness_check`
@@ -346,13 +356,34 @@ flood) is the sibling — malformed packets → CFE_SB MsgReceive/PipeOverflow e
 family + the sbn_adapter unknown-MsgId path (watch for the KeyError crash from
 wave-2); a distinct footprint from this valid flood.
 
-### validate-flood-erroneous — Validate EX-0013.02 (Flooding — Erroneous Input) · `Task` · Medium
+### validate-flood-erroneous — Validate EX-0013.02 (Flooding — Erroneous Input) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate an erroneous-input flood.
-**Description:** As EX-0013.01 but with malformed/erroneous packets — drives the
-`CFE_SB` `MsgReceiveErrorCounter` / `PipeOverflowErrorCounter` family and the
-sbn_adapter unknown-MsgId path. Same script family.
-**AC:** common criteria; standalone window; confirm the error-counter footprint.
+**Description:** Malformed-packet flood — 700 packets to :5012 (random garbage MIDs,
+telemetry-range garbage, wrong-FC to real command MIDs, oversized, and definitely-
+unmapped high StreamIds). Validated standalone on the fresh stack, watching for the
+wave-2 sbn_adapter crash.
+**VALIDATED live 2026-07-17:**
+
+- **Footprint is the CommandError family, NOT the SB-receive-error family** (corrects
+  the expected observable). `MsgReceiveErrorCounter` stayed **0** — CI_LAB/CFE_SB
+  reject garbage packets upstream without a receive error. The signal is the
+  **wrong-FC packets** (valid MID, bad FC) reaching real apps → `CommandErrorCounter`
+  climbs across subsystems (CFE_SB +34, CFE_EVS +36, IMU +47, ADCS +45). **Detected
+  by rule-gate R4 (cmd-errors)** → a **251-frame `cmd-errors/IMU-cmderr` incident**.
+
+- **Wave-2 sbn_adapter KeyError crash: NOT triggered — and NOT attacker-triggerable
+  via injection.** OnAIR stayed up (CSV kept growing) with **0 "unknown StreamId"
+  skips**: injected unknown MIDs never reach OnAIR because SBN only forwards
+  *subscribed* MIDs (filtered at CI_LAB/CFE_SB/SBN before the sbn_adapter). The fix
+  (`sbn_adapter.py:231` `except KeyError: skip + log-once`) protects against a
+  config-mismatch/FSW-init unmapped MID in the forward set, which is the real source
+  of the wave-2 crash — not `:5012` fuzzing. So the crash is doubly-guarded.
+
+**AC:** footprint ON_BOARD (CommandError family) ✓, detected by R4 ✓, no crash ✓.
+No cleanup (wrong-FC commands rejected, garbage dropped — no state change; FSW +
+OnAIR healthy). Distinct footprint from EX-0013.01 (that = EVS-flood/R2; this =
+cmd-errors/R4).
 
 ### validate-bus-spoof — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High · ✔ VALIDATED 2026-07-16 (overturns MARKDOWN-ONLY)
 
