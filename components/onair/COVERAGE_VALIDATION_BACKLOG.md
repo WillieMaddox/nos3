@@ -427,6 +427,14 @@ are now accepted (LC.CmdErrCount + EPS.CommandErrorCount stayed 0).
   induction / **DE-0005**)". Cleared cleanly when LC was set back to ACTIVE. This is
   the same catch as EX-0011 (AINOS3-52); the two share the R5 footprint as the backlog
   predicted.
+- **Incident fold VERIFIED on a fresh stack (2026-07-17).** With R2:evs quiet (fresh
+  launch, no degraded-stack pin), the R5 alert folded into a clean rule-gate incident:
+  `[rule_gate][INCIDENT] #1 frames 449-654 (206f) mode=SUNSAFE cluster=EX-0011
+  sub=LC-monitoring-disabled` (confidence 1.0) — opened on latch, closed on restore,
+  in both stdout and `rule_gate_incident_*.csv`. **Bonus second gate:** disabling LC
+  froze `LC.MonitoredMsgCount`, so the **staleness gate** also fired an incident
+  (`frames 518-580, cluster=EX-0012.02, sub=LC.MonitoredMsgCount-stale`) — DE-0005's
+  monitoring-disable is caught by two independent gates.
 - **⚠ New finding — the forced ADCS mode change is an IF blind spot.** The per-mode IF
   did NOT flag `SET_MODE→INERTIAL`; instead its router SWITCHED models
   (`MODE_SUNSAFE → MODE_INERTIAL at frame 84319`) and entered a **250-frame warmup**
