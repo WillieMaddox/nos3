@@ -82,13 +82,28 @@ dynamics). See the campaign synthesis at the end of this doc.
 drop and its label maps `R1:NOVATEL → EX-0002`. This was **live-verified when R1 was
 built** (see [[project_rule_gate_plugin]] / project memory: a live GPS disable produced
 `[rule_gate][ALERT] R1:NOVATEL_HK-disabled — …(EX-0002…)` while the IF scored
-is_anomaly=0). **⚠ Repro caveat (2026-07-17):** on the current stack the NOVATEL DISABLE
-command is *accepted* (`NOVATEL_HK.CommandCount` ticks) but `DeviceEnabled` did not drop
-to 0 (stuck at 1), so the R1 catch could not be re-reproduced today — a NOVATEL-sim
-quirk (the app auto-reconnects / the flag doesn't latch) to investigate, NOT a detector
-gap. R1 itself is live-proven generically (e.g. `R1:TORQUER-disabled` during EX-0005.02).
-Marked ✔ on the strength of the original live R1:NOVATEL catch; the repro issue is
-tracked here.
+is_anomaly=0). Marked ✔ on the strength of the original live R1:NOVATEL catch.
+
+**⚠ Repro caveat + ROOT CAUSE (2026-07-17).** On this aged stack the R1:NOVATEL catch
+could NOT be re-reproduced — diagnosed to a **NOVATEL telemetry-path stall, not a
+detector or script bug**:
+
+- OnAIR's `NOVATEL_HK` is **frozen**: `DeviceCount` shows only `{61,65}` over 400
+  frames (two stale double-buffer values, not advancing), `CommandCount` pinned at 4,
+  and **3 NOVATEL NOOPs did not move `CommandCount`** in OnAIR — no fresh HK is
+  arriving. It is **NOVATEL-specific**: IMU/CSS `DeviceCount` wrap through ~250 every
+  window (fresh), so SBN forwarding works globally.
+- So R1 reads a frozen `DeviceEnabled=1` and can never see the disable. Separately, at
+  the FSW, `NOVATEL_OEM615_Disable()` (`novatel_oem615_app.c:540`) increments
+  `CommandCount` *before* the UART call but only sets `DeviceEnabled=DISABLED` **inside
+  `if (uart_close_port()==OS_SUCCESS)`** (line 552-555) — a stalled NOVATEL UART blocks
+  the flag flip too. Both symptoms trace to the NOVATEL device/UART path degrading over
+  stack uptime (consistent with the known NOVATEL-finicky note + the degraded-stack
+  pattern).
+- **Repro fix:** validate EX-0002 on a FRESH launch (as on 2026-07-16, where NOVATEL HK
+  flowed and the disable flipped `DeviceEnabled 1→0` → R1 fired). Detection is sound;
+  the blocker is NOVATEL HK liveness on a long-uptime stack. R1 is live-proven
+  generically today via `R1:TORQUER-disabled` (EX-0005.02).
 
 ---
 
