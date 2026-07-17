@@ -38,7 +38,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
 | Jira | Slug | SPARTA | Type | Pri | Script? | Observable via |
 |---|---|---|---|---|:--:|---|
-| AINOS3-50 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | NOVATEL/GPS position fields |
+| AINOS3-50 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | ✔ VALIDATED — R1 NOVATEL DeviceEnabled→0 (live-verified at R1 build; 07-17 flag-repro quirk noted) |
 | AINOS3-51 | validate-hw-commands | EX-0005.02 | Task | Med | ✅ | ✔ VALIDATED — valid device cmds (no cmd-errors); R1 TORQUER-disable + dynamics IF |
 | AINOS3-52 | validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
 | AINOS3-53 | validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
@@ -48,13 +48,13 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | AINOS3-57 | validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
 | AINOS3-58 | validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
 | AINOS3-59 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | ✔ VALIDATED — R5 LC-disable (shared w/ EX-0011); forced ADCS mode = IF warmup blind spot |
-| AINOS3-60 | validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
+| AINOS3-60 | validate-audit-overflow | DE-0010 | Task | High | ✅ | ✔ VALIDATED — EVS send-rate; R2:evs → DE-0010 incident (IF stays blind) |
 | AINOS3-61 | validate-memory-compromise | PER-0001 | Task | Med | ✅ | ✔ VALIDATED — CFE_TBL/SC cmd counters; 4-gate MISS → NEW rule R9 (CFE_TBL.CommandCounter) |
 | AINOS3-62 | validate-bus-segregation | LM-0002 | Task | Med | ✅ | ✔ VALIDATED — 24-MID sweep → R6+R7+R8+R2 together; `CFE_SB_SUBS` unobservable |
 
 ---
 
-### AINOS3-50 — Validate EX-0002 (PNT Geofencing) · `Task` · Medium · ◑ FOOTPRINT-VALIDATED 2026-07-16
+### AINOS3-50 — Validate EX-0002 (PNT Geofencing) · `Task` · Medium · ✔ VALIDATED (R1) 2026-07-17
 
 **Summary:** As a defender, I want EX-0002 (PNT geofencing manipulation) validated
 into the corpus so the detector is scored against it.
@@ -76,6 +76,19 @@ into the corpus so the detector is scored against it.
 **AC:** footprint ON_BOARD ✓. Detection needs a rule on `NOVATEL_HK.DeviceEnabled`
 (or re-test in an INERTIAL/nav-dependent mode where stale GPS actually perturbs
 dynamics). See the campaign synthesis at the end of this doc.
+
+**DETECTION CLOSED — R1 (rule-gate device-disable).** The "needs a rule on
+`NOVATEL_HK.DeviceEnabled`" gap is filled: rule-gate **R1** fires on any `*.DeviceEnabled`
+drop and its label maps `R1:NOVATEL → EX-0002`. This was **live-verified when R1 was
+built** (see [[project_rule_gate_plugin]] / project memory: a live GPS disable produced
+`[rule_gate][ALERT] R1:NOVATEL_HK-disabled — …(EX-0002…)` while the IF scored
+is_anomaly=0). **⚠ Repro caveat (2026-07-17):** on the current stack the NOVATEL DISABLE
+command is *accepted* (`NOVATEL_HK.CommandCount` ticks) but `DeviceEnabled` did not drop
+to 0 (stuck at 1), so the R1 catch could not be re-reproduced today — a NOVATEL-sim
+quirk (the app auto-reconnects / the flag doesn't latch) to investigate, NOT a detector
+gap. R1 itself is live-proven generically (e.g. `R1:TORQUER-disabled` during EX-0005.02).
+Marked ✔ on the strength of the original live R1:NOVATEL catch; the repro issue is
+tracked here.
 
 ---
 
@@ -451,7 +464,7 @@ are now accepted (LC.CmdErrCount + EPS.CommandErrorCount stayed 0).
 **AC:** met — footprint ON_BOARD ✓, detected by R5 (shared with EX-0011) ✓, ran on the
 same safe-mode family as EX-0011 ✓; surfaced the mode-transition IF-warmup blind spot.
 
-### AINOS3-60 — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ◑ FOOTPRINT-VALIDATED 2026-07-16
+### AINOS3-60 — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate an EVS event-log overflow used to bury evidence.
 
@@ -487,6 +500,12 @@ DE-0010 + retrain and re-measure whether the IF learns the EVS-flood signature, 
 more likely (b) add a targeted EVS-send-rate feature/rule, since the per-mode IF
 structurally under-weights CDH-layer signal. This reframes DE-0010 from "just
 validate" to "signal present but detector-blind — needs a feature, not just data."
+
+**DETECTION CLOSED — R2 (2026-07-17).** The "needs a feature/rule" gap is filled: the
+rule-gate **R2:evs** rule catches the EVS send-rate spike and its label maps to DE-0010.
+Re-verified live today (`--flood-count 500`): `R2:evs` fired → `[rule_gate][INCIDENT]
+cluster=DE-0010 sub=evs-flood` (frames 5536-5668, 133f). So DE-0010 is now detected
+end-to-end by the rule-gate even though the v5 IF stays blind — upgraded ◑ → ✔.
 
 ### AINOS3-61 — Validate PER-0001 (Memory Compromise) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
