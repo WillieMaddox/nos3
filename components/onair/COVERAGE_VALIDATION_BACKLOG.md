@@ -70,176 +70,9 @@ into the corpus so the detector is scored against it.
 
 **AC:** footprint ON_BOARD ✓. Detection needs a rule on `NOVATEL_HK.DeviceEnabled`
 (or re-test in an INERTIAL/nav-dependent mode where stale GPS actually perturbs
-dynamics). See the campaign-findings note below.
+dynamics). See the campaign synthesis at the end of this doc.
 
 ---
-
-## Campaign findings (running) — the IF is a *dynamics* detector, not a *state* detector
-
-**Tally (2026-07-16): 4 Section-A techniques validated — DE-0010, EX-0002,
-EX-0014.03, EX-0011 — all ON_BOARD; the dynamics-vs-state split is now sharp.**
-The first three are pure flag/counter footprints the v5 per-mode IF MISSES
-(is_anomaly=0); the rule-gate covers them. **EX-0011 is the confirming
-counterexample: the IF CATCHES it (52% of window)** because its exploit fires the
-thruster + toggles EPS/CSS and thus perturbs the GNC *attitude dynamics* the IF is
-trained on — exactly like the already-caught EX-0012.07/08/09 corruption attacks
-(ROBUST tier). So the rule "IF sees dynamics perturbation, is blind to pure
-state/counter changes" holds across all validated cases. (The rule-gate ALSO
-caught EX-0011 via CSS-disable + EVS cmd-errors, so it's double-covered.)
-
-**5th (2026-07-16): EX-0014.02 bus-spoof — a THIRD detector-gap class.** Not a
-flag/counter state-change and not a dynamics attack: a spoofed telemetry packet
-injected onto the SB via CI_LAB (:5012). Overturned its MARKDOWN-ONLY triage
-(injection demonstrably works). Its footprint is a **transient out-of-distribution
-value flicker** that BOTH gates miss — the IF is counter/value-blind unless the
-spoof perturbs fused dynamics, and the rule-gate's leaky integrator can't latch a
-1-2 frame flicker. Catching it needs a new detector primitive: **per-sample
-range/schema/monotonicity consistency** (counter went backwards, value out of
-physical bounds), orthogonal to both the dynamics-IF and the sustained-signal
-rule-gate. **BUILT + DEPLOYED 2026-07-16** (consistency_check plugin, fsw b58a2b4).
-The detector roadmap now has THREE deployed complementary gates: dynamics-IF
-(physics), rule-gate (sustained state/counter, incl. R5 monitor-state), and
-consistency-check (per-sample counter-monotonicity, 0 FP / 810 live frames).
-
-**6th (2026-07-16): EX-0012.02 routing-table modification — a FOURTH detector-gap
-class (staleness).** CFE_SB DISABLE_ROUTE severs a MsgId→pipe route; disabling the
-SBN route FREEZES that MID in OnAIR (telemetry denial). A frozen stream has no
-delta, so all three delta-based gates miss it (same as EX-0014.03 frozen fields).
-Two complementary fixes, BOTH BUILT: a per-MID STALENESS detector (MID hasn't
-updated in N frames) for the freeze, and a CFE_SB.CommandCounter rule (rule-gate R6)
-for the route COMMAND itself (SB route/subscription commands are rare in nominal
-ops). Also corrected the triage: CFE_SB_SUBS is NOT OnAIR-observable ([0]).
-
-**7th (2026-07-17): DE-0002.03 inhibit-spacecraft — same freeze class, and the
-staleness gate's first real-attack catch.** EVS event suppression (CFE_EVS
-DISABLE_EVENT_TYPE all types) FROZE `CFE_EVS_HK.MessageSendCounter` for 70s → the
-**staleness gate caught it** (true positive) — the inverse of DE-0010's EVS flood.
-Two lessons: (a) DE-0002.03 (EVS suppress) and EX-0012.02 (route disable) share the
-SAME frozen-counter footprint, so the staleness gate detects both but labels both
-EX-0012.02 — **R7, a CFE_EVS-command rule, is now BUILT** (rule_gate b586b7a; sibling
-of R6) and catches/labels it DE-0002.03 at the command (~1 frame, live-verified); (b)
-it exposed a staleness **uint16-wrap FP** (DS.FileWriteCounter wraps 65535→0, pinning
-the running max) — fixed (fsw b9b37cb): a >50%-relative backwards drop is a wrap/reset,
-re-baseline the max. Re-validated over 194K frames, 0 FP + TP preserved.
-
-**Degraded-test-stack finding (2026-07-17): R2:evs FP after long uptime — CONFIRMED
-an uptime artifact, RESOLVED by a fresh launch.** The R7 live run found the EVS rate
-at **~61/frame (max 228)** — far above R2's threshold (15) — because the RADIO
-device-HK spam ("GENERIC_RADIO … error -1") accumulates over a long-uptime stack
-whose downlink link degraded. R2:evs then fired continuously and, since R2 drives
-incidents, pinned EVERY rule-gate incident open (never closes → no incident file).
-
-**Diagnosed + fixed by `make stop` + `make launch-quiet` (COSMOS stayed up):** fresh
-FSW boot dropped the EVS rate to **mean 2.3/frame (max 3)**, R2:evs FP **0/670
-frames**, and R7's incident then EMITTED cleanly — `frames 576-588 mode=SUNSAFE
-cluster=DE-0002.03 sub=evs-command`. So it is a STACK-DEGRADATION artifact, NOT an
-R2/R7 defect; R2's threshold is fine for a healthy stack. **Lesson:** long-uptime
-NOS3 stacks accumulate RADIO-spam EVS load → do incident-level validation on a fresh
-launch; if a healthy stack ever shows a sustained high EVS rate, R2 (like R3) would
-want a sustained-vs-burst guard.
-
-**8th (2026-07-17): EX-0013.01 valid-command flood — LOUD, 4-rule detection; shares
-DE-0010's footprint.** 967 valid NOOPs @100/sec across 7 subsystems fired R2:evs
-(dominant, +575 EVS events), R3:sb (pipe-overflow), and R6:sb + R7:evs (CFE_SB/CFE_EVS
-CommandCounter +96 each) → a 245-frame rule-gate incident. Labeled DE-0010 (evs-flood),
-NOT EX-0013 — a valid-command flood IS an EVS flood at the source (command-success
-events), so R2 dominates. Confirms the rule-gate detects the flood class but has no
-dedicated "flood" label; a mass-command-rate rule would separate EX-0013 from DE-0010.
-First validation on the FRESH stack (post the degraded-stack fix).
-
-**9th (2026-07-17): EX-0013.02 erroneous-input flood — cmd-error family (R4), and the
-wave-2 crash is doubly-guarded.** 700 malformed packets → the WRONG-FC packets drive
-`CommandErrorCounter` across subsystems (IMU +47, ADCS +45, CFE_SB/EVS +34/36) →
-R4:cmd-errors → 251-frame incident. `MsgReceiveErrorCounter` stayed 0 (CI_LAB/CFE_SB
-reject garbage upstream). **No OnAIR crash:** the sbn_adapter has the `except KeyError:
-skip` fix (`sbn_adapter.py:231`), AND injected unknown MIDs never reach it (SBN
-forwards only subscribed MIDs) — so the wave-2 KeyError is NOT `:5012`-fuzz-triggerable
-(it came from a config-mismatch/FSW-init unmapped MID in the forward set). Distinct
-footprint from EX-0013.01 (R2 EVS-flood): EX-0013.02 = R4 cmd-errors.
-
-**10th (2026-07-17): EX-0005.02 malicious use of hardware commands — valid-command
-abuse, caught by R1 + dynamics IF.** Behavioral proxy for the non-simulatable
-firmware-corruption parent: an attacker issues *legitimate* device commands with
-malicious intent (TORQUER disable, RW torque injection, thruster arm/fire, EPS switch
-toggles). Defining footprint: `CommandCount` climbs across the targeted components
-(TORQUER +6, THRUSTER +4, EPS +3) while every `CommandErrorCount` stays FLAT — the
-mirror image of EX-0013.02. Detected two ways on a healthy stack (IF 0% for 12k
-steady frames pre-attack): rule-gate **R1** on `TORQUER.DeviceEnabled 1→0` (cleared on
-re-enable) and the **dynamics IF** rising 0%→78% in the attack window from the
-thruster fire + injected RW momentum. Residual gap: a benign-magnitude single valid
-command with no device-disable and no dynamics kick would slip both.
-
-**11th (2026-07-17): EX-0012.10 modify C&DH on-board values — a 4-gate detector gap,
-closed by new rule R8.** A legitimate `CFE_ES SET_MAX_PR_COUNT` raises
-`CFE_ES.MaxProcessorResets 2→250` (defeating the auto power-on-reset safeguard) with
-no cmd-errors. First pass, ALL FOUR deployed gates missed it: the IF is CDH-blind
-(0/90, same as DE-0010), consistency-check watches for *backward* counters (this went
-up), staleness-check needs a *frozen* stream, and the rule-gate had no CFE_ES rule.
-Fix = **R8 (`CFE_ES.CommandCounter`)**, the third static-in-nominal command-counter
-rule after R6 (CFE_SB) and R7 (CFE_EVS), reusing the same generalized new-high + dwell
-mechanism. Live after redeploy: `R8:es-command` ALERT → EX-0012.10/es-command incident
-→ CLEAR. R8 also covers other CFE_ES-command techniques (memory write, app
-start/stop). Detector roadmap rules now R1–R8.
-
-**Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
-2026-07-17).** `staleness_check`
-plugin (4th gate; fsw e08a527, registered 0b3d688e). Key correction found during
-tuning: a frozen field is NOT constant — OnAIR's double buffer makes it OSCILLATE
-between its two last stale values, so the primitive is "**a wide monotonic counter's
-max stops advancing**," not "value unchanged." First version was live-fragile (the
-watched set flipped run-to-run because discovery used the max no-advance run, a
-high-variance extreme value). **Hardened** by using the **average** advance interval
-(window / advances — a stable count statistic) for both the watched-set criterion and
-the per-counter threshold. Result: **8 CDH/scheduler counters always watched across 5
-offline windows, 0 FP over 2200 offline + 160 live frames, detects an injected freeze
-at ~53 frames; live watched set matches offline.** 7 unit tests. *Limits:*
-high-latency (~30–50s, poll-rate mismatch); coverage = CDH/scheduler MIDs (sensor
-DeviceHK counters publish too variably). The **R6 CFE_SB.CommandCounter rule** is
-**BUILT + deployed** (rule_gate a268852) — the complementary, low-latency catch (~1
-frame; live-verified 0 FP, CommandCounter static in nominal) (the route COMMAND is a clean
-subscribed signal; the freeze EFFECT is intrinsically high-latency).
-
-**Emerging hypothesis:** the v5 IF detects anomalies in the *physical/attitude
-dynamics*; it is largely blind to attacks whose footprint is a **discrete flag flip
-or a counter/rate spike that doesn't disturb the physics** (EVS send-rate, GPS
-enable flag, likely CI/SB counters, LC/DS/FM state). Because the classifier is
-IF-gated, these are undetected end-to-end despite loud, subscribed signals.
-
-**Implication:** for this class, "validate → fold into corpus → detector catches it"
-is the wrong remedy — more data won't teach a dynamics-IF to watch a flag. The cheap,
-high-leverage fix is a **lightweight rule/threshold layer beside the IF** (flag
-discrete state changes: `*.DeviceEnabled→0`, mode changes, EVS/SB send-rate spikes),
-gating the classifier in parallel with the IF. Recommend confirming with 1-2 more
-diverse techniques, then prototyping that rule layer rather than grinding all 13.
-
-**RULE-GATE PROTOTYPE — WORKS (2026-07-16).** `training/rule_gate_prototype.py`
-(offline). Rules: R1 `*.DeviceEnabled` drops below session baseline; R2
-`CFE_EVS_HK.MessageSendCounter` per-frame delta > auto-threshold; R3
-`CFE_SB.MsgSendErrorCounter` delta > 0; R4 `*.CommandError*` delta spike. Scored on
-the 44,419-frame post-restart CSV: **all 3 IF-blind attacks caught** — DE-0010
-(R2+R3), EX-0002 (R1 NOVATEL), EX-0014.03 (R1 IMU) — the exact windows the IF scored
-is_anomaly=0. **Nominal FP = 0.016%** (7 flicker-edge frames). Double-buffer causes
-1-frame flicker at edges → a runtime impl needs the IF plugin's hysteresis
-(alert/clear counters). Next: wire it as a parallel gate OR-ed with the IF (either
-gate → classify + incident), so the flag/counter class is covered end-to-end with no
-retrain and no new MIDs. The IF still owns the dynamics attacks (subsystem
-corruption, ROBUST tier); the two gates are complementary.
-
-**EX-0014.03 (2026-07-16) — 3/3, AND it settles the sensor-DEVICE-MID retrain
-question: NO.** In NOS3, EX-0014.03 "sensor data spoof" is only exercisable as a
-sensor DISABLE (true data fabrication is out of scope). Disabling the IMU flips `IMU.DeviceEnabled 1→0`. Per the source
-(`generic_imu_app.c:394`), the device read + `CFE_SB_TransmitMsg` are gated on
-DeviceEnabled, so the **device packet (0x0926) STOPS** when disabled: `IMU_DEV.*`
-freezes, `IMU.DeviceCount` freezes, 0 device msgs in 30s. BUT: (a)
-`ADCS_DI.Payload.Imu.acc` freezes **identically** — the new DEVICE MID is
-**redundant** with the already-subscribed fused view; and (b) the device packet is
-**sporadic even at baseline** (frozen over short enabled windows too), so a freeze
-can't reliably distinguish disabled from not-updated. The reliable, clean signal is
-the flag `IMU.DeviceEnabled=0`. IF misses it (is_anomaly=0 — a frozen/constant field
-isn't a delta anomaly). Verdict: the sensor-DEVICE-MID IF retrain is **not justified**
-for EX-0014.03 (redundant + freeze not IF-detectable); the rule layer (flag / staleness)
-covers it. (Correction: an earlier note said the device "keeps producing normal data"
-— that was misread stale double-buffer values; the packet actually stops.)
 
 ### AINOS3-51 — Validate EX-0005.02 (Malicious Use of Hardware Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
@@ -635,3 +468,57 @@ Lateral-Movement technique that IS on-board-detectable. Script exists at techniq
 level.
 
 **AC:** common criteria; assert the cross-boundary subscription in `CFE_SB_SUBS`.
+
+---
+
+## Campaign synthesis — the IF is a *dynamics* detector, and the 4-gate roadmap
+
+Per-technique results (footprint, which gate caught it, script bugs fixed) live in
+each `### AINOS3-5x` task block above — that is the source of truth. This section is
+the cross-cutting thesis and the detector roadmap the campaign produced.
+
+**Core finding.** Across every validated Section-A technique, the v5 per-mode
+Isolation Forest only flags anomalies in the *physical/attitude dynamics*. It is
+blind to attacks whose footprint is a discrete flag flip, a counter/rate spike, a
+transient value flicker, or a frozen stream — none of which disturb the physics it is
+trained on. **EX-0011 is the confirming counterexample:** the IF DOES catch it (52% of
+the window) because its exploit fires the thruster and perturbs the attitude dynamics,
+exactly like the ROBUST-tier EX-0012.07/08/09 corruption attacks. Because the
+classifier is IF-gated, the non-dynamics classes are undetected end-to-end despite
+loud, already-subscribed signals — so "validate → fold into corpus → detector catches
+it" is the wrong remedy for them (more data won't teach a dynamics-IF to watch a
+flag). The fix is targeted detector primitives beside the IF.
+
+**The 4-gate detector roadmap (all DEPLOYED).** Each validation exposed a distinct gap
+the IF misses; the campaign built a complementary gate for each:
+
+- **dynamics-IF** — physical/attitude anomalies (subsystem-value corruption,
+  thruster/RW perturbation).
+- **rule-gate (R1–R8)** — sustained state/counter changes: R1 device-disable, R2
+  EVS-rate, R3 SB-errors, R4 cmd-errors, R5 monitor-state (LC/HS), and the
+  static-in-nominal command-counter rules R6 (CFE_SB), R7 (CFE_EVS), R8 (CFE_ES). The
+  rule that fires IS the label.
+- **consistency-check** — per-sample counter-monotonicity, for the transient bus-spoof
+  flicker (EX-0014.02) both other gates miss. 0 FP / 810 live frames.
+- **staleness-check** — frozen-stream / telemetry-denial (EX-0012.02 route-disable,
+  DE-0002.03 EVS-suppress). Primitive: a wide monotonic counter's MAX stops advancing
+  (a frozen field OSCILLATES via the OnAIR double buffer, so "value constant" is the
+  wrong test). ~30–50s latency; the R6/R7 command rules are the low-latency
+  complement. 0 FP over 194K frames.
+
+**These four gates are deliverables that still need their own tickets.** They are build
+work, not validations. SPRINT_25 reserves the slugs `rule-gate-detector`,
+`consistency-gate`, `staleness-gate`, `sb-command-rule` and flags "create Jira tickets
+for the gates" as an owner action — track them there, not in this backlog.
+
+**Two lessons carried to memory (recorded here for provenance):**
+
+- **Sensor-DEVICE-MID IF retrain — NOT justified** (from EX-0014.03): the device
+  packet is redundant with the already-subscribed fused `ADCS_DI` view AND is sporadic
+  even at baseline, so a freeze can't distinguish disabled from not-updated; the
+  reliable signal is the `IMU.DeviceEnabled=0` flag, which the rule/staleness layer
+  already covers.
+- **Long-uptime stacks accumulate RADIO-spam EVS load** (~61/frame) → an R2:evs false
+  positive that pins incidents open; a fresh `make stop` + `launch-quiet` resets it
+  (→2.3/frame, 0 FP). Do incident-level validation on a fresh launch. This is a
+  stack-degradation artifact, not an R2/R7 defect.
