@@ -44,7 +44,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | AINOS3-58 | validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
 | AINOS3-59 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | ✔ VALIDATED — R5 LC-disable (shared w/ EX-0011); forced ADCS mode = IF warmup blind spot |
 | AINOS3-60 | validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
-| AINOS3-61 | validate-memory-compromise | PER-0001 | Task | Med | ✅ | sibling of EX-0012.03 memory write |
+| AINOS3-61 | validate-memory-compromise | PER-0001 | Task | Med | ✅ | ✔ VALIDATED — CFE_TBL/SC cmd counters; 4-gate MISS → NEW rule R9 (CFE_TBL.CommandCounter) |
 | AINOS3-62 | validate-bus-segregation | LM-0002 | Task | Med | ✅ | `CFE_SB_SUBS` — traffic to unexpected apps |
 
 ---
@@ -483,16 +483,43 @@ more likely (b) add a targeted EVS-send-rate feature/rule, since the per-mode IF
 structurally under-weights CDH-layer signal. This reframes DE-0010 from "just
 validate" to "signal present but detector-blind — needs a feature, not just data."
 
-### AINOS3-61 — Validate PER-0001 (Memory Compromise) · `Task` · Medium
+### AINOS3-61 — Validate PER-0001 (Memory Compromise) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate persistent memory compromise.
 
-**Description:** Persistent on-board memory modification (persistence tactic).
-Mechanically similar to EX-0012.03 (memory write/load); the distinction is
-persistence across a reset. Footprint via the same `CFE_TBL`/`CFE_ES` surfaces plus
-survival across a Tier-1.5 reset. Script exists at technique level.
+**Description:** Persistent on-board memory modification (persistence tactic). The
+script exercises every command path an attacker would use to survive a reset:
+CFE_TBL LOAD/ACTIVATE (backdoor table), SC RTS/ATS (dormant stored-command payload),
+MM memory writes, CFE_ES app reload/start — then hides evidence with counter RESETs.
+NOS3 models no non-volatile boot memory, so persistence-across-reset can't be shown;
+the *command signatures* are the observable.
 
-**AC:** common criteria; additionally show the change *persists* across a reset.
+**Script:** `gsw/attack_scripts/sparta/persistence/per_0001_memory_compromise.py`
+(`--attack-level 3`).
+
+**VALIDATED live (2026-07-17, fresh stack):**
+
+- **Signal class: ON_BOARD. Footprint (peaks during the window — the final values are
+  masked by the attacker's RESET step):** `CFE_TBL.CommandCounter 0→1` +
+  `CFE_TBL.CommandErrorCounter 0→3` (table load/activate attempts), `SC.CmdCtr 5→6` +
+  `SC.CmdErrCtr 0→3` (stored-command RTS/ATS). `CFE_TBL.CommandCounter` is **static-0
+  in nominal**. MM is **not subscribed** (no MM_HK) so MM writes are unobservable; the
+  CFE_ES app-reload commands didn't register (poll-missed the transient before RESET).
+- **⚠ Was a 4-gate MISS, closed by new rule R9.** No gate caught it first pass: the IF
+  is blind (table/memory commands don't perturb dynamics), consistency/staleness are
+  N/A (no backward counter, no freeze), and R4's per-frame cmd-error threshold isn't
+  tripped by 3 errors spread across frames. Fix = **R9 (`CFE_TBL.CommandCounter`)**,
+  the 4th static-in-nominal command-counter rule after R6/R7/R8. Live after redeploy:
+  `R9:tbl-command` ALERT → **PER-0001/tbl-command incident** (frames 436-448) → CLEAR.
+- **R9 survives the evidence-hiding RESET.** PER-0001's `CFE_TBL_RESET` zeroes the
+  counter, but the rule's running-max already latched the new high before the reset,
+  so the catch stands. (Same design point that makes R6/R7/R8 robust to the OnAIR
+  double buffer.)
+
+**AC:** met — footprint ON_BOARD (`CFE_TBL`/SC command counters) ✓, detection closed
+via R9 with a PER-0001 incident ✓. Persistence-across-reset is out of scope in NOS3
+(no non-volatile boot memory modeled), documented above. Residual gaps: SC
+stored-command counters and MM (unsubscribed) have no rule yet.
 
 ### AINOS3-62 — Validate LM-0002 (Exploit Lack of Bus Segregation) · `Task` · Medium
 
@@ -538,10 +565,10 @@ the IF misses; the campaign built a complementary gate for each:
 
 - **dynamics-IF** — physical/attitude anomalies (subsystem-value corruption,
   thruster/RW perturbation).
-- **rule-gate (R1–R8)** — sustained state/counter changes: R1 device-disable, R2
+- **rule-gate (R1–R9)** — sustained state/counter changes: R1 device-disable, R2
   EVS-rate, R3 SB-errors, R4 cmd-errors, R5 monitor-state (LC/HS), and the
-  static-in-nominal command-counter rules R6 (CFE_SB), R7 (CFE_EVS), R8 (CFE_ES). The
-  rule that fires IS the label.
+  static-in-nominal command-counter rules R6 (CFE_SB), R7 (CFE_EVS), R8 (CFE_ES),
+  R9 (CFE_TBL). The rule that fires IS the label.
 - **consistency-check** — per-sample counter-monotonicity, for the transient bus-spoof
   flicker (EX-0014.02) both other gates miss. 0 FP / 810 live frames.
 - **staleness-check** — frozen-stream / telemetry-denial (EX-0012.02 route-disable,
