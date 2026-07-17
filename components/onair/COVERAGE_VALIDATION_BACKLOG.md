@@ -9,6 +9,11 @@ footprint in an already-subscribed MID, and just need validation into the corpus
 — no new MIDs, no schema change. They are the cheapest breadth wins: validating
 them roughly doubles validated coverage of the ~90-technique detectable universe.
 
+**Status (2026-07-17): ALL 13 VALIDATED — campaign complete.** Every technique in the
+table below has a live-verified footprint; the campaign also built the 4 detector
+gates + rules R1–R9 for the classes the IF misses. See the campaign synthesis at the
+end.
+
 **Count:** the triage headline estimated "~18"; the concrete, defensible
 enumeration below is **13 techniques** (the estimate was loose). A few more
 borderline ON_BOARD candidates (`EX-0001.02` bus replay, `DE-0006` modify-whitelist,
@@ -45,7 +50,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | AINOS3-59 | validate-safemode-evasion | DE-0005 | Task | Low | ✅ | ✔ VALIDATED — R5 LC-disable (shared w/ EX-0011); forced ADCS mode = IF warmup blind spot |
 | AINOS3-60 | validate-audit-overflow | DE-0010 | Task | High | ✅ | EVS `AppData[*].AppMessageSquelchedCounter` |
 | AINOS3-61 | validate-memory-compromise | PER-0001 | Task | Med | ✅ | ✔ VALIDATED — CFE_TBL/SC cmd counters; 4-gate MISS → NEW rule R9 (CFE_TBL.CommandCounter) |
-| AINOS3-62 | validate-bus-segregation | LM-0002 | Task | Med | ✅ | `CFE_SB_SUBS` — traffic to unexpected apps |
+| AINOS3-62 | validate-bus-segregation | LM-0002 | Task | Med | ✅ | ✔ VALIDATED — 24-MID sweep → R6+R7+R8+R2 together; `CFE_SB_SUBS` unobservable |
 
 ---
 
@@ -521,17 +526,45 @@ via R9 with a PER-0001 incident ✓. Persistence-across-reset is out of scope in
 (no non-volatile boot memory modeled), documented above. Residual gaps: SC
 stored-command counters and MM (unsubscribed) have no rule yet.
 
-### AINOS3-62 — Validate LM-0002 (Exploit Lack of Bus Segregation) · `Task` · Medium
+### AINOS3-62 — Validate LM-0002 (Exploit Lack of Bus Segregation) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate lateral movement via unsegregated Software Bus.
 
-**Description:** Use the flat SB (no inter-app segregation) to move from one
-compromised app to another — e.g. subscribe/publish across trust boundaries.
-Observable via `CFE_SB_SUBS` (a subscription/route that shouldn't exist). The one
-Lateral-Movement technique that IS on-board-detectable. Script exists at technique
-level.
+**Description:** The cFE Software Bus is flat — any external sender can inject any MID.
+The script demonstrates the reach: a NOOP to **all 24 command MIDs** ("the scale is the
+signal" — a legitimate pass touches 1–3 subsystems, an attacker sweeps many). The one
+Lateral-Movement technique that is on-board-detectable.
 
-**AC:** common criteria; assert the cross-boundary subscription in `CFE_SB_SUBS`.
+**Script:** `gsw/attack_scripts/sparta/lateral_movement/lm_0002_bus_segregation.py`
+(`--attack-level 2` = the 24-MID reach sweep).
+
+**VALIDATED live (2026-07-17, fresh stack):**
+
+- **Signal class: ON_BOARD, LOUD.** The 24-MID sweep ticks every reachable app's
+  command counter once; crucially it hits the four static-in-nominal CDH counters, so
+  **R6 (CFE_SB) + R7 (CFE_EVS) + R8 (CFE_ES) all fired together at the same frame**
+  (`CFE_SB/EVS/ES.CommandCounter 0→1` each), and the command volume spiked the EVS
+  event rate → **R2:evs**. Net: a **45-frame incident** emitted. Device counters
+  (IMU/EPS/THRUSTER/TORQUER/MAG `.CommandCount +1`) also ticked.
+- **⚠ Correction — `CFE_SB_SUBS` is NOT the observable.** The assumed footprint was
+  wrong: `CFE_SB_SUBS.Entries` reads `[0]`/never-received in OnAIR (subscriptions
+  aren't SBN-forwarded — same finding as EX-0012.02). The **real** signal is the
+  *simultaneous firing of multiple command-counter rules* (R6+R7+R8) plus the EVS-rate
+  spike — the "many MIDs in a short window" scale expressed through the deployed rules.
+- **Detected but not distinctly labeled.** The incident collapsed to
+  `cluster=DE-0010 sub=evs-flood` (R2 sustained while the single-step R6/R7/R8 dwells
+  expired, so R2 dominated the label) — the same label-collapse as EX-0013.01. LM-0002
+  is *caught* end-to-end but reads as an EVS flood, not as a bus sweep.
+- **R9 (CFE_TBL) did not trip** despite `CFE_TBL.CommandCounter 0→1`: CFE_TBL HK
+  publishes too slowly for OnAIR to sample the single transient NOOP (same poll-miss as
+  the CFE_ES path in PER-0001). Not a rule defect.
+
+**AC:** met — footprint ON_BOARD, detected loudly by R6+R7+R8+R2. Corrected the
+observable (`CFE_SB_SUBS` unobservable → multi-command-rule + EVS-rate signature).
+
+**Candidate future work:** a meta-rule "≥N distinct command-counter rules fire in one
+window ⇒ bus sweep (LM-0002)" would give the technique its own label instead of
+collapsing to DE-0010.
 
 ---
 
