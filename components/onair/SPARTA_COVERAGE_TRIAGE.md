@@ -70,9 +70,11 @@ Of those, **32 are validated (done)** and **all 6 Impact techniques are done.**
 - **177** SPARTA leaf techniques total; **154** scripts on disk; **32** validated in
   the detection corpus.
 - **~90** are in the on-board-detectable universe. **32 done**, **~58 not done**.
-- Of the ~58 not done: **~18 are applicable + in-scope now** (ON_BOARD — just need
-  validation into the corpus), **~7 are applicable but UNSUBSCRIBED** (need a MID),
-  and **~33 are CONCEPTUAL** (structurally unobservable — permanent out-of-scope).
+- Of the ~58 not done: **13 are applicable + in-scope now** (ON_BOARD — the concrete
+  enumeration in Section A below; the earlier "~18" was a loose estimate), **~7 are
+  applicable but UNSUBSCRIBED** (need a MID), and **~33 are CONCEPTUAL** (structurally
+  unobservable — permanent out-of-scope). The UNSUBSCRIBED/CONCEPTUAL buckets remain
+  estimates, so the sub-buckets are approximate against the ~90 total.
 
 ## A. Applicable · in-scope now · NOT yet validated (the real backlog)
 
@@ -87,12 +89,14 @@ corpus. **Cheapest breadth wins.**
 | EX-0011 | Exploit Reduced Protections in Safe-Mode | ✅ | ADCS/SC mode change |
 | EX-0012.02 | Internal Routing Tables | — | `CFE_SB_SUBS` (subscribed) — new/altered routes |
 | EX-0012.10 | Command & Data Handling Subsystem | — | `CFE_ES`/`CFE_SB` counters |
-| EX-0013.01/.02 | Flooding — Valid Commands / Erroneous Input | ✅ | command counters + `CFE_SB` error family (was excluded from the mode-balanced corpus because a DoS flood doesn't fit the all-modes-dwell window — validate separately) |
+| EX-0013.01 | Flooding — Valid Commands | ✅ | EVS send-rate + command counters (DoS flood; validate standalone — doesn't fit the all-modes-dwell window) |
+| EX-0013.02 | Flooding — Erroneous Input | ✅ | `CFE_SB`/subsystem CommandError family (garbage rejected upstream) |
 | EX-0014.02 | Bus Traffic Spoofing | ✅ | injected SB messages vs `CFE_SB_SUBS` |
 | DE-0002.03 | Inhibit Spacecraft Functionality | ✅ | subsystem HK going quiet / error counts |
 | DE-0005 | Subvert Protections via Safe-Mode | ✅ | mode change (sibling of EX-0011) |
 | DE-0010 | Overflow Audit Log | ✅ | **EVS sent-rate** — `CFE_EVS_HK.MessageSendCounter` + `AppData[CFE_EVS].AppMessageSentCounter` spike (validated 2026-07-16: ON_BOARD, but the deployed IF misses it — squelched-counter does NOT fire) |
 | PER-0001 | Memory Compromise | ✅ | sibling of EX-0012.03 memory write |
+| LM-0002 | Exploit Lack of Bus Segregation | ✅ | `CFE_SB_SUBS` — traffic crossing to unexpected apps |
 
 ## B. Applicable · UNSUBSCRIBED · needs a MID to become detectable
 
