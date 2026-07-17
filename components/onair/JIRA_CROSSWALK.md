@@ -52,25 +52,25 @@ Jira 2026-07-15 and entered below.
 | AINOS3-47 | foundation-baseline | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
 | — | deepsad-revisit | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
 
-### Coverage-validation backlog — Section A (in-scope-now techniques)
+### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
 
-From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md). All Tasks under `coverage-expansion` (AINOS3-41). Enter keys as tickets are created.
+From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md). All Tasks under `coverage-expansion` (AINOS3-41), delivered as unplanned mid-Sprint-25 work. All keys created and all 13 validated live — transition each to Done in Jira to match.
 
 | Jira | Slug | Type | Epic (parent) | Title (SPARTA) | Status |
 |---|---|---|---|---|---|
-| AINOS3-50 | validate-pnt-geofence | Task | coverage-expansion | Validate EX-0002 PNT geofencing | Backlog |
-| AINOS3-51 | validate-hw-commands | Task | coverage-expansion | Validate EX-0005.02 malicious hardware commands | Backlog |
-| AINOS3-52 | validate-safemode-exploit | Task | coverage-expansion | Validate EX-0011 safe-mode exploit | Backlog |
-| AINOS3-53 | validate-routing-tables | Task | coverage-expansion | Validate EX-0012.02 internal routing tables | Backlog |
-| AINOS3-54 | validate-cdh-subsystem | Task | coverage-expansion | Validate EX-0012.10 C&DH subsystem | Backlog |
-| AINOS3-55 | validate-flood-valid | Task | coverage-expansion | Validate EX-0013.01 valid-command flood | Backlog |
-| AINOS3-56 | validate-flood-erroneous | Task | coverage-expansion | Validate EX-0013.02 erroneous-input flood | Backlog |
-| AINOS3-57 | validate-bus-spoof | Task | coverage-expansion | Validate EX-0014.02 bus traffic spoofing | Backlog |
-| AINOS3-58 | validate-inhibit-sc | Task | coverage-expansion | Validate DE-0002.03 inhibit spacecraft functionality | Backlog |
-| AINOS3-59 | validate-safemode-evasion | Task | coverage-expansion | Validate DE-0005 safe-mode subversion | Backlog |
-| AINOS3-60 | validate-audit-overflow | Task | coverage-expansion | Validate DE-0010 overflow audit log | Backlog |
-| AINOS3-61 | validate-memory-compromise | Task | coverage-expansion | Validate PER-0001 memory compromise | Backlog |
-| AINOS3-62 | validate-bus-segregation | Task | coverage-expansion | Validate LM-0002 bus-segregation lateral movement | Backlog |
+| AINOS3-50 | validate-pnt-geofence | Task | coverage-expansion | Validate EX-0002 PNT geofencing | ✅ Done |
+| AINOS3-51 | validate-hw-commands | Task | coverage-expansion | Validate EX-0005.02 malicious hardware commands | ✅ Done |
+| AINOS3-52 | validate-safemode-exploit | Task | coverage-expansion | Validate EX-0011 safe-mode exploit | ✅ Done |
+| AINOS3-53 | validate-routing-tables | Task | coverage-expansion | Validate EX-0012.02 internal routing tables | ✅ Done |
+| AINOS3-54 | validate-cdh-subsystem | Task | coverage-expansion | Validate EX-0012.10 C&DH subsystem | ✅ Done |
+| AINOS3-55 | validate-flood-valid | Task | coverage-expansion | Validate EX-0013.01 valid-command flood | ✅ Done |
+| AINOS3-56 | validate-flood-erroneous | Task | coverage-expansion | Validate EX-0013.02 erroneous-input flood | ✅ Done |
+| AINOS3-57 | validate-bus-spoof | Task | coverage-expansion | Validate EX-0014.02 bus traffic spoofing | ✅ Done |
+| AINOS3-58 | validate-inhibit-sc | Task | coverage-expansion | Validate DE-0002.03 inhibit spacecraft functionality | ✅ Done |
+| AINOS3-59 | validate-safemode-evasion | Task | coverage-expansion | Validate DE-0005 safe-mode subversion | ✅ Done |
+| AINOS3-60 | validate-audit-overflow | Task | coverage-expansion | Validate DE-0010 overflow audit log | ✅ Done |
+| AINOS3-61 | validate-memory-compromise | Task | coverage-expansion | Validate PER-0001 memory compromise | ✅ Done |
+| AINOS3-62 | validate-bus-segregation | Task | coverage-expansion | Validate LM-0002 bus-segregation lateral movement | ✅ Done |
 
 ### Detector gates (parallel to the IF) — mid-sprint 25
 
