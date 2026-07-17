@@ -40,7 +40,7 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 | validate-safemode-exploit | EX-0011 | Task | Med | ✅ | ✔ VALIDATED — LC state + CSS/EPS/thruster (NOT ADCS mode) |
 | validate-routing-tables | EX-0012.02 | Task | High | ✅ | ✔ VALIDATED — DISABLE_ROUTE; freeze detector-blind, CFE_SB.CmdCount is the signal |
 | validate-cdh-subsystem | EX-0012.10 | Task | Med | — | `CFE_ES`/`CFE_SB` counters |
-| validate-flood-valid | EX-0013.01 | Task | Med | ✅ | cmd counters + `CFE_SB` errors |
+| validate-flood-valid | EX-0013.01 | Task | Med | ✅ | ✔ VALIDATED — loud (R2+R3+R6+R7); labeled DE-0010 (shared EVS-flood footprint) |
 | validate-flood-erroneous | EX-0013.02 | Task | Med | ✅ | `CFE_SB` error family |
 | validate-bus-spoof | EX-0014.02 | Task | High | ✅ | ✔ VALIDATED — EXERCISABLE (overturns MD-only); transient, both gates miss |
 | validate-inhibit-sc | DE-0002.03 | Task | Med | ✅ | ✔ VALIDATED — EVS event-stream freeze; staleness-caught (+ fixed uint16-wrap FP) |
@@ -137,6 +137,15 @@ R2/R7 defect; R2's threshold is fine for a healthy stack. **Lesson:** long-uptim
 NOS3 stacks accumulate RADIO-spam EVS load → do incident-level validation on a fresh
 launch; if a healthy stack ever shows a sustained high EVS rate, R2 (like R3) would
 want a sustained-vs-burst guard.
+
+**8th (2026-07-17): EX-0013.01 valid-command flood — LOUD, 4-rule detection; shares
+DE-0010's footprint.** 967 valid NOOPs @100/sec across 7 subsystems fired R2:evs
+(dominant, +575 EVS events), R3:sb (pipe-overflow), and R6:sb + R7:evs (CFE_SB/CFE_EVS
+CommandCounter +96 each) → a 245-frame rule-gate incident. Labeled DE-0010 (evs-flood),
+NOT EX-0013 — a valid-command flood IS an EVS flood at the source (command-success
+events), so R2 dominates. Confirms the rule-gate detects the flood class but has no
+dedicated "flood" label; a mass-command-rate rule would separate EX-0013 from DE-0010.
+First validation on the FRESH stack (post the degraded-stack fix).
 
 **Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
 2026-07-17).** `staleness_check`
@@ -307,15 +316,35 @@ of the done EX-0012.07/.08/.09 (propulsion/ADCS/EPS). Footprint in the subscribe
 pattern.
 **AC:** common criteria; identify the C&DH field(s) perturbed.
 
-### validate-flood-valid — Validate EX-0013.01 (Flooding — Valid Commands) · `Task` · Medium
+### validate-flood-valid — Validate EX-0013.01 (Flooding — Valid Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate a valid-command flood (DoS).
-**Description:** Flood the command path with a burst of *valid* commands. Script
-`ex_0013_flooding.py` exists but EX-0013 was **excluded from the mode-balanced
-corpus** because a DoS flood doesn't fit the `all_modes_dwell` window. Footprint:
-command counters climb fast + `CFE_SB` error/overflow family.
-**AC:** common criteria; **validate standalone** (document the flood window; do not
-force it through all_modes_dwell).
+**Description:** Flood the command path with a burst of *valid* commands
+(`ex_0013_flooding.py --attack-level 3`, 967 valid NOOPs at 100/sec across 7
+subsystems). Validated standalone on a FRESH stack (see the degraded-stack note —
+incident-level validation needs a clean launch).
+**VALIDATED live 2026-07-17:**
+
+- **Signal class: ON_BOARD, LOUD — detected by FOUR rules.** During the flood:
+  **R2:evs** (145 frames — the dominant signature; EVS `MessageSendCounter` +575, as
+  each NOOP emits a command-success event), **R3:sb** (77 — SB pipe-overflow errors),
+  **R6:sb** + **R7:evs** (52 each — CFE_SB and CFE_EVS `CommandCounter` +96; CFE_ES
+  also +96). Emitted a **245-frame rule-gate incident** (frames 5542-5786) that
+  closed cleanly when the flood stopped.
+
+- **Labeling finding — EX-0013.01 ≡ DE-0010 footprint.** The incident is labeled
+  **DE-0010 (evs-flood)**, not EX-0013, because a valid-command flood IS an EVS flood
+  at the source (command-success events), so the EVS-rate spike (R2, 145 frames)
+  dominates the R6/R7 command spikes (52 frames each) → majority label DE-0010
+  (agreement 0.77). The rule-gate DETECTS the flood but has no dedicated "flood"
+  class; labeling it EX-0013 specifically would need a multi-rule/mass-command-rate
+  rule. The R6/R7 command spikes are the distinguisher from a pure EVS-NOOP flood.
+
+**AC:** footprint ON_BOARD ✓ (4-rule detection + incident) ✓; validated standalone ✓.
+No cleanup (all NOOPs — no state change). **Follow-up:** EX-0013.02 (erroneous-input
+flood) is the sibling — malformed packets → CFE_SB MsgReceive/PipeOverflow error
+family + the sbn_adapter unknown-MsgId path (watch for the KeyError crash from
+wave-2); a distinct footprint from this valid flood.
 
 ### validate-flood-erroneous — Validate EX-0013.02 (Flooding — Erroneous Input) · `Task` · Medium
 
