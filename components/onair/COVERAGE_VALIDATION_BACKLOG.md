@@ -1,6 +1,7 @@
 # Coverage Validation Backlog — Section A (in-scope-now techniques)
 
 **Epic:** `coverage-expansion` (AINOS3-41) · **Created:** 2026-07-15
+
 **Source:** [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) Section A.
 
 These SPARTA techniques are **in the on-board-detectable universe, produce a
@@ -52,8 +53,10 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
 **Summary:** As a defender, I want EX-0002 (PNT geofencing manipulation) validated
 into the corpus so the detector is scored against it.
+
 **Description:** Attack disables the GPS receiver (NOVATEL) to cut PNT data (level
 2) and shifts CFE_TIME STCF (level 3), forcing ADCS onto stale nav.
+
 **VALIDATED live (2026-07-16, `ex_0002_pnt_geofencing.py --attack-level 2`):**
 
 - **Signal class: ON_BOARD, clean.** `NOVATEL_HK.DeviceEnabled: 1→0` (GPS disabled)
@@ -125,6 +128,7 @@ at **~61/frame (max 228)** — far above R2's threshold (15) — because the RAD
 device-HK spam ("GENERIC_RADIO … error -1") accumulates over a long-uptime stack
 whose downlink link degraded. R2:evs then fired continuously and, since R2 drives
 incidents, pinned EVERY rule-gate incident open (never closes → no incident file).
+
 **Diagnosed + fixed by `make stop` + `make launch-quiet` (COSMOS stayed up):** fresh
 FSW boot dropped the EVS rate to **mean 2.3/frame (max 3)**, R2:evs FP **0/670
 frames**, and R7's incident then EMITTED cleanly — `frames 576-588 mode=SUNSAFE
@@ -288,6 +292,7 @@ valid-command / no-cmd-error footprint live, and confirmed detection by R1 + IF.
 ### validate-safemode-exploit — Validate EX-0011 (Exploit Reduced Protections in Safe-Mode) · `Task` · Medium · ✔ VALIDATED 2026-07-16
 
 **Summary:** Validate the safe-mode exploitation technique.
+
 **Description:** In NOS3 this is NOT an ADCS/SC mode transition (the original
 footprint guess was wrong). The script simulates safe-mode by disabling
 monitoring (HS/LC/EVS) then exploiting: EPS switch-off, thruster arm+fire, sensor
@@ -331,6 +336,7 @@ verified (thruster disarmed, CSS/EPS/LC/EVS restored).
 ### validate-routing-tables — Validate EX-0012.02 (Internal Routing Tables) · `Task` · High · ✔ VALIDATED 2026-07-16
 
 **Summary:** Validate SB internal-routing-table modification.
+
 **Description:** Modify the Software Bus routing tables to redirect/deny message
 flow. **VALIDATED live 2026-07-16 (no script — raw UDP CFE_SB commands):**
 
@@ -408,10 +414,12 @@ the perturbed value, footprint confirmed live, and detection closed via R8.
 ### validate-flood-valid — Validate EX-0013.01 (Flooding — Valid Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate a valid-command flood (DoS).
+
 **Description:** Flood the command path with a burst of *valid* commands
 (`ex_0013_flooding.py --attack-level 3`, 967 valid NOOPs at 100/sec across 7
 subsystems). Validated standalone on a FRESH stack (see the degraded-stack note —
 incident-level validation needs a clean launch).
+
 **VALIDATED live 2026-07-17:**
 
 - **Signal class: ON_BOARD, LOUD — detected by FOUR rules.** During the flood:
@@ -437,10 +445,12 @@ wave-2); a distinct footprint from this valid flood.
 ### validate-flood-erroneous — Validate EX-0013.02 (Flooding — Erroneous Input) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate an erroneous-input flood.
+
 **Description:** Malformed-packet flood — 700 packets to :5012 (random garbage MIDs,
 telemetry-range garbage, wrong-FC to real command MIDs, oversized, and definitely-
 unmapped high StreamIds). Validated standalone on the fresh stack, watching for the
 wave-2 sbn_adapter crash.
+
 **VALIDATED live 2026-07-17:**
 
 - **Footprint is the CommandError family, NOT the SB-receive-error family** (corrects
@@ -465,6 +475,7 @@ cmd-errors/R4).
 ### validate-bus-spoof — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High · ✔ VALIDATED 2026-07-16 (overturns MARKDOWN-ONLY)
 
 **Summary:** Validate Software-Bus traffic spoofing.
+
 **Description:** Inject spoofed SB messages impersonating a legitimate app. The
 `.md` had this MARKDOWN-ONLY ("internal SB injection not reachable from external
 UDP"). **That is WRONG — empirically overturned 2026-07-16** (per the
@@ -519,11 +530,13 @@ from MARKDOWN-ONLY to exercisable-and-now-detected.
 ### validate-inhibit-sc — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate disabling/inhibiting a spacecraft subsystem as evasion.
+
 **Description:** Suppress telemetry at the source. The shipped script is a STUB
 (only sends CFE_EVS NOOPs — doesn't execute the inhibit); validated directly via raw
 commands. The OnAIR-observable mechanism is **CFE_EVS DISABLE_EVENT_TYPE** (0x1801
 FC3, 2-byte {BitMask,Spare}) — disabling all 4 event types (bitmask 0x0F) stops the
 event stream. (Inverse of DE-0010's EVS flood.)
+
 **VALIDATED live 2026-07-17:**
 
 - **Signal class: ON_BOARD, staleness-detected.** `CFE_EVS_HK.MessageSendCounter`
@@ -556,14 +569,17 @@ re-enabled (EVS resumed).
 ### validate-safemode-evasion — Validate DE-0005 (Subvert Protections via Safe-Mode) · `Task` · Low
 
 **Summary:** Validate safe-mode subversion as a defense-evasion technique.
+
 **Description:** The defense-evasion sibling of EX-0011 — enter safe mode to relax
 protections and evade. Same footprint (mode transition). Low priority: near-
 duplicate of validate-safemode-exploit; validate together.
+
 **AC:** common criteria; may share a run with EX-0011.
 
 ### validate-audit-overflow — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ◑ FOOTPRINT-VALIDATED 2026-07-16
 
 **Summary:** Validate an EVS event-log overflow used to bury evidence.
+
 **Description:** Flood EVS with events (script sends `CFE_EVS_NOOP`, MID 0x1801)
 so the audit trail is drowned. Observable in the EVS housekeeping.
 **VALIDATED against live FSW (2026-07-16, `de_0010_overflow_audit_log.py`
@@ -589,6 +605,7 @@ send errors; already subscribed). **`CI.IngestPackets` did NOT move** — extern
 injected commands hit the NOS3 UDP→SB bridge at :5012 and **bypass CI_LAB**, so
 `CI_LAB_HK` is NOT a command-injection signal in NOS3 (refutes a triage assumption;
 same likely applies to the EX-0013 flood tickets). No new MID adds DE-0010 signal.
+
 **Revised AC:** footprint is confirmed ON_BOARD ✓. Folding into the corpus is
 **not** guaranteed to make the IF catch it — the honest next step is (a) collect
 DE-0010 + retrain and re-measure whether the IF learns the EVS-flood signature, or
@@ -599,18 +616,22 @@ validate" to "signal present but detector-blind — needs a feature, not just da
 ### validate-memory-compromise — Validate PER-0001 (Memory Compromise) · `Task` · Medium
 
 **Summary:** Validate persistent memory compromise.
+
 **Description:** Persistent on-board memory modification (persistence tactic).
 Mechanically similar to EX-0012.03 (memory write/load); the distinction is
 persistence across a reset. Footprint via the same `CFE_TBL`/`CFE_ES` surfaces plus
 survival across a Tier-1.5 reset. Script exists at technique level.
+
 **AC:** common criteria; additionally show the change *persists* across a reset.
 
 ### validate-bus-segregation — Validate LM-0002 (Exploit Lack of Bus Segregation) · `Task` · Medium
 
 **Summary:** Validate lateral movement via unsegregated Software Bus.
+
 **Description:** Use the flat SB (no inter-app segregation) to move from one
 compromised app to another — e.g. subscribe/publish across trust boundaries.
 Observable via `CFE_SB_SUBS` (a subscription/route that shouldn't exist). The one
 Lateral-Movement technique that IS on-board-detectable. Script exists at technique
 level.
+
 **AC:** common criteria; assert the cross-boundary subscription in `CFE_SB_SUBS`.

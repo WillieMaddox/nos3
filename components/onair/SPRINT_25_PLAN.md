@@ -1,8 +1,14 @@
 # Sprint 25 — "Consolidate & Add Signal" 📡
 
-**Component:** `OnAIR-Security` · **Duration:** 2 weeks
+**Component:** `OnAIR-Security`
+
+**Created:** 2026-07-15
+
+**Duration:** 2 weeks
+
 **Capacity:** ~16 E-pts / ~7–8 T-pts (solo, realistic focus factor)
-**Created:** 2026-07-15 · **Context:** Sprint 24 closed the **trust** and
+
+**Context:** Sprint 24 closed the **trust** and
 **explainability** epics — the classifier is honestly measured (out-of-fold),
 its PASSIVE weakness is a documented information limit (not a modeling one), the
 mode-switch warmup is tuned + deployed, and every incident now carries a
@@ -129,6 +135,7 @@ prior `rollout-s24`).
 | sb-command-rule | — | Task | Med | 2 | 0.5 | ✅ DONE — R6 CFE_SB.CommandCounter route-command rule (low-latency EX-0012.02 catch) |
 
 **Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours).
+
 **Unplanned `detector-gates` epic (mid-sprint actuals):** E = 23 · T = 7.0 (≈ 56 h)
 — the three shipped Stories are the sprint's actual highest-value output; their E/T
 are **retrospective (realized effort/time)**, not forward estimates, since uncertainty
@@ -179,6 +186,7 @@ separate** above the DEAD floor.
 **Estimate note:** ~5h of corpus-collection wall-clock excluded from T; E carries
 the real risk that the classes stay dead even with the new MIDs (in which case
 the deliverable is the negative finding + the ruled-out MIDs, not a deploy).
+
 **Dependency for downstream bets:** this is also the gate `NOS3_330` set on
 re-opening Phase 5 (DeepSAD) — a broader signal + larger corpus is what changes
 that data-sufficiency picture.
@@ -313,6 +321,7 @@ crosswalk artifact, and resolve by the **`AppID` value in field 0** (not slot
 position, so EVS registration-order variation can't misname). Explicitly **not**
 subscribing the ES App Info MID at runtime — that solves a per-run-dynamic
 problem we don't have and adds permanent flight-runtime surface.
+
 **Acceptance criteria:**
 
 - Committed `AppID→name` crosswalk JSON covering the 16 populated slots, pinned
@@ -326,9 +335,11 @@ problem we don't have and adds permanent flight-runtime surface.
 
 **Depends on:** AINOS3-38 (attribution, DONE). **Feeds:** AINOS3-39 (counter-reliance
 audit); optionally the AINOS3-37 targeted-feature work.
+
 **Escape hatch:** if a future need makes live app-registration state worthwhile
 (frequent rebuilds, or an operator wants live ES state), the static table
 upgrades to the ES App Info telemetry approach cheaply.
+
 **Estimate note:** E 3 carries the offset-pinning uncertainty (mapping the opaque
 IDs to names correctly the first time); T ~0.75 (~6h) is the table + render +
 guard once the dump is in hand.
@@ -404,6 +415,7 @@ to specific apps and test the sharp question — is it the *attacked* subsystem'
 event stream (genuine) or a generic busy app (shortcut)? Prototype a
 drop/regularize experiment over the frozen `csv_corpus_v3stage` under LOIO and
 compare per-attack cluster accuracy.
+
 **Acceptance criteria:**
 
 - The `AppData` / `CFE_ES.CommandCounter` contributions resolved to named apps

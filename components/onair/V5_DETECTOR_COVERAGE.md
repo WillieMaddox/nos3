@@ -1,8 +1,10 @@
 # NOS3 OnAIR Security Monitor — What It Catches / What It Doesn't
 
 **Audience:** mission, security, and program stakeholders (no ML background assumed).
+
 **Scope:** the v5 anomaly detector + v3 attack classifier currently deployed in
 the OnAIR plugin against the NOS3 cFS flight software.
+
 **Last updated:** 2026-06-09. Numbers are from attack scripts empirically
 validated against live FSW (31 SPARTA entries) and from calibrated nominal
 soaks — not from simulation assumptions.

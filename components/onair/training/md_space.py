@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Normalize CommonMark-safe blank-line spacing around markdown lists and headings.
 
-Ensures a blank line BEFORE a list starts, AFTER a list ends, and AROUND section
-headings — the spacing some strict markdown readers need to parse lists and sections
-correctly (see feedback_markdown_blank_line_spacing). Lists are kept TIGHT: there are
-NO blank lines BETWEEN list items, only before the first item and after the last.
+Ensures a blank line BEFORE a list starts, AFTER a list ends, AROUND section
+headings, and BEFORE each bold field-label paragraph (**Summary:** / **Description:**
+/ **AC:** and the like, which otherwise render run-together) — the spacing some strict
+markdown readers need to parse lists and sections correctly (see
+feedback_markdown_blank_line_spacing). Lists are kept TIGHT: there are NO blank lines
+BETWEEN list items, only before the first item and after the last.
 
 This INSERTS the surrounding blank lines and REMOVES any blank line that sits between
 two list items (a leftover from the earlier loose-list convention). It never changes,
@@ -21,6 +23,10 @@ import sys
 LIST = re.compile(r"^(\s*)([-*+]|\d+\.)\s")
 HEADING = re.compile(r"^#{1,6}\s")
 FENCE = re.compile(r"^\s*(```|~~~)")
+# A paragraph led by a bold field label, e.g. **Summary:** / **Description:** / **AC:**.
+# Stacked labels on consecutive lines render as one run-together paragraph, so each
+# gets a blank line before it. A wrapped continuation line never starts with **Label:**.
+LABEL = re.compile(r"^\*\*[A-Za-z][^*]*:\*\*")
 
 
 def _blank(s):
@@ -64,6 +70,7 @@ def reformat(lines):
 
         is_list = bool(LIST.match(body))
         is_head = bool(HEADING.match(body))
+        is_label = bool(LABEL.match(body))
         indented = (not blank) and body[:1] in (" ", "\t")
         prev_blank = (not out) or _blank(out[-1])
 
@@ -72,6 +79,8 @@ def reformat(lines):
                 out.append("\n")                      # blank before a heading
             elif is_list and not last_listish:
                 out.append("\n")                      # blank before the FIRST item of a list
+            elif is_label and not last_listish:
+                out.append("\n")                      # blank before a **Label:** paragraph
             elif last_listish and not indented and not is_list:
                 out.append("\n")                      # blank after a list, before a paragraph
 
