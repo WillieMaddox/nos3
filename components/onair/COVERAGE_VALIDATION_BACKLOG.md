@@ -123,17 +123,20 @@ it exposed a staleness **uint16-wrap FP** (DS.FileWriteCounter wraps 65535→0, 
 the running max) — fixed (fsw b9b37cb): a >50%-relative backwards drop is a wrap/reset,
 re-baseline the max. Re-validated over 194K frames, 0 FP + TP preserved.
 
-**⚠ Degraded-test-stack finding (2026-07-17): R2:evs FP-blocks incidents after long
-uptime.** The R7 live run found the EVS rate at **~61/frame (max 228)** — far above
-R2's threshold (15) — because the disconnected-downlink RADIO device-HK spam
-("GENERIC_RADIO … error -1") accumulates over long uptime. So R2:evs fires
-continuously → since R2 drives incidents, EVERY rule-gate incident stays open (never
-closes → no incident file) in this state. This is a STACK-DEGRADATION artifact (a
-fresh stack has EVS rate <1/frame, as in the DE-0010 validation), not an R2/R7 design
-defect — but it means: (1) validate incident *emission* on a fresh stack; (2) consider
-whether R2 (like R3) needs a sustained-vs-burst guard or a higher threshold for
-degraded/high-EVS environments. Recommend a `make stop` + fresh `launch-quiet` before
-the next incident-level validation.
+**Degraded-test-stack finding (2026-07-17): R2:evs FP after long uptime — CONFIRMED
+an uptime artifact, RESOLVED by a fresh launch.** The R7 live run found the EVS rate
+at **~61/frame (max 228)** — far above R2's threshold (15) — because the RADIO
+device-HK spam ("GENERIC_RADIO … error -1") accumulates over a long-uptime stack
+whose downlink link degraded. R2:evs then fired continuously and, since R2 drives
+incidents, pinned EVERY rule-gate incident open (never closes → no incident file).
+**Diagnosed + fixed by `make stop` + `make launch-quiet` (COSMOS stayed up):** fresh
+FSW boot dropped the EVS rate to **mean 2.3/frame (max 3)**, R2:evs FP **0/670
+frames**, and R7's incident then EMITTED cleanly — `frames 576-588 mode=SUNSAFE
+cluster=DE-0002.03 sub=evs-command`. So it is a STACK-DEGRADATION artifact, NOT an
+R2/R7 defect; R2's threshold is fine for a healthy stack. **Lesson:** long-uptime
+NOS3 stacks accumulate RADIO-spam EVS load → do incident-level validation on a fresh
+launch; if a healthy stack ever shows a sustained high EVS rate, R2 (like R3) would
+want a sustained-vs-burst guard.
 
 **Staleness detector — BUILT + HARDENED + DEPLOYED (2026-07-16; uint16-wrap FP fixed
 2026-07-17).** `staleness_check`
@@ -403,7 +406,8 @@ event stream. (Inverse of DE-0010's EVS flood.)
   DISABLE_ROUTE). R6 catches the CFE_SB command; **R7 — a CFE_EVS-command rule — is
   now BUILT** (rule_gate b586b7a): CFE_EVS_HK.CommandCounter is static in nominal
   (verified 1 value / 4530 frames), so a new high labels this DE-0002.03/evs-command
-  at ~1 frame. Live-verified firing (a CFE_EVS NOOP → R7 alert) while R6 stayed
+  at ~1 frame. Live-verified on a fresh stack: a CFE_EVS NOOP → R7 alert 1 frame later
+  → a closed **DE-0002.03/evs-command incident** (`frames 576-588`), while R6 stayed
   silent. So DE-0002.03 now has two catches: staleness (freeze effect) + R7 (command).
 
 - **Bonus — found + fixed a staleness FP:** the run exposed a persistent false stale
