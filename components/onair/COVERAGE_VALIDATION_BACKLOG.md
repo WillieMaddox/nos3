@@ -506,10 +506,10 @@ the IF misses; the campaign built a complementary gate for each:
   wrong test). ~30–50s latency; the R6/R7 command rules are the low-latency
   complement. 0 FP over 194K frames.
 
-**These four gates are deliverables that still need their own tickets.** They are build
-work, not validations. SPRINT_25 reserves the slugs `rule-gate-detector`,
-`consistency-gate`, `staleness-gate`, `sb-command-rule` and flags "create Jira tickets
-for the gates" as an owner action — track them there, not in this backlog.
+**These four gates are deliverables tracked separately, not validations.** They are
+their own epic **AINOS3-63** (detector-gates) with tickets **AINOS3-64…67**; the
+detailed writeups live in [`SPRINT_25_PLAN.md`](SPRINT_25_PLAN.md) and the mapping in
+[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md) — not in this backlog.
 
 **Two lessons carried to memory (recorded here for provenance):**
 

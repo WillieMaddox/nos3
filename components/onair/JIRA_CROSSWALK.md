@@ -72,21 +72,22 @@ From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALID
 | AINOS3-61 | validate-memory-compromise | Task | coverage-expansion | Validate PER-0001 memory compromise | Backlog |
 | AINOS3-62 | validate-bus-segregation | Task | coverage-expansion | Validate LM-0002 bus-segregation lateral movement | Backlog |
 
-### Detector gates (parallel to the IF) — mid-sprint 25 (slugs reserved; create tickets)
+### Detector gates (parallel to the IF) — mid-sprint 25
 
 Four complementary runtime detector gates built during the Section-A validation
 campaign (2026-07-16), each catching an attack class the deployed v5 IF structurally
-misses (state-change / spoof / telemetry-freeze). Proposed as a dedicated epic
-`detector-gates`; alternatively park all four under `coverage-expansion` (AINOS3-41).
-`—` = ticket not yet created / key not yet entered.
+misses (state-change / spoof / telemetry-freeze). Created as a dedicated epic
+`detector-gates` (**AINOS3-63**) with the four child tickets **AINOS3-64…67**;
+detailed ticket writeups (Summary/Description/AC + actuals) are in
+[`SPRINT_25_PLAN.md`](SPRINT_25_PLAN.md).
 
 | Jira | Slug | Type | Epic (parent) | Title | Status |
 |---|---|---|---|---|---|
-| — | detector-gates | Epic | — | Complementary detector gates (parallel to the IF) | — |
-| — | rule-gate-detector | Story | detector-gates | Rule-gate: parallel state-change detector (R1–R5) + incident wiring | ✅ Done, deployed |
-| — | consistency-gate | Story | detector-gates | Consistency-check: per-sample bus-spoof detector | ✅ Done, deployed |
-| — | staleness-gate | Story | detector-gates | Staleness-check: telemetry-denial / frozen-stream detector | ✅ Done, deployed |
-| — | sb-command-rule | Task | detector-gates | Rule-gate R6: CFE_SB routing/subscription command rule | ✅ Done, deployed |
+| AINOS3-63 | detector-gates | Epic | — | Complementary detector gates (parallel to the IF) | — |
+| AINOS3-64 | rule-gate-detector | Story | detector-gates | Rule-gate: parallel state-change detector (R1–R5) + incident wiring | ✅ Done, deployed |
+| AINOS3-65 | consistency-gate | Story | detector-gates | Consistency-check: per-sample bus-spoof detector | ✅ Done, deployed |
+| AINOS3-66 | staleness-gate | Story | detector-gates | Staleness-check: telemetry-denial / frozen-stream detector | ✅ Done, deployed |
+| AINOS3-67 | sb-command-rule | Task | detector-gates | Rule-gate R6: CFE_SB routing/subscription command rule | ✅ Done, deployed |
 
 ## Sprint 24 (prior)
 

@@ -63,9 +63,9 @@ validated against the live FSW under the evaluation-provenance rule. **5 of 13 d
 Running finding: the v5 IF is a *dynamics* detector — blind to discrete state
 changes, transient spoofs, and frozen streams. That drove the four new gates.
 
-**NEW deliverables — four complementary detector gates** (belong under AINOS3-41;
-**no crosswalk rows yet** — reserved slugs proposed: `rule-gate-detector`,
-`consistency-gate`, `staleness-gate`, `sb-command-rule`):
+**NEW deliverables — four complementary detector gates** (now their own epic
+**AINOS3-63** with tickets **AINOS3-64…67**; see the detector-gates epic section below
+and [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md)):
 
 - **rule-gate** — state-change gate (R1 device-disable · R2 EVS-rate · R3 SB-err ·
   R4 cmd-err · **R5 monitor-state/LC-disable**) + incident wiring into the shared
@@ -81,14 +81,14 @@ changes, transient spoofs, and frozen streams. That drove the four new gates.
   injected freeze at ~53 frames**; live watched set matches offline. 7 unit tests.
   *Documented limits:* high-latency by nature (~30–50s — poll-rate mismatch);
   coverage is the CDH/scheduler MIDs (sensor DeviceHK counters publish too variably).
-- **(candidate R6)** — CFE_SB.CommandCounter rule for the route command itself — the
-  complementary, lower-latency EX-0012.02 catch. **Not built.**
+- **R6 (sb-command-rule, AINOS3-67)** — CFE_SB.CommandCounter rule for the route
+  command itself — the complementary, lower-latency EX-0012.02 catch. **DEPLOYED.**
 
 The detector roadmap is now **3 deployed gates + IF** (dynamics-IF · rule-gate ·
-consistency-check · staleness-check). **Owner action:** create Jira tickets for the
-four gates (and the 8 remaining Section-A validations) — the crosswalk's reserved
-slugs hold this; a proposed `detector-gates` epic + Summary/Description for each is
-ready to drop in.
+consistency-check · staleness-check). Tickets created: epic **AINOS3-63** with
+**AINOS3-64…67** (the four gates), detailed in the detector-gates epic section below.
+(The R7/R8 command rules added later — CFE_EVS and CFE_ES — extend AINOS3-64's
+rule-gate under the same mechanism.)
 
 ## Points — two metrics
 
@@ -128,11 +128,11 @@ prior `rollout-s24`).
 | AINOS3-37 | selective-mode-hybrid | Story | Medium | 5 | 1.5 | ○ STRETCH — bank INERTIAL/SUNSAFE/ROBUST gains, no BDOT/PASSIVE regression |
 | AINOS3-42 | stakeholder-rollout | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
 | AINOS3-49 | rollout-s25 | Task | Medium | 2 | 0.5 | ◑ COMMIT — Sprint-25 readout: DEAD-class recovery + audit findings |
-| — | detector-gates | Epic | — | — | — | 🔄 MID-SPRINT (unplanned) — complementary detector gates, parallel to the IF |
-| — | rule-gate-detector | Story | — | 8 | 2.5 | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
-| — | consistency-gate | Story | — | 5 | 1.5 | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
-| — | staleness-gate | Story | — | 8 | 2.5 | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
-| — | sb-command-rule | Task | Med | 2 | 0.5 | ✅ DONE — R6 CFE_SB.CommandCounter route-command rule (low-latency EX-0012.02 catch) |
+| AINOS3-63 | detector-gates | Epic | — | — | — | 🔄 MID-SPRINT (unplanned) — complementary detector gates, parallel to the IF |
+| AINOS3-64 | rule-gate-detector | Story | — | 8 | 2.5 | ✅ DONE — rule-gate state-change detector (R1–R5) + incident wiring |
+| AINOS3-65 | consistency-gate | Story | — | 5 | 1.5 | ✅ DONE — per-sample bus-spoof detector (0 FP / 810 live frames) |
+| AINOS3-66 | staleness-gate | Story | — | 8 | 2.5 | ✅ DONE — telemetry-denial / frozen-stream detector (0 FP; ~30–50s latency) |
+| AINOS3-67 | sb-command-rule | Task | Med | 2 | 0.5 | ✅ DONE — R6 CFE_SB.CommandCounter route-command rule (low-latency EX-0012.02 catch) |
 
 **Totals (originally-planned tickets):** E = 21 · T = 6.0 (≈ 48 ideal hours).
 
@@ -513,7 +513,7 @@ not a repeat of Sprint 24).
 
 ---
 
-## 🟪 EPIC (proposed `detector-gates`) — Complementary detector gates (parallel to the IF)
+## 🟪 EPIC AINOS3-63 — Complementary detector gates (parallel to the IF)
 
 **Summary:** A family of lightweight runtime OnAIR gates running PARALLEL to the v5
 IF, each catching an attack class the dynamics-IF is structurally blind to.
@@ -523,11 +523,11 @@ validation campaign (AINOS3-50…62) — the sprint's actual highest-value outpu
 campaign proved the deployed v5 IF is a *dynamics* detector: it flags GNC/attitude
 physics anomalies but misses discrete state changes, transient spoofs, and frozen
 streams. These gates fill those gaps; an operator ORs their incident streams with the
-IF→classifier path (all emit the shared `Incident` format). Proposed as a dedicated
-epic; alternatively park under `coverage-expansion` (AINOS3-41). Slugs reserved in
-[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md) — create the tickets and enter keys.
+IF→classifier path (all emit the shared `Incident` format). Created as a dedicated
+epic **AINOS3-63**; keys for the four child tickets are in
+[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
-### rule-gate-detector — Rule-gate: parallel state-change detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
+### AINOS3-64 — Rule-gate: parallel state-change detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
 
 **Summary:** As a defender I want the flag/counter state-change attacks the
 dynamics-IF misses (device disable, EVS/SB rate spikes, monitoring disable) caught by
@@ -545,7 +545,7 @@ double-buffer flicker. Folds into the shared IncidentAggregator.
 **Status:** Deployed + live-verified; 11 unit tests. Validated against EX-0002,
 EX-0014.03, DE-0010, EX-0011.
 
-### consistency-gate — Consistency-check: per-sample bus-spoof detector · `Story` · E 5 · T 1.5 (~12h, actual) · ✅ DONE (deployed)
+### AINOS3-65 — Consistency-check: per-sample bus-spoof detector · `Story` · E 5 · T 1.5 (~12h, actual) · ✅ DONE (deployed)
 
 **Summary:** As a defender I want externally-injected spoofed telemetry (bus-traffic
 spoofing, EX-0014.02) caught — a per-sample out-of-distribution value the IF and
@@ -562,7 +562,7 @@ name + uint8 filters beat wraps and physical fields). Labels EX-0014.02 incident
 a spoofed `IMU.DeviceHK.DeviceCounter` while the rule-gate stayed silent. Caveat: wide
 (non-wrapping) counters only.
 
-### staleness-gate — Staleness-check: telemetry-denial / frozen-stream detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
+### AINOS3-66 — Staleness-check: telemetry-denial / frozen-stream detector · `Story` · E 8 · T 2.5 (~20h, actual) · ✅ DONE (deployed)
 
 **Summary:** As a defender I want a route-disable telemetry-freeze (a MID stops
 reaching the monitor, EX-0012.02) caught — a frozen stream has no forward delta, so
@@ -581,7 +581,7 @@ high-latency (~30–50s — OnAIR polls faster than MIDs publish); coverage = CD
 MIDs (sensor DeviceHK counters publish too variably). See `sb-command-rule` for the
 lower-latency complement.
 
-### sb-command-rule — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · Medium · E 2 · T 0.5 (~4h) · ✅ DONE (deployed)
+### AINOS3-67 — Rule-gate R6: CFE_SB routing/subscription command rule · `Task` · Medium · E 2 · T 0.5 (~4h) · ✅ DONE (deployed)
 
 **Summary:** As a defender I want the EX-0012.02 route-modification COMMAND itself
 caught — a cleaner, lower-latency signal than the freeze effect.
