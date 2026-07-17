@@ -11,7 +11,7 @@ them roughly doubles validated coverage of the ~90-technique detectable universe
 
 **Status (2026-07-17): ALL 13 VALIDATED — campaign complete.** Every technique in the
 table below has a live-verified footprint; the campaign also built the 4 detector
-gates + rules R1–R9 for the classes the IF misses. See the campaign synthesis at the
+gates + rules R1–R10 for the classes the IF misses. See the campaign synthesis at the
 end.
 
 **Count:** the triage headline estimated "~18"; the concrete, defensible
@@ -562,9 +562,13 @@ Lateral-Movement technique that is on-board-detectable.
 **AC:** met — footprint ON_BOARD, detected loudly by R6+R7+R8+R2. Corrected the
 observable (`CFE_SB_SUBS` unobservable → multi-command-rule + EVS-rate signature).
 
-**Candidate future work:** a meta-rule "≥N distinct command-counter rules fire in one
-window ⇒ bus sweep (LM-0002)" would give the technique its own label instead of
-collapsing to DE-0010.
+**Meta-rule BUILT — R10 bus-sweep (2026-07-17).** The "≥N distinct command-counter
+rules fire in one window ⇒ bus sweep" meta-rule is deployed (`BusSweepMinRules`=3),
+priced above the individual command rules + R2 so the sweep gets its OWN label. Live
+after redeploy: the 24-MID sweep fired R6+R7+R8+R9 together → **R10:bus-sweep** →
+`INCIDENT cluster=LM-0002 sub=bus-sweep` (frames 245-259) — no longer collapsing to
+DE-0010. (A separate trailing DE-0010/evs-flood incident still follows, correctly, as
+the EVS-event aftermath.) +3 unit tests (28 pass). Rule-gate now R1–R10.
 
 ---
 
@@ -601,7 +605,8 @@ the IF misses; the campaign built a complementary gate for each:
 - **rule-gate (R1–R9)** — sustained state/counter changes: R1 device-disable, R2
   EVS-rate, R3 SB-errors, R4 cmd-errors, R5 monitor-state (LC/HS), and the
   static-in-nominal command-counter rules R6 (CFE_SB), R7 (CFE_EVS), R8 (CFE_ES),
-  R9 (CFE_TBL). The rule that fires IS the label.
+  R9 (CFE_TBL), and the R10 bus-sweep meta-rule (≥3 command rules in one window ⇒
+  LM-0002). The rule that fires IS the label.
 - **consistency-check** — per-sample counter-monotonicity, for the transient bus-spoof
   flicker (EX-0014.02) both other gates miss. 0 FP / 810 live frames.
 - **staleness-check** — frozen-stream / telemetry-denial (EX-0012.02 route-disable,
