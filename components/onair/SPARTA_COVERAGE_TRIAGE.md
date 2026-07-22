@@ -70,15 +70,28 @@ Of those, **32 are validated (done)** and **all 6 Impact techniques are done.**
 ## Headline
 
 - **177** SPARTA leaf techniques total; **154** scripts on disk.
-- **~90** are in the on-board-detectable universe. **45 validated** = **32** in the
-  classifier detection corpus + **13 Section-A gate-validated** (all live-verified
-  through 2026-07-17; caught by the rule-gate / consistency / staleness gates the
-  dynamics-IF misses).
-- The remaining ~45 split: **~7 are Section B** (their MID is now SUBSCRIBED after the
-  16-MID pass, but detection isn't built/validated yet — no longer "needs a MID"),
-  **~33 are CONCEPTUAL** (Section C — structurally unobservable, permanent out-of-scope),
-  and **~5 are borderline ON_BOARD candidates held out** pending a footprint check
-  (`EX-0001.02`, `DE-0006`, `EX-0005.01`). That reconciles: 45 + 7 + 33 + 5 = 90.
+- **45 validation results** = **32** mode-balanced corpus attack runs + **13**
+  Section-A gate-validated (all live-verified through 2026-07-17; caught by the
+  rule-gate / consistency / staleness gates the dynamics-IF misses).
+- **Per-leaf coverage** — the `app/sparta_coverage.html` overview now carries a verdict
+  for **every** leaf. The precise per-leaf split reconciles as **37 + 23 + 9 + 108 = 177**:
+  - **37 carry a detection verdict** — 24 unique leaves in the classifier corpus (the
+    32 attack runs collapse to 24 leaf IDs) + 13 Section-A gate leaves.
+  - **23 out of scope** — applicable but structurally unobservable by construction
+    (Section C: crypto, self-hiding malware, registers, credentials).
+  - **9 not evaluated** — applicable, plausibly observable, not yet validated:
+    **6 pending** (Section B — MID now subscribed: `DE-0001`, `EX-0010.01`, `EX-0010.02`,
+    `EXF-0003.02`, and the `EX-0012.11` / `DE-0003.11` watchdog pair) + **3 borderline
+    held-out** (`EX-0001.02`, `DE-0006`, `EX-0005.01`).
+  - **108 not applicable** — the attack can't run against NOS3 at all (off-board / RF /
+    ground / not-modelled; Section D: REC/RD/IA whole tactics, most LM/EXF, plus
+    SEU/ASAT/jamming/directed-energy/etc.).
+- Note: the "**~90** on-board-detectable universe" figure cited in the sections below
+  counts EX+PER+DE+IMP *gross*, **before** subtracting the SEU/ASAT/jamming/etc.
+  techniques that Section D pulls out as not-applicable — the per-leaf view above (69
+  on-board-relevant = 37 + 23 + 9) is the reconciled figure. The watchdog pair is held
+  as *pending* until a live check confirms no telemeterable WDT packet exists (then it
+  moves to out-of-scope).
 
 ## A. Applicable · in-scope now · ✅ ALL 13 VALIDATED (campaign complete 2026-07-17)
 
