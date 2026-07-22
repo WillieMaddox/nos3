@@ -1,6 +1,6 @@
 # SPARTA Coverage Triage — NOS3 OnAIR Monitor
 
-**Purpose.** The demo matrix renders the full SPARTA v3.0 framework (177 leaf
+**Purpose.** The coverage-overview page (`app/sparta_coverage.html`) renders the full SPARTA v3.0 framework (177 leaf
 technique IDs). The NOS3 detector now carries a verdict for **45**: **32** in the
 classifier corpus + the **13 Section-A techniques gate-validated** in the 2026-07-17
 campaign. This document triages *every* SPARTA technique into **not-applicable /
@@ -162,7 +162,7 @@ EXF-0010, LM-0001/0006), space-domain-awareness (DE-0009.*), ground-segment
 
 1. **Section A — ✅ DONE (2026-07-17).** All 13 in-scope-now techniques are validated
    live; the campaign built the 4 detector gates (rule-gate R1–R10, consistency-check,
-   staleness-check) for the classes the IF misses. Folded into the demo +
+   staleness-check) for the classes the IF misses. Folded into the coverage overview +
    `V5_DETECTOR_COVERAGE.md`. (Gate-detected → validated standalone, not folded into the
    classifier training corpus — the classifier is IF-gated and wouldn't learn them.)
 2. **Section B — MIDs now SUBSCRIBED; build the detections (the current backlog).** The

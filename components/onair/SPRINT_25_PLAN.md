@@ -159,7 +159,7 @@ estimate). All four gates are now DONE + deployed.
 (≈ 62 h) — the **13** validation Tasks AINOS3-50…62 under `coverage-expansion`, all
 ✅ Done (live-verified through 2026-07-17). Retrospective E/T. Distinct from the
 `detector-gates` epic above (the gates are the *deliverables*; these Tasks are the
-*validations* that drove them). Folded into the demo + `V5_DETECTOR_COVERAGE.md`.
+*validations* that drove them). Folded into the coverage overview + `V5_DETECTOR_COVERAGE.md`.
 
 ---
 
@@ -190,7 +190,7 @@ the MID→channel map if the types aren't already defined), re-collect a fresh
 mode-balanced corpus slice, retrain, and **measure whether the four classes
 separate** above the DEAD floor.
 
-**Acceptance criteria:**
+**Acceptance Criteria:**
 
 - Targeted MIDs added to the telemetry schema (source + runtime build tree in
   sync); schema-fingerprint / `.meta.json` sidecar updated so the new columns are
@@ -295,7 +295,7 @@ Collected a fresh mode-balanced corpus (32/32 attacks, new 256-col schema,
 **Summary:** Attach a human-readable, *actionable* reason to every incident.
 
 **Description:** Sprint 24 shipped per-incident SHAP attribution (AINOS3-38) and
-surfaced it in the incident record + demo (AINOS3-40). The remaining gap is that
+surfaced it in the incident record + coverage overview (AINOS3-40). The remaining gap is that
 the field that dominates almost every attribution — `CFE_EVS_HK.AppData` — is an
 anonymous 16×4 array, so "AppData drove it" isn't yet actionable. This task
 resolves the slots to app names, which is the missing piece that makes the
@@ -341,11 +341,11 @@ position, so EVS registration-order variation can't misname). Explicitly **not**
 subscribing the ES App Info MID at runtime — that solves a per-run-dynamic
 problem we don't have and adds permanent flight-runtime surface.
 
-**Acceptance criteria:**
+**Acceptance Criteria:**
 
 - Committed `AppID→name` crosswalk JSON covering the 16 populated slots, pinned
   against one live ES App Info dump.
-- Attribution / demo render `AppData` contributions by app name (e.g.
+- Attribution / coverage-overview render `AppData` contributions by app name (e.g.
   `AppData[ADCS].AppEnableStatus`) where a specific slot dominates.
 - **Diff-guard:** a script that re-dumps ES App Info and fails if the committed
   map no longer matches the running build (ties into the existing
@@ -435,7 +435,7 @@ event stream (genuine) or a generic busy app (shortcut)? Prototype a
 drop/regularize experiment over the frozen `csv_corpus_v3stage` under LOIO and
 compare per-attack cluster accuracy.
 
-**Acceptance criteria:**
+**Acceptance Criteria:**
 
 - The `AppData` / `CFE_ES.CommandCounter` contributions resolved to named apps
   (via AINOS3-48) and classified genuine-vs-shortcut per attack.
@@ -473,7 +473,7 @@ routing every mode; under selective (INERTIAL/SUNSAFE-only) routing, only the
 portion of ROBUST-tier frames that fall in INERTIAL/SUNSAFE benefits — the
 realized ROBUST-tier gain is **to be measured**, not assumed.
 
-**Acceptance criteria:**
+**Acceptance Criteria:**
 
 - LOIO shows the INERTIAL/SUNSAFE mode gains retained and **no** BDOT/PASSIVE
   regression vs deployed v3.
@@ -511,7 +511,7 @@ counter-reliance audit findings — on top of the existing coverage overlay, and
 capture feedback.
 
 **Description:** Second instance of the recurring `AINOS3-42` readout. Refresh
-`STAKEHOLDER_ROLLOUT.md` and regenerate the demo overlay
+`STAKEHOLDER_ROLLOUT.md` and regenerate the coverage-overview overlay
 (`gen_nos3_coverage.py` → `nos3_coverage.js` → `app/sparta_coverage.html`) so it
 reflects any classes AINOS3-30 recovered and any `AppData`-by-app explanation
 improvements. Walk stakeholders through what changed since Sprint 24, and — per
@@ -519,10 +519,10 @@ the `NOS3_330` Phase-6 hold — explicitly ask whether operators want causal-cha
 root-cause beyond the current top-fields explanations (that answer is the gate on
 reopening the graph model).
 
-**Acceptance criteria:**
+**Acceptance Criteria:**
 
 - Demo overlay + coverage doc refreshed to Sprint-25 state.
-- Doc + demo presented — **owner action** (cannot be automated).
+- Doc + coverage overview presented — **owner action** (cannot be automated).
 - Feedback captured in the `STAKEHOLDER_ROLLOUT.md` table, then filed as backlog
   tickets — including an explicit read on the Phase-6 (causal chains) demand
   signal.

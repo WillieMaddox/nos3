@@ -32,11 +32,15 @@ rule — never trust a footprint claim without a live run):
    technique doesn't fit `all_modes_dwell` (e.g. a DoS flood), validated standalone
    with its window documented.
 4. Detection tier reported (frame catch + incident recall) and added to
-   `app/gen_nos3_coverage.py::ENRICH`, `V5_DETECTOR_COVERAGE.md`, and the demo.
+   `app/gen_nos3_coverage.py::ENRICH`, `V5_DETECTOR_COVERAGE.md`, and the coverage
+   overview.
 
-Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
+Each ticket below carries its **Acceptance Criteria** (the bar set at creation, in
+terms of the common criteria) directly under its Description, followed by the
+chronological **Findings** and a one-line **Result**. Enter Jira keys in
+[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
-| Jira | Slug | SPARTA | Type | Pri | Script? | Observable via |
+| Jira | Slug | SPARTA | Type | Pri | Script? | Result / observable via |
 |---|---|---|---|---|:--:|---|
 | AINOS3-50 | validate-pnt-geofence | EX-0002 | Task | Med | ✅ | ✔ VALIDATED — R1 NOVATEL DeviceEnabled→0 → EX-0002 incident (fresh-launch confirmed; HK freezes on aged stacks) |
 | AINOS3-51 | validate-hw-commands | EX-0005.02 | Task | Med | ✅ | ✔ VALIDATED — valid device cmds (no cmd-errors); R1 TORQUER-disable + dynamics IF |
@@ -59,58 +63,49 @@ Enter Jira keys in [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 **Summary:** As a defender, I want EX-0002 (PNT geofencing manipulation) validated
 into the corpus so the detector is scored against it.
 
-**Description:** Attack disables the GPS receiver (NOVATEL) to cut PNT data (level
-2) and shifts CFE_TIME STCF (level 3), forcing ADCS onto stale nav.
+**Description:** The attack disables the GPS receiver (NOVATEL) to cut PNT data
+(level 2) and shifts CFE_TIME STCF (level 3), forcing ADCS onto stale nav. Script
+`ex_0002_pnt_geofencing.py`.
 
-**VALIDATED live (2026-07-16, `ex_0002_pnt_geofencing.py --attack-level 2`):**
+**Acceptance Criteria:** Per the common criteria — a subscribed telemetry field
+demonstrably moves during the attack window (footprint validated live, signal class
+recorded), and the detection verdict is reported and folded into the coverage
+overview / `V5_DETECTOR_COVERAGE.md`.
 
-- **Signal class: ON_BOARD, clean.** `NOVATEL_HK.DeviceEnabled: 1→0` (GPS disabled)
-  — an unambiguous discrete flag, in subscribed telemetry (221 frames). The
-  position/attitude drift is mostly natural orbital dynamics over the window; the
+**Findings (chronological):**
+
+- **2026-07-16 — footprint ON_BOARD, clean** (`--attack-level 2`). `NOVATEL_HK.DeviceEnabled: 1→0`
+  (GPS disabled) — an unambiguous discrete flag, in subscribed telemetry (221 frames).
+  The position/attitude drift over the window is mostly natural orbital dynamics; the
   flag is the smoking gun. GPS re-enabled afterward (cleanup).
-- **Deployed IF MISSES it:** is_anomaly=0 / alert=0 across all GPS-disabled frames
-  (score ~0.12, MODE_SUNSAFE). In SUNSAFE the ADCS uses sun/mag not GPS, so
-  disabling GPS barely perturbs the *attitude dynamics* the IF watches — the flag
-  flip itself isn't a feature the IF weights.
+- **2026-07-16 — deployed IF misses it.** is_anomaly=0 / alert=0 across all
+  GPS-disabled frames (score ~0.12, MODE_SUNSAFE). In SUNSAFE the ADCS uses sun/mag not
+  GPS, so disabling GPS barely perturbs the *attitude dynamics* the IF watches — the
+  flag flip itself isn't a feature the IF weights. Detection needs a rule on
+  `NOVATEL_HK.DeviceEnabled`.
+- **Detection closed — R1 (rule-gate device-disable).** Rule-gate R1 fires on any
+  `*.DeviceEnabled` drop and its label maps `R1:NOVATEL → EX-0002`. Live-verified when
+  R1 was built: a live GPS disable produced `[rule_gate][ALERT] R1:NOVATEL_HK-disabled
+  — …(EX-0002…)` while the IF scored is_anomaly=0.
+- **2026-07-17 — repro caveat + root cause.** On an aged stack the R1:NOVATEL catch
+  could not be re-reproduced — diagnosed to a **NOVATEL telemetry-path stall, not a
+  detector or script bug**. OnAIR's `NOVATEL_HK` was frozen (`DeviceCount` only
+  `{61,65}` over 400 frames, `CommandCount` pinned at 4, and 3 NOVATEL NOOPs didn't
+  move `CommandCount`); NOVATEL-specific (IMU/CSS `DeviceCount` wrap through ~250 every
+  window, so SBN forwarding works globally). At the FSW, `NOVATEL_OEM615_Disable()`
+  (`novatel_oem615_app.c:540`) increments `CommandCount` *before* the UART call but only
+  sets `DeviceEnabled=DISABLED` **inside** `if (uart_close_port()==OS_SUCCESS)` (line
+  552-555) — a stalled UART blocks the flag flip. Both symptoms trace to the NOVATEL
+  device/UART path degrading over stack uptime.
+- **2026-07-17 — fresh-launch confirmation.** After a full `make stop` / `start-gsw` /
+  `launch-quiet`, NOVATEL_HK was live again (`DeviceCount` advancing across 84 distinct
+  values vs the frozen `{61,65}`). The GPS disable flipped `NOVATEL_HK.DeviceEnabled
+  1→0` and produced `[rule_gate][INCIDENT] #1 frames 489-576 (88f) cluster=EX-0002
+  sub=NOVATEL_HK-disabled`; cleared on re-enable. Same-session end-to-end catch —
+  closes the repro caveat and confirms the uptime-freeze root cause.
 
-**AC:** footprint ON_BOARD ✓. Detection needs a rule on `NOVATEL_HK.DeviceEnabled`
-(or re-test in an INERTIAL/nav-dependent mode where stale GPS actually perturbs
-dynamics). See the campaign synthesis at the end of this doc.
-
-**DETECTION CLOSED — R1 (rule-gate device-disable).** The "needs a rule on
-`NOVATEL_HK.DeviceEnabled`" gap is filled: rule-gate **R1** fires on any `*.DeviceEnabled`
-drop and its label maps `R1:NOVATEL → EX-0002`. This was **live-verified when R1 was
-built** (see [[project_rule_gate_plugin]] / project memory: a live GPS disable produced
-`[rule_gate][ALERT] R1:NOVATEL_HK-disabled — …(EX-0002…)` while the IF scored
-is_anomaly=0). Marked ✔ on the strength of the original live R1:NOVATEL catch.
-
-**⚠ Repro caveat + ROOT CAUSE (2026-07-17).** On this aged stack the R1:NOVATEL catch
-could NOT be re-reproduced — diagnosed to a **NOVATEL telemetry-path stall, not a
-detector or script bug**:
-
-- OnAIR's `NOVATEL_HK` is **frozen**: `DeviceCount` shows only `{61,65}` over 400
-  frames (two stale double-buffer values, not advancing), `CommandCount` pinned at 4,
-  and **3 NOVATEL NOOPs did not move `CommandCount`** in OnAIR — no fresh HK is
-  arriving. It is **NOVATEL-specific**: IMU/CSS `DeviceCount` wrap through ~250 every
-  window (fresh), so SBN forwarding works globally.
-- So R1 reads a frozen `DeviceEnabled=1` and can never see the disable. Separately, at
-  the FSW, `NOVATEL_OEM615_Disable()` (`novatel_oem615_app.c:540`) increments
-  `CommandCount` *before* the UART call but only sets `DeviceEnabled=DISABLED` **inside
-  `if (uart_close_port()==OS_SUCCESS)`** (line 552-555) — a stalled NOVATEL UART blocks
-  the flag flip too. Both symptoms trace to the NOVATEL device/UART path degrading over
-  stack uptime (consistent with the known NOVATEL-finicky note + the degraded-stack
-  pattern).
-- **Repro fix:** validate EX-0002 on a FRESH launch (as on 2026-07-16, where NOVATEL HK
-  flowed and the disable flipped `DeviceEnabled 1→0` → R1 fired). Detection is sound;
-  the blocker is NOVATEL HK liveness on a long-uptime stack. R1 is live-proven
-  generically today via `R1:TORQUER-disabled` (EX-0005.02).
-- **✔ FRESH-LAUNCH CONFIRMATION (2026-07-17).** After a full `make stop` /
-  `start-gsw` / `launch-quiet`, NOVATEL_HK was live again (`DeviceCount` advancing
-  across 84 distinct values vs the frozen `{61,65}`). The GPS disable then flipped
-  `NOVATEL_HK.DeviceEnabled 1→0` and produced `[rule_gate][INCIDENT] #1 frames 489-576
-  (88f) cluster=EX-0002 sub=NOVATEL_HK-disabled`; cleared on re-enable. Same-session
-  end-to-end catch — closes the repro caveat and directly confirms the uptime-freeze
-  root cause.
+**Result:** ✔ VALIDATED — R1 (NOVATEL `DeviceEnabled`→0) → EX-0002 incident,
+fresh-launch confirmed. Repro requires NOVATEL HK liveness; validate on a fresh launch.
 
 ---
 
@@ -118,506 +113,538 @@ detector or script bug**:
 
 **Summary:** Validate direct malicious hardware/device commands into the corpus.
 
-**Description:** The parent EX-0005 (firmware/FPGA corruption) is NOT simulatable in
-NOS3. Sub-technique .02 IS its behavioral proxy: an attacker with command access
-issues *legitimate, well-formed* device commands whose OPERATIONAL INTENT is
-malicious — disable a magnetorquer, inject reaction-wheel torque, arm/fire a
-thruster, toggle EPS power switches. Because the commands are valid, the flight
-software accepts them: the component's `CommandCount` climbs and device STATE
-changes; `CommandErrorCount` does NOT move. This is deliberately the *quiet*
-counterpart to EX-0011 — there is NO monitoring-disable prelude.
-
-**Script:** `gsw/attack_scripts/sparta/execution/ex_0005_malicious_hw_commands/ex_0005_02_malicious_hw_commands.py`
-(`--attack-level 3`). Targets: TORQUER (0x193A), RW (0x1992), THRUSTER (0x18EA),
+**Description:** The parent EX-0005 (firmware/FPGA corruption) is not simulatable in
+NOS3; sub-technique .02 is its behavioral proxy — an attacker with command access
+issues *legitimate, well-formed* device commands whose operational intent is malicious:
+disable a magnetorquer, inject reaction-wheel torque, arm/fire a thruster, toggle EPS
+power switches. Because the commands are valid the flight software accepts them, so the
+expected footprint is a rising component `CommandCount` and changed device state with
+`CommandErrorCount` flat — deliberately the *quiet* counterpart to EX-0011 (no
+monitoring-disable prelude). Script
+`gsw/attack_scripts/sparta/execution/ex_0005_malicious_hw_commands/ex_0005_02_malicious_hw_commands.py`
+(`--attack-level 3`), targeting TORQUER (0x193A), RW (0x1992), THRUSTER (0x18EA),
 EPS (0x191A) — all subscribed.
 
-**VALIDATED live (2026-07-17, healthy stack — IF 0% for 12k steady-state frames
-pre-attack):**
+**Acceptance Criteria:** Per the common criteria — target the subscribed actuators,
+confirm the valid-command / no-cmd-error footprint moves live, record the signal class,
+and report the detection verdict.
 
-- **Signal class: ON_BOARD. DETECTED BY TWO GATES.**
-- **Footprint (all commands valid → NO cmd-errors):** `TORQUER.DeviceEnabled 1→0`;
-  `TORQUER.CommandCount 1→7` (+6), `THRUSTER.CommandCount 94→98` (+4),
-  `EPS.CommandCount 95→98` (+3); `THRUSTER.DeviceEnabled 0→1`; RW `SET_TORQUE`
-  injected on 3 wheels. Every `*.CommandErrorCount` stayed FLAT (TORQUER 0, THRUSTER
-  47, EPS 46 — no new errors). This is the defining contrast with EX-0013.02, which
-  drives `CommandErrorCounter`.
-- **Rule-gate R1:** `R1:TORQUER-disabled` fired on the `DeviceEnabled 1→0` edge
-  (first at frame 15129), latched active, and **cleared cleanly** (alert_active 0)
-  once the torquer was re-enabled in cleanup.
-- **Dynamics IF:** `is_anomaly` **0% pre-attack (14700–15090) → 78% in the attack
-  window (15095–15275)**. The thruster fire + injected reaction-wheel momentum
-  perturb the attitude physics the per-mode IF is trained on. The IF *persists* at
-  ~100% after cleanup because the malicious `SET_TORQUE` genuinely loaded RW
-  momentum that the ADCS has to actively dump — an honest residual effect, not a
-  stack artifact (R1 and device states restored).
-- **Detection needs BOTH:** R1 catches the device-disable even if the vehicle never
+**Findings (chronological):**
+
+- **2026-07-17 — footprint ON_BOARD, detected by two gates** (healthy stack, IF 0% for
+  12k steady-state frames pre-attack).
+- **Footprint (all commands valid → no cmd-errors):** `TORQUER.DeviceEnabled 1→0`;
+  `TORQUER.CommandCount 1→7` (+6), `THRUSTER.CommandCount 94→98` (+4), `EPS.CommandCount
+  95→98` (+3); `THRUSTER.DeviceEnabled 0→1`; RW `SET_TORQUE` injected on 3 wheels. Every
+  `*.CommandErrorCount` stayed flat (TORQUER 0, THRUSTER 47, EPS 46). This is the
+  defining contrast with EX-0013.02, which drives `CommandErrorCounter`.
+- **Rule-gate R1:** `R1:TORQUER-disabled` fired on the `DeviceEnabled 1→0` edge (first at
+  frame 15129), latched, and cleared cleanly once the torquer was re-enabled in cleanup.
+- **Dynamics IF:** is_anomaly 0% pre-attack (14700–15090) → 78% in the attack window
+  (15095–15275). The thruster fire + injected reaction-wheel momentum perturb the
+  attitude physics the per-mode IF is trained on. The IF persists ~100% after cleanup
+  because the malicious `SET_TORQUE` genuinely loaded RW momentum the ADCS must dump —
+  an honest residual effect, not a stack artifact (R1 and device states restored).
+- **Detection needs both:** R1 catches the device-disable even if the vehicle never
   moved; the IF catches the delta-V / momentum perturbation even when no device is
-  disabled. A pure valid-command actuator abuse with no disable and no dynamics
-  (e.g. a benign-magnitude single command) would be the residual gap.
+  disabled. A benign-magnitude single valid command with no disable and no dynamics
+  would be the residual gap.
+- **Incident fold:** gate-confirmed; the shared IncidentAggregator R1 fold is best
+  re-checked on a fresh launch (this stack was ~6h uptime; the incident layer is fragile
+  at long uptime).
 
-**Incident-level fold:** gate-confirmed; the shared IncidentAggregator fold for R1
-is best re-checked on a fresh launch (this stack was ~6 h uptime; per the known
-degraded-stack note the incident layer is fragile at long uptime).
+**Result:** ✔ VALIDATED — valid device cmds (no cmd-errors); caught by R1
+(TORQUER-disable) + dynamics IF (78%).
 
-**AC:** met — targeted subscribed actuators (TORQUER/RW/THRUSTER/EPS), confirmed the
-valid-command / no-cmd-error footprint live, and confirmed detection by R1 + IF.
+---
 
 ### AINOS3-52 — Validate EX-0011 (Exploit Reduced Protections in Safe-Mode) · `Task` · Medium · ✔ VALIDATED 2026-07-16
 
 **Summary:** Validate the safe-mode exploitation technique.
 
-**Description:** In NOS3 this is NOT an ADCS/SC mode transition (the original
-footprint guess was wrong). The script simulates safe-mode by disabling
-monitoring (HS/LC/EVS) then exploiting: EPS switch-off, thruster arm+fire, sensor
-disable. **VALIDATED live (`ex_0011_exploit_safe_mode.py --attack-level 3`,
-2026-07-16):**
+**Description:** In NOS3 this is realized not as an ADCS/SC mode transition but by
+disabling monitoring (HS/LC/EVS) and then exploiting the relaxed state: EPS switch-off,
+thruster arm+fire, sensor disable. Script `ex_0011_exploit_safe_mode.py`
+(`--attack-level 3`).
 
-- **Signal class: ON_BOARD. DETECTED BY BOTH GATES — the first Section-A
-  technique the IF catches on its own.** Unlike DE-0010/EX-0002/EX-0014.03 (pure
-  flag/counter, IF-blind), EX-0011's *exploit* perturbs GNC dynamics: **IF
-  is_anomaly=1 on 58/112 window frames (52%)** because the thruster fires at 80%
-  and EPS/CSS changes disturb the attitude physics the IF is trained on.
-- **Rule-gate also catches it, 3 ways:** R1 `CSS.DeviceEnabled 1→0` (CSS disable),
-  R2 EVS send-rate spike, R4 `CFE_EVS_HK` cmd-errors → labeled **cmd-errors
-  incident** (frames 5116-5142, SUNSAFE). So it is covered end-to-end even if the
-  dynamics IF had missed it.
+**Acceptance Criteria:** Per the common criteria — confirm a subscribed footprint for
+the monitoring-disable + exploit, record the signal class, and report the detection
+verdict; fix any script/payload bugs found so the commands are actually accepted.
+
+**Findings (chronological):**
+
+- **2026-07-16 — the original footprint guess was wrong.** This is *not* an ADCS/SC mode
+  transition; the observable is the monitoring-disable + exploit chain above.
+- **Signal class: ON_BOARD, detected by both gates — the first Section-A technique the IF
+  catches on its own.** Unlike DE-0010/EX-0002/EX-0014.03 (pure flag/counter, IF-blind),
+  EX-0011's exploit perturbs GNC dynamics: **IF is_anomaly=1 on 58/112 window frames
+  (52%)** because the thruster fires at 80% and EPS/CSS changes disturb the attitude
+  physics the IF is trained on.
+- **Rule-gate also catches it, 3 ways:** R1 `CSS.DeviceEnabled 1→0`, R2 EVS send-rate
+  spike, R4 `CFE_EVS_HK` cmd-errors → labeled **cmd-errors incident** (frames 5116-5142,
+  SUNSAFE). Covered end-to-end even if the dynamics IF had missed it.
 - **Observable fields that moved (subscribed):** `CSS.DeviceEnabled`,
-  `THRUSTER.DeviceEnabled`+`CommandCount`, `EPS.CommandCount`, `LC.CmdCount`/
-  `CmdErrCount`, EVS `MessageSendCounter` + `CommandErrorCounter`. **HS is NOT
-  subscribed** (`HS_*`=0 cols) so the HS monitoring-disable is not observable; LC
-  **is** subscribed as `LC.CurrentLCState`.
-- **2 script bugs found + FIXED (live-validated):** (a) LC `SET_LC_STATE` payload
-  was `>H` (2-byte BE) — must be `<HH` (4-byte LE: `uint16 NewLCState; uint16
-  Padding`); it was rejected (CmdErrCount climbed, state never changed). Corrected
-  form flips `LC.CurrentLCState 1→3`. (b) EVS `DISABLE_EVENT_TYPE` sent a 1-byte
-  ordinal — must be a 2-byte `{uint8 BitMask; uint8 Spare}` with bit values
-  (DEBUG=0x01…CRIT=0x08); corrected form is accepted (no cmd errors).
-- **New observable — `LC.CurrentLCState` (a monitoring-STATE field):** with the
-  fixed command it flips 1→3 (DISABLED). The rule-gate WAS blind to it (0 non-R3
-  alerts — no rule watched LC state). IF-detectability of the *pure* LC flip is
-  inconclusive here (confounded by settling dynamics from the thruster cleanup),
-  but structurally it's a CDH-layer state field the per-mode GNC IF under-weights
-  (same family as DE-0010). **→ RESOLVED: rule-gate R5 built + deployed
-  2026-07-16** (fsw commit 39969a6). R5 watches monitoring/limit-check state fields
-  (default `LC.CurrentLCState`, configurable) and fires on any deviation from the
-  protective session baseline; live-verified emitting a closed EX-0011 incident on
-  an LC disable→restore cycle while the IF stayed blind.
+  `THRUSTER.DeviceEnabled`+`CommandCount`, `EPS.CommandCount`, `LC.CmdCount`/`CmdErrCount`,
+  EVS `MessageSendCounter` + `CommandErrorCounter`. **HS is not subscribed** (`HS_*`=0
+  cols) so the HS monitoring-disable is not observable; LC **is** subscribed as
+  `LC.CurrentLCState`.
+- **2 script bugs found + fixed (live-validated):** (a) LC `SET_LC_STATE` payload was `>H`
+  (2-byte BE) — must be `<HH` (4-byte LE: `uint16 NewLCState; uint16 Padding`); it was
+  rejected (CmdErrCount climbed, state never changed). Corrected form flips
+  `LC.CurrentLCState 1→3`. (b) EVS `DISABLE_EVENT_TYPE` sent a 1-byte ordinal — must be a
+  2-byte `{uint8 BitMask; uint8 Spare}` with bit values (DEBUG=0x01…CRIT=0x08); corrected
+  form is accepted (no cmd errors).
+- **New observable — `LC.CurrentLCState` (a monitoring-state field).** With the fixed
+  command it flips 1→3 (DISABLED). The rule-gate was initially blind to it (no rule
+  watched LC state). **→ Resolved: rule-gate R5 built + deployed 2026-07-16** (fsw commit
+  39969a6). R5 watches monitoring/limit-check state fields (default `LC.CurrentLCState`,
+  configurable) and fires on any deviation from the protective session baseline;
+  live-verified emitting a closed EX-0011 incident on an LC disable→restore cycle while
+  the IF stayed blind.
 
-**AC:** footprint ON_BOARD ✓, detected by both gates ✓, script fixed ✓. Cleanup
-verified (thruster disarmed, CSS/EPS/LC/EVS restored).
+**Result:** ✔ VALIDATED — footprint ON_BOARD, caught by both gates; script fixed;
+cleanup verified (thruster disarmed, CSS/EPS/LC/EVS restored).
+
+---
 
 ### AINOS3-53 — Validate EX-0012.02 (Internal Routing Tables) · `Task` · High · ✔ VALIDATED 2026-07-16
 
 **Summary:** Validate SB internal-routing-table modification.
 
-**Description:** Modify the Software Bus routing tables to redirect/deny message
-flow. **VALIDATED live 2026-07-16 (no script — raw UDP CFE_SB commands):**
+**Description:** Modify the Software Bus routing tables to redirect or deny message flow.
+Exercised via raw UDP CFE_SB commands (no script needed).
 
-- **Exercisable via `CFE_SB DISABLE_ROUTE` / `ENABLE_ROUTE`** (MID 0x1803, CC 5 /
-  CC 4). Disables a specific `MsgId → PipeId` route so that MID stops reaching the
-  pipe. **Payload gotcha:** `CFE_SB_RouteCmd_Payload_t` is MsgId(u32)+PipeId(u32)+
-  Spare(u8) but STRUCT-PADDED to 12 bytes → the command is 20 bytes total (8 hdr +
-  12). A 9-byte payload is rejected (CmdErrCount++, length error); pad to 12.
+**Acceptance Criteria:** Per the common criteria — confirm the technique is exercisable
+against the live FSW, identify the subscribed footprint (or document why the effect is
+unobservable), and report the detection verdict.
+
+**Findings (chronological):**
+
+- **2026-07-16 — exercisable via `CFE_SB DISABLE_ROUTE` / `ENABLE_ROUTE`** (MID 0x1803,
+  CC 5 / CC 4). Disables a specific `MsgId → PipeId` route so that MID stops reaching the
+  pipe. **Payload gotcha:** `CFE_SB_RouteCmd_Payload_t` is MsgId(u32)+PipeId(u32)+Spare(u8)
+  but struct-padded to 12 bytes → the command is 20 bytes total (8 hdr + 12). A 9-byte
+  payload is rejected (CmdErrCount++, length error); pad to 12.
 - **Route enumeration via `CFE_SB WRITE_ROUTING_INFO` (CC 3)** → dumps a file
-  (`/cf/<name>.dat`) readable on the shared mount (like AINOS3-48). Format: 64-byte
-  CFE_FS header + 52-byte `CFE_SB_RoutingFileEntry_t` (MsgId u32 @0, PipeId u32 @4,
-  State @8, AppName[20] @12, PipeName[20] @32). **OnAIR receives ALL telemetry via
-  the SBN pipe `SBN_2_42_Pipe` (pipeid 0x0016002c)** — the route to sever for an
-  OnAIR-visible effect.
-- **`CFE_SB_SUBS` (0x080D) is NOT observable — reads `[0]`, not SBN-forwarded to
-  OnAIR** (same pattern as NOVATEL/CI/ST). **The triage's claimed observable is
-  WRONG.**
-- **Footprint (DEMONSTRATED — disabled IMU_HK 0x0925 → SBN pipe):** (a) the routing
-  COMMAND moves `CFE_SB.CommandCounter` (1→2 disable, →3 enable — subscribed, live,
-  the clean ON_BOARD signal; SB route commands are rare/never in nominal ops); (b)
-  the routing EFFECT froze `IMU.DeviceHK.DeviceCounter` at 61731 for the whole 20s
-  window (telemetry DENIAL — the MID stops reaching OnAIR while the FSW keeps
-  running). Reversible; ENABLE_ROUTE restored the flow (verified IMU resumed).
-- **Detection: all THREE delta-based gates are BLIND to the freeze** — a frozen
-  stream has no delta (consistency-check needs a backwards step: 0 alerts; rule-gate
-  needs a flag-drop/spike: 0 non-R3; IF sees constant input). Same family as
-  EX-0014.03's frozen fields. Catching the FREEZE needs a **per-MID staleness
-  detector** ("subscribed MID hasn't updated in N frames") — **BUILT + deployed as
-  the `staleness_check` plugin** (see the campaign-findings note above). Catching the
-  COMMAND is **rule-gate R6** — a **CFE_SB.CommandCounter rule** (any SB
-  route/subscription command is suspicious) — **BUILT + deployed** (rule_gate
-  a268852), the low-latency catch (~1 frame; live-verified, 0 FP).
+  (`/cf/<name>.dat`) readable on the shared mount. Format: 64-byte CFE_FS header + 52-byte
+  `CFE_SB_RoutingFileEntry_t` (MsgId u32 @0, PipeId u32 @4, State @8, AppName[20] @12,
+  PipeName[20] @32). OnAIR receives all telemetry via the SBN pipe `SBN_2_42_Pipe`
+  (pipeid 0x0016002c) — the route to sever for an OnAIR-visible effect.
+- **Triage observable corrected:** `CFE_SB_SUBS` (0x080D) is **not** observable — reads
+  `[0]`, not SBN-forwarded to OnAIR (same pattern as NOVATEL/CI/ST). The triage's claimed
+  observable is wrong.
+- **Footprint (demonstrated — disabled IMU_HK 0x0925 → SBN pipe):** (a) the routing
+  command moves `CFE_SB.CommandCounter` (1→2 disable, →3 enable — subscribed, live, the
+  clean ON_BOARD signal; SB route commands are rare/never in nominal ops); (b) the routing
+  effect froze `IMU.DeviceHK.DeviceCounter` at 61731 for the whole 20s window (telemetry
+  denial — the MID stops reaching OnAIR while the FSW keeps running). Reversible;
+  ENABLE_ROUTE restored the flow (IMU resumed).
+- **Detection: all three delta-based gates are blind to the freeze** — a frozen stream has
+  no delta (consistency-check needs a backwards step: 0 alerts; rule-gate needs a
+  flag-drop/spike: 0 non-R3; IF sees constant input). Same family as EX-0014.03's frozen
+  fields. **→ Resolved:** catching the freeze needs a per-MID **staleness detector**
+  ("subscribed MID hasn't updated in N frames") — built + deployed as `staleness_check`;
+  catching the command is **rule-gate R6** (any CFE_SB route/subscription command is
+  suspicious) — built + deployed (rule_gate a268852), the low-latency catch (~1 frame,
+  0 FP).
 
-**AC:** exercisability confirmed ✓; footprint ON_BOARD (CFE_SB.CommandCounter) +
-telemetry-freeze; triage observable corrected; detector gap (staleness) documented.
-No lasting state change (route restored).
+**Result:** ✔ VALIDATED — exercisability confirmed; footprint ON_BOARD
+(`CFE_SB.CommandCounter`) + telemetry-freeze; staleness + R6 close the gap. No lasting
+state change (route restored).
+
+---
 
 ### AINOS3-54 — Validate EX-0012.10 (C&DH Subsystem) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate on-board-value modification targeting the C&DH subsystem.
 
-**Description:** Modify Command & Data Handling values (the cFE core apps). Sibling
-of the done EX-0012.07/.08/.09 (propulsion/ADCS/EPS), but the target is the FLIGHT
-EXECUTIVE itself. Script targets CFE_ES (Executive Services): `SET_MAX_PR_COUNT`
-raises `CFE_ES.MaxProcessorResets` (defeats the auto power-on-reset safeguard —
-the spacecraft keeps processor-resetting into a compromised state instead of
-falling back to a clean POR), plus `SET_PERF_FILTER_MASK` and `RESET_PR_COUNT`.
-
-**Script:** `gsw/attack_scripts/sparta/execution/ex_0012_modify_on_board_values/ex_0012_10_cdh_subsystem.py`
-(`--attack-level 3/4`). `CFE_ES_CMD_MID=0x1806`; SET_MAX_PR_COUNT=CC20,
+**Description:** Modify Command & Data Handling values (the cFE core apps) — sibling of
+EX-0012.07/.08/.09 (propulsion/ADCS/EPS) but the target is the flight executive itself.
+The script targets CFE_ES (Executive Services): `SET_MAX_PR_COUNT` raises
+`CFE_ES.MaxProcessorResets` (defeats the auto power-on-reset safeguard, so the spacecraft
+keeps processor-resetting into a compromised state instead of falling back to a clean
+POR), plus `SET_PERF_FILTER_MASK` and `RESET_PR_COUNT`. Script
+`gsw/attack_scripts/sparta/execution/ex_0012_modify_on_board_values/ex_0012_10_cdh_subsystem.py`
+(`--attack-level 3/4`); `CFE_ES_CMD_MID=0x1806`, SET_MAX_PR_COUNT=CC20,
 SET_PERF_FILTER_MASK=CC16, RESET_PR_COUNT=CC19.
 
-**VALIDATED live (2026-07-17, fresh stack):**
+**Acceptance Criteria:** Per the common criteria — identify the perturbed C&DH value,
+confirm the footprint moves live, and report the detection verdict (closing any gate gap
+found).
 
-- **Signal class: ON_BOARD. Footprint (all valid → NO cmd-errors):**
+**Findings (chronological):**
+
+- **2026-07-17 — footprint ON_BOARD** (fresh stack, all valid → no cmd-errors):
   `CFE_ES.MaxProcessorResets 2→250` (reset safeguard defeated), `CFE_ES.PerfFilterMask[0]`
-  zeroed, `CFE_ES.CommandCounter 0→4`; `CFE_ES.CommandErrorCounter` stayed 0. Note
-  the double-buffer garbage alternate for these fields (`MaxProcessorResets`
-  flickers to `1684368489`, etc.) — read the stable value, not the flicker.
-- **⚠ DETECTOR GAP — all 4 deployed gates MISSED it (first pass):** rule-gate had no
-  CFE_ES rule (R6/R7 cover CFE_SB/CFE_EVS only); the dynamics IF is CDH-blind (0/90,
-  same class as DE-0010); consistency-check watches for a counter going *backward*
-  (this went UP); staleness-check needs a *frozen* stream (this one didn't freeze).
-- **GAP CLOSED — new rule R8 (`CFE_ES.CommandCounter`):** `CFE_ES.CommandCounter` is
-  static-in-nominal (~0) like CFE_SB (R6) and CFE_EVS (R7), so R8 reuses the
-  generalized `_cmd_rule` new-high + dwell mechanism — any increment is an attacker
-  CFE_ES command. After deploy + OnAIR restart, re-running the attack fired
-  **`R8:es-command` ALERT (frame 419) → EX-0012.10/es-command INCIDENT (frames
-  418-430, 13f, SUNSAFE) → CLEAR**. +3 unit tests (21 pass). R8 also covers other
-  CFE_ES-command techniques (memory write, app start/stop, EX-0012.03).
+  zeroed, `CFE_ES.CommandCounter 0→4`; `CFE_ES.CommandErrorCounter` stayed 0. Note the
+  double-buffer garbage alternate for these fields (`MaxProcessorResets` flickers to
+  `1684368489`, etc.) — read the stable value, not the flicker.
+- **Detector gap — all 4 deployed gates missed it (first pass):** rule-gate had no CFE_ES
+  rule (R6/R7 cover CFE_SB/CFE_EVS only); the dynamics IF is CDH-blind (0/90, same class as
+  DE-0010); consistency-check watches for a counter going *backward* (this went up);
+  staleness-check needs a *frozen* stream (this one didn't freeze).
+- **Gap closed — new rule R8 (`CFE_ES.CommandCounter`).** `CFE_ES.CommandCounter` is
+  static-in-nominal (~0) like CFE_SB (R6) and CFE_EVS (R7), so R8 reuses the generalized
+  `_cmd_rule` new-high + dwell mechanism — any increment is an attacker CFE_ES command.
+  After deploy + OnAIR restart, re-running the attack fired **`R8:es-command` ALERT (frame
+  419) → EX-0012.10/es-command incident (frames 418-430, 13f, SUNSAFE) → CLEAR**. +3 unit
+  tests (21 pass). R8 also covers other CFE_ES-command techniques (memory write, app
+  start/stop, EX-0012.03).
 
-**AC:** met — C&DH field `CFE_ES.MaxProcessorResets` (+`CommandCounter`) identified as
-the perturbed value, footprint confirmed live, and detection closed via R8.
+**Result:** ✔ VALIDATED — C&DH field `CFE_ES.MaxProcessorResets` (+`CommandCounter`)
+confirmed live; detection closed via R8.
+
+---
 
 ### AINOS3-55 — Validate EX-0013.01 (Flooding — Valid Commands) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate a valid-command flood (DoS).
 
 **Description:** Flood the command path with a burst of *valid* commands
-(`ex_0013_flooding.py --attack-level 3`, 967 valid NOOPs at 100/sec across 7
-subsystems). Validated standalone on a FRESH stack (see the degraded-stack note —
-incident-level validation needs a clean launch).
+(`ex_0013_flooding.py --attack-level 3`, 967 valid NOOPs at 100/sec across 7 subsystems).
+Validated standalone on a fresh stack (incident-level validation needs a clean launch).
 
-**VALIDATED live 2026-07-17:**
+**Acceptance Criteria:** Per the common criteria — confirm the flood footprint moves live
+and report the detection verdict; validated standalone (a DoS flood doesn't fit
+`all_modes_dwell`).
 
-- **Signal class: ON_BOARD, LOUD — detected by FOUR rules.** During the flood:
-  **R2:evs** (145 frames — the dominant signature; EVS `MessageSendCounter` +575, as
-  each NOOP emits a command-success event), **R3:sb** (77 — SB pipe-overflow errors),
-  **R6:sb** + **R7:evs** (52 each — CFE_SB and CFE_EVS `CommandCounter` +96; CFE_ES
-  also +96). Emitted a **245-frame rule-gate incident** (frames 5542-5786) that
-  closed cleanly when the flood stopped.
-- **Labeling finding — EX-0013.01 ≡ DE-0010 footprint.** The incident is labeled
-  **DE-0010 (evs-flood)**, not EX-0013, because a valid-command flood IS an EVS flood
-  at the source (command-success events), so the EVS-rate spike (R2, 145 frames)
-  dominates the R6/R7 command spikes (52 frames each) → majority label DE-0010
-  (agreement 0.77). The rule-gate DETECTS the flood but has no dedicated "flood"
-  class; labeling it EX-0013 specifically would need a multi-rule/mass-command-rate
-  rule. The R6/R7 command spikes are the distinguisher from a pure EVS-NOOP flood.
+**Findings (chronological):**
 
-**AC:** footprint ON_BOARD ✓ (4-rule detection + incident) ✓; validated standalone ✓.
-No cleanup (all NOOPs — no state change). **Follow-up:** EX-0013.02 (erroneous-input
-flood) is the sibling — malformed packets → CFE_SB MsgReceive/PipeOverflow error
-family + the sbn_adapter unknown-MsgId path (watch for the KeyError crash from
-wave-2); a distinct footprint from this valid flood.
+- **2026-07-17 — signal class ON_BOARD, loud — detected by four rules.** During the flood:
+  **R2:evs** (145 frames — the dominant signature; EVS `MessageSendCounter` +575, as each
+  NOOP emits a command-success event), **R3:sb** (77 — SB pipe-overflow errors), **R6:sb**
+  + **R7:evs** (52 each — CFE_SB and CFE_EVS `CommandCounter` +96; CFE_ES also +96). Emitted
+  a **245-frame rule-gate incident** (frames 5542-5786) that closed cleanly when the flood
+  stopped.
+- **Labeling finding — EX-0013.01 ≡ DE-0010 footprint.** The incident is labeled **DE-0010
+  (evs-flood)**, not EX-0013, because a valid-command flood IS an EVS flood at the source
+  (command-success events), so the EVS-rate spike (R2, 145 frames) dominates the R6/R7
+  command spikes (52 frames each) → majority label DE-0010 (agreement 0.77). The rule-gate
+  detects the flood but has no dedicated "flood" class; labeling it EX-0013 specifically
+  would need a multi-rule/mass-command-rate rule. The R6/R7 command spikes are the
+  distinguisher from a pure EVS-NOOP flood.
+
+**Result:** ✔ VALIDATED — footprint ON_BOARD (4-rule detection + incident); validated
+standalone; no cleanup (all NOOPs, no state change).
+
+---
 
 ### AINOS3-56 — Validate EX-0013.02 (Flooding — Erroneous Input) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate an erroneous-input flood.
 
 **Description:** Malformed-packet flood — 700 packets to :5012 (random garbage MIDs,
-telemetry-range garbage, wrong-FC to real command MIDs, oversized, and definitely-
-unmapped high StreamIds). Validated standalone on the fresh stack, watching for the
-wave-2 sbn_adapter crash.
+telemetry-range garbage, wrong-FC to real command MIDs, oversized, and definitely-unmapped
+high StreamIds). Validated standalone on a fresh stack, watching for the wave-2 sbn_adapter
+crash.
 
-**VALIDATED live 2026-07-17:**
+**Acceptance Criteria:** Per the common criteria — confirm the malformed-flood footprint,
+report the detection verdict, and verify OnAIR does not crash on unknown MsgIds.
 
-- **Footprint is the CommandError family, NOT the SB-receive-error family** (corrects
-  the expected observable). `MsgReceiveErrorCounter` stayed **0** — CI_LAB/CFE_SB
-  reject garbage packets upstream without a receive error. The signal is the
-  **wrong-FC packets** (valid MID, bad FC) reaching real apps → `CommandErrorCounter`
-  climbs across subsystems (CFE_SB +34, CFE_EVS +36, IMU +47, ADCS +45). **Detected
-  by rule-gate R4 (cmd-errors)** → a **251-frame `cmd-errors/IMU-cmderr` incident**.
-- **Wave-2 sbn_adapter KeyError crash: NOT triggered — and NOT attacker-triggerable
-  via injection.** OnAIR stayed up (CSV kept growing) with **0 "unknown StreamId"
-  skips**: injected unknown MIDs never reach OnAIR because SBN only forwards
-  *subscribed* MIDs (filtered at CI_LAB/CFE_SB/SBN before the sbn_adapter). The fix
-  (`sbn_adapter.py:231` `except KeyError: skip + log-once`) protects against a
-  config-mismatch/FSW-init unmapped MID in the forward set, which is the real source
-  of the wave-2 crash — not `:5012` fuzzing. So the crash is doubly-guarded.
+**Findings (chronological):**
 
-**AC:** footprint ON_BOARD (CommandError family) ✓, detected by R4 ✓, no crash ✓.
-No cleanup (wrong-FC commands rejected, garbage dropped — no state change; FSW +
-OnAIR healthy). Distinct footprint from EX-0013.01 (that = EVS-flood/R2; this =
-cmd-errors/R4).
+- **2026-07-17 — footprint is the CommandError family, not the SB-receive-error family**
+  (corrects the expected observable). `MsgReceiveErrorCounter` stayed **0** — CI_LAB/CFE_SB
+  reject garbage packets upstream without a receive error. The signal is the **wrong-FC
+  packets** (valid MID, bad FC) reaching real apps → `CommandErrorCounter` climbs across
+  subsystems (CFE_SB +34, CFE_EVS +36, IMU +47, ADCS +45). **Detected by rule-gate R4
+  (cmd-errors)** → a **251-frame `cmd-errors/IMU-cmderr` incident**.
+- **Wave-2 sbn_adapter KeyError crash: not triggered — and not attacker-triggerable via
+  injection.** OnAIR stayed up (CSV kept growing) with **0 "unknown StreamId" skips**:
+  injected unknown MIDs never reach OnAIR because SBN only forwards *subscribed* MIDs
+  (filtered at CI_LAB/CFE_SB/SBN before the sbn_adapter). The fix (`sbn_adapter.py:231`
+  `except KeyError: skip + log-once`) protects against a config-mismatch/FSW-init unmapped
+  MID in the forward set — the real source of the wave-2 crash, not `:5012` fuzzing. So the
+  crash is doubly-guarded.
 
-### AINOS3-57 — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High · ✔ VALIDATED 2026-07-16 (overturns MARKDOWN-ONLY)
+**Result:** ✔ VALIDATED — footprint ON_BOARD (CommandError family), detected by R4, no
+crash. No cleanup (wrong-FC rejected, garbage dropped). Distinct footprint from EX-0013.01
+(that = EVS-flood/R2; this = cmd-errors/R4).
+
+---
+
+### AINOS3-57 — Validate EX-0014.02 (Bus Traffic Spoofing) · `Task` · High · ✔ VALIDATED 2026-07-16
 
 **Summary:** Validate Software-Bus traffic spoofing.
 
-**Description:** Inject spoofed SB messages impersonating a legitimate app. The
-`.md` had this MARKDOWN-ONLY ("internal SB injection not reachable from external
-UDP"). **That is WRONG — empirically overturned 2026-07-16** (per the
-no-closed-by-construction rule, verified against live FSW, no script needed —
-raw UDP injection):
+**Description:** Inject spoofed SB messages impersonating a legitimate app. The technique's
+`.md` had previously marked this MARKDOWN-ONLY ("internal SB injection not reachable from
+external UDP"). Exercised via raw UDP injection (no script needed).
 
-- **Mechanism (code-confirmed):** `:5012` IS CI_LAB (`CI_LAB_BASE_UDP_PORT 5012`).
-  CI_LAB ingest does `CFE_SB_TransmitBuffer(NextIngestBufPtr, false)`
-  (`ci_lab_app.c:348`) — it republishes ANY received packet onto the SB **by its
-  MID, with no command/telemetry filter**. So an external attacker can place a
-  spoofed *telemetry* MID onto the internal SB, not just commands.
-- **DEMONSTRATED:** injected a hand-crafted 29-byte `GENERIC_IMU_Hk_tlm_t`
-  (MID 0x0925) with `CommandErrorCount=222` (a value that never occurs naturally).
-  **OnAIR — a SB subscriber via SBN — observed `IMU.CommandErrorCount=222`** (2/80
-  frames single-shot). Signal class: **ON_BOARD (spoof reaches the bus + a
-  subscriber).**
-- **Caveat 1 — SBN forwarding:** OnAIR only sees the MIDs SBN forwards to it.
-  NOVATEL_HK/CI/ST read `[0]` (never forwarded) so a first spoof attempt on
-  NOVATEL_HK (0x0870) was invisible at OnAIR — not because injection failed but
-  because OnAIR is blind to that MID. (Also corrects the old DE-0010 note: "CI
-  IngestPackets didn't move" was the `[0]` sentinel, i.e. CI HK not forwarded —
-  NOT commands bypassing CI_LAB.) The spoof still lands on the FSW SB where
-  consuming *apps* would act on it.
-- **Caveat 2 — transient:** for a continuously-published MID the real publisher
-  overwrites the spoof. Even a sustained 32 pkt/s flood (256 pkts/8s) held the
-  observed value only ~1/40 frames — the real IMU + SBN/OnAIR sampling dominates.
-  So the observed footprint is a brief FLICKER, not a durable value.
-- **DETECTION GAP (both gates miss it):** the IF is counter-blind (a spoofed
-  counter doesn't perturb dynamics); the rule-gate's leaky integrator can't LATCH
-  a 1-2 frame flicker (R4 never reached AlertLevel). A brief/flickering spoof
-  evades sustained-signal hysteresis. Detecting bus-spoofing needs a **per-sample
-  out-of-range / schema-consistency check** (e.g. counter went backwards, value
-  out of physical range), not an integrator — a distinct detector class from both
-  the dynamics-IF and the rule-gate. A spoof of a *dynamics-relevant* value that
-  the ADCS fuses (vs a counter) could still perturb the physics → IF-catchable.
+**Acceptance Criteria:** Per the common criteria and the no-closed-by-construction rule —
+verify against the live FSW whether the spoof is actually exercisable, capture the
+footprint, and report the detection verdict.
 
-**AC:** exercisability confirmed (overturns triage) ✓; footprint = transient
-subscribed-telemetry flicker; detection gap documented. No FSW state changed
-(telemetry spoof, not commands) — nothing to clean up.
-**→ RESOLVED: consistency_check plugin built + deployed 2026-07-16** (fsw commit
-b58a2b4, parent 5eb0cf2c). A third OnAIR gate, parallel to the IF and rule-gate,
-that catches the per-sample spoof the other two miss. Primitive: a watched WIDE
-monotonic counter dropping below its recent rolling-window floor to a mid value
-(window-min beats OnAIR's double-buffer flicker; name+uint8 filters beat wraps and
-physical fields). **0 FP over 810 live nominal frames; a spoofed
-`IMU.DeviceHK.DeviceCounter=100` (real ~56900) produced one EX-0014.02 incident
-while the rule-gate stayed silent.** Coverage caveat: catches spoofs that move a
-wide (uint32, non-wrapping) counter backwards; uint8 sensor-count spoofs are
-excluded (wrap-noisy). **Follow-up:** update demo/triage to reclassify EX-0014.02
-from MARKDOWN-ONLY to exercisable-and-now-detected.
+**Findings (chronological):**
+
+- **2026-07-16 — the MARKDOWN-ONLY verdict is wrong; empirically overturned.**
+- **Mechanism (code-confirmed):** `:5012` IS CI_LAB (`CI_LAB_BASE_UDP_PORT 5012`). CI_LAB
+  ingest does `CFE_SB_TransmitBuffer(NextIngestBufPtr, false)` (`ci_lab_app.c:348`) — it
+  republishes ANY received packet onto the SB **by its MID, with no command/telemetry
+  filter**. So an external attacker can place a spoofed *telemetry* MID onto the internal
+  SB, not just commands.
+- **Demonstrated:** injected a hand-crafted 29-byte `GENERIC_IMU_Hk_tlm_t` (MID 0x0925)
+  with `CommandErrorCount=222` (a value that never occurs naturally). **OnAIR — a SB
+  subscriber via SBN — observed `IMU.CommandErrorCount=222`** (2/80 frames, single-shot).
+  Signal class: **ON_BOARD** (spoof reaches the bus + a subscriber).
+- **Caveat 1 — SBN forwarding:** OnAIR only sees the MIDs SBN forwards. NOVATEL_HK/CI/ST
+  read `[0]` (never forwarded), so a first spoof attempt on NOVATEL_HK (0x0870) was
+  invisible at OnAIR — not because injection failed but because OnAIR is blind to that MID.
+  (Also corrects the old DE-0010 note: "CI IngestPackets didn't move" was the `[0]`
+  sentinel, i.e. CI HK not forwarded — not commands bypassing CI_LAB.) The spoof still lands
+  on the FSW SB where consuming apps would act on it.
+- **Caveat 2 — transient:** for a continuously-published MID the real publisher overwrites
+  the spoof. Even a sustained 32 pkt/s flood (256 pkts/8s) held the observed value only
+  ~1/40 frames — the real IMU + SBN/OnAIR sampling dominates. So the observed footprint is a
+  brief flicker, not a durable value.
+- **Detection gap (both gates miss it):** the IF is counter-blind (a spoofed counter doesn't
+  perturb dynamics); the rule-gate's leaky integrator can't latch a 1-2 frame flicker (R4
+  never reached AlertLevel). Detecting bus-spoofing needs a **per-sample out-of-range /
+  schema-consistency check** (e.g. counter went backwards, value out of physical range), a
+  distinct detector class from both the IF and the rule-gate. A spoof of a *dynamics-relevant*
+  value the ADCS fuses (vs a counter) could still perturb the physics → IF-catchable.
+- **→ Resolved: `consistency_check` plugin built + deployed 2026-07-16** (fsw commit
+  b58a2b4, parent 5eb0cf2c). A third OnAIR gate, parallel to the IF and rule-gate, catching
+  the per-sample spoof the other two miss. Primitive: a watched wide monotonic counter
+  dropping below its recent rolling-window floor to a mid value (window-min beats OnAIR's
+  double-buffer flicker; name+uint8 filters beat wraps and physical fields). **0 FP over 810
+  live nominal frames; a spoofed `IMU.DeviceHK.DeviceCounter=100` (real ~56900) produced one
+  EX-0014.02 incident while the rule-gate stayed silent.** Coverage caveat: catches spoofs
+  that move a wide (uint32, non-wrapping) counter backwards; uint8 sensor-count spoofs are
+  excluded (wrap-noisy).
+
+**Result:** ✔ VALIDATED — exercisable (overturns triage); footprint = transient
+subscribed-telemetry flicker; consistency-check closes the gap. No FSW state changed
+(telemetry spoof, not commands).
+
+---
 
 ### AINOS3-58 — Validate DE-0002.03 (Inhibit Spacecraft Functionality) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate disabling/inhibiting a spacecraft subsystem as evasion.
 
-**Description:** Suppress telemetry at the source. The shipped script is a STUB
-(only sends CFE_EVS NOOPs — doesn't execute the inhibit); validated directly via raw
-commands. The OnAIR-observable mechanism is **CFE_EVS DISABLE_EVENT_TYPE** (0x1801
-FC3, 2-byte {BitMask,Spare}) — disabling all 4 event types (bitmask 0x0F) stops the
-event stream. (Inverse of DE-0010's EVS flood.)
+**Description:** Suppress telemetry at the source. The shipped script is a stub (only sends
+CFE_EVS NOOPs — doesn't execute the inhibit), so validated directly via raw commands. The
+OnAIR-observable mechanism is **CFE_EVS DISABLE_EVENT_TYPE** (0x1801 FC3, 2-byte
+{BitMask,Spare}) — disabling all 4 event types (bitmask 0x0F) stops the event stream
+(inverse of DE-0010's EVS flood).
 
-**VALIDATED live 2026-07-17:**
+**Acceptance Criteria:** Per the common criteria — confirm the "goes quiet" footprint on a
+subscribed subsystem and report the detection verdict.
 
-- **Signal class: ON_BOARD, staleness-detected.** `CFE_EVS_HK.MessageSendCounter`
-  **FROZE at 17102 for the full 70s** the event types were disabled (resumed to
-  17312 on ENABLE_EVENT_TYPE). The **staleness gate fired** on it
-  (`MessageSendCounter` max not advanced ≥78 frames → EX-0012.02/…-stale incident).
-  So DE-0002.03's freeze footprint is caught by the staleness gate.
-- **Note — shared freeze signature:** the staleness gate labels this EX-0012.02 (its
-  hardcoded freeze cluster), same as a route-disable — DE-0002.03 (EVS suppression)
-  and EX-0012.02 (route disable) produce the SAME frozen-counter footprint; the
-  distinguishing signal is the COMMAND (CFE_EVS DISABLE_EVENT_TYPE vs CFE_SB
-  DISABLE_ROUTE). R6 catches the CFE_SB command; **R7 — a CFE_EVS-command rule — is
-  now BUILT** (rule_gate b586b7a): CFE_EVS_HK.CommandCounter is static in nominal
-  (verified 1 value / 4530 frames), so a new high labels this DE-0002.03/evs-command
-  at ~1 frame. Live-verified on a fresh stack: a CFE_EVS NOOP → R7 alert 1 frame later
-  → a closed **DE-0002.03/evs-command incident** (`frames 576-588`), while R6 stayed
-  silent. So DE-0002.03 now has two catches: staleness (freeze effect) + R7 (command).
-- **Bonus — found + fixed a staleness FP:** the run exposed a persistent false stale
-  on `DS.Payload.FileWriteCounter` (a uint16 counter that WRAPS 65535→0, pinning the
-  running max for its next 0→65515 climb) and `SCH.ScheduleActivitySuccessCount`.
-  Fixed in staleness_check (fsw b9b37cb): a large RELATIVE backwards drop (>50% of the
-  running max) is a wrap/reset, not a freeze → re-baseline the max. Re-validated
-  offline over **194,275 frames** (containing a real wrap): DS+SCH FP → 0, DE-0002.03
-  EVS-freeze TP preserved (669 frames).
+**Findings (chronological):**
 
-**AC:** footprint ON_BOARD (EVS event stream freeze) ✓, staleness-detected ✓; the
-"goes quiet" signal confirmed on a subscribed subsystem (EVS). Cleanup: event types
-re-enabled (EVS resumed).
+- **2026-07-17 — signal class ON_BOARD, staleness-detected.** `CFE_EVS_HK.MessageSendCounter`
+  **froze at 17102 for the full 70s** the event types were disabled (resumed to 17312 on
+  ENABLE_EVENT_TYPE). The **staleness gate fired** on it (`MessageSendCounter` max not
+  advanced ≥78 frames → EX-0012.02/…-stale incident).
+- **Shared freeze signature.** The staleness gate labels this EX-0012.02 (its hardcoded
+  freeze cluster), same as a route-disable — DE-0002.03 (EVS suppression) and EX-0012.02
+  (route disable) produce the same frozen-counter footprint; the distinguishing signal is the
+  command (CFE_EVS DISABLE_EVENT_TYPE vs CFE_SB DISABLE_ROUTE). **R7 — a CFE_EVS-command rule
+  — built** (rule_gate b586b7a): CFE_EVS_HK.CommandCounter is static in nominal (1 value /
+  4530 frames), so a new high labels this DE-0002.03/evs-command at ~1 frame. Live-verified on
+  a fresh stack: a CFE_EVS NOOP → R7 alert 1 frame later → a closed **DE-0002.03/evs-command
+  incident** (frames 576-588) while R6 stayed silent. So DE-0002.03 has two catches: staleness
+  (freeze effect) + R7 (command).
+- **Bonus — found + fixed a staleness FP.** The run exposed a persistent false stale on
+  `DS.Payload.FileWriteCounter` (a uint16 counter that wraps 65535→0, pinning the running max
+  for its next 0→65515 climb) and `SCH.ScheduleActivitySuccessCount`. Fixed in staleness_check
+  (fsw b9b37cb): a large relative backwards drop (>50% of the running max) is a wrap/reset, not
+  a freeze → re-baseline the max. Re-validated offline over **194,275 frames** (containing a
+  real wrap): DS+SCH FP → 0, DE-0002.03 EVS-freeze TP preserved (669 frames).
+
+**Result:** ✔ VALIDATED — EVS event-stream freeze, staleness-caught (+ R7 command catch,
+
++ uint16-wrap FP fixed). Cleanup: event types re-enabled (EVS resumed).
+
+---
 
 ### AINOS3-59 — Validate DE-0005 (Subvert Protections via Safe-Mode) · `Task` · Low · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate safe-mode subversion as a defense-evasion technique.
 
-**Description:** The defense-evasion sibling of EX-0011 — send commands that safe-mode
-would normally reject (disable Limit Checker, force an ADCS mode, cut an EPS switch),
-betting on relaxed controls. NOS3 has no autonomous safe-mode, so the script just
-issues those commands. Shares EX-0011's LC-disable footprint; adds an explicit ADCS
-mode transition.
+**Description:** The defense-evasion sibling of EX-0011 — send commands that safe-mode would
+normally reject (disable Limit Checker, force an ADCS mode, cut an EPS switch), betting on
+relaxed controls. NOS3 has no autonomous safe-mode, so the script just issues those commands.
+Shares EX-0011's LC-disable footprint and adds an explicit ADCS mode transition. Script
+`gsw/attack_scripts/sparta/defense_evasion/de_0005_subvert_safe_mode.py`.
 
-**Script:** `gsw/attack_scripts/sparta/defense_evasion/de_0005_subvert_safe_mode.py`.
-**3 script bugs fixed** (same class as EX-0011): LC `SET_LC_STATE` was `>H` → must be
-`<HH` (4-byte LE `uint16 NewLCState; uint16 Padding`); ADCS `SET_MODE` was `>I` →
-must be `uint8 Mode`; EPS `SWITCH` used FC 3 → must be FC 2. Corrected, all commands
-are now accepted (LC.CmdErrCount + EPS.CommandErrorCount stayed 0).
+**Acceptance Criteria:** Per the common criteria — confirm the subscribed footprint (shared
+LC-disable + the ADCS mode change), report the detection verdict, and fix any payload bugs so
+the commands are accepted.
 
-**VALIDATED live (2026-07-17, exploit + 25s dwell + restore):**
+**Findings (chronological):**
 
-- **Signal class: ON_BOARD. Footprint (all valid → NO cmd-errors):**
-  `LC.CurrentLCState 1→3` (DISABLED), `ADCS_GNC.Mode 2→3` (SUNSAFE→INERTIAL),
-  `EPS.CommandCount 0→3`, `LC.CmdCount +2`. All fields oscillate old↔new via the OnAIR
-  double buffer while deviated.
-- **Detected by rule-gate R5** (monitor-state): `R5:LC-monstate` fired on
-  `LC.CurrentLCState` leaving its protective baseline — the rule's own label reads
-  "LC monitoring/limit-check state left its protective baseline (EX-0011 safe-mode
-  induction / **DE-0005**)". Cleared cleanly when LC was set back to ACTIVE. This is
-  the same catch as EX-0011 (AINOS3-52); the two share the R5 footprint as the backlog
-  predicted.
-- **Incident fold VERIFIED on a fresh stack (2026-07-17).** With R2:evs quiet (fresh
-  launch, no degraded-stack pin), the R5 alert folded into a clean rule-gate incident:
+- **2026-07-17 — 3 script bugs fixed** (same class as EX-0011): LC `SET_LC_STATE` was `>H` →
+  must be `<HH` (4-byte LE `uint16 NewLCState; uint16 Padding`); ADCS `SET_MODE` was `>I` →
+  must be `uint8 Mode`; EPS `SWITCH` used FC 3 → must be FC 2. Corrected, all commands are now
+  accepted (LC.CmdErrCount + EPS.CommandErrorCount stayed 0).
+- **Signal class ON_BOARD, footprint (all valid → no cmd-errors):** `LC.CurrentLCState 1→3`
+  (DISABLED), `ADCS_GNC.Mode 2→3` (SUNSAFE→INERTIAL), `EPS.CommandCount 0→3`, `LC.CmdCount +2`.
+  All fields oscillate old↔new via the OnAIR double buffer while deviated.
+- **Detected by rule-gate R5** (monitor-state): `R5:LC-monstate` fired on `LC.CurrentLCState`
+  leaving its protective baseline — the rule's own label reads "LC monitoring/limit-check state
+  left its protective baseline (EX-0011 safe-mode induction / **DE-0005**)". Cleared cleanly
+  when LC was set back to ACTIVE. Same catch as EX-0011 (AINOS3-52); the two share the R5
+  footprint as the backlog predicted.
+- **Incident fold verified on a fresh stack.** With R2:evs quiet (fresh launch, no
+  degraded-stack pin), the R5 alert folded into a clean rule-gate incident:
   `[rule_gate][INCIDENT] #1 frames 449-654 (206f) mode=SUNSAFE cluster=EX-0011
-  sub=LC-monitoring-disabled` (confidence 1.0) — opened on latch, closed on restore,
-  in both stdout and `rule_gate_incident_*.csv`. **Bonus second gate:** disabling LC
-  froze `LC.MonitoredMsgCount`, so the **staleness gate** also fired an incident
-  (`frames 518-580, cluster=EX-0012.02, sub=LC.MonitoredMsgCount-stale`) — DE-0005's
-  monitoring-disable is caught by two independent gates.
-- **⚠ New finding — the forced ADCS mode change is an IF blind spot.** The per-mode IF
-  did NOT flag `SET_MODE→INERTIAL`; instead its router SWITCHED models
-  (`MODE_SUNSAFE → MODE_INERTIAL at frame 84319`) and entered a **250-frame warmup**
-  with `is_anomaly=0` throughout. So a mode-forcing attacker not only evades the IF but
-  opens a ~250-frame detection-blind warmup window. R5 covers this case via the
-  LC-disable, but a pure mode-force with no monitoring change would slip the IF
-  entirely — a candidate for a dedicated mode-transition-legitimacy rule.
+  sub=LC-monitoring-disabled` (confidence 1.0). **Bonus second gate:** disabling LC froze
+  `LC.MonitoredMsgCount`, so the **staleness gate** also fired an incident (`frames 518-580,
+  cluster=EX-0012.02, sub=LC.MonitoredMsgCount-stale`) — caught by two independent gates.
+- **New finding — the forced ADCS mode change is an IF blind spot.** The per-mode IF did not
+  flag `SET_MODE→INERTIAL`; instead its router switched models (`MODE_SUNSAFE → MODE_INERTIAL
+  at frame 84319`) and entered a **250-frame warmup** with is_anomaly=0 throughout. So a
+  mode-forcing attacker not only evades the IF but opens a ~250-frame detection-blind warmup
+  window. R5 covers this case via the LC-disable, but a pure mode-force with no monitoring
+  change would slip the IF entirely — a candidate for a dedicated mode-transition-legitimacy
+  rule.
 
-**AC:** met — footprint ON_BOARD ✓, detected by R5 (shared with EX-0011) ✓, ran on the
-same safe-mode family as EX-0011 ✓; surfaced the mode-transition IF-warmup blind spot.
+**Result:** ✔ VALIDATED — footprint ON_BOARD, detected by R5 (shared with EX-0011); surfaced
+the mode-transition IF-warmup blind spot.
+
+---
 
 ### AINOS3-60 — Validate DE-0010 (Overflow Audit Log) · `Task` · High · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate an EVS event-log overflow used to bury evidence.
 
-**Description:** Flood EVS with events (script sends `CFE_EVS_NOOP`, MID 0x1801)
-so the audit trail is drowned. Observable in the EVS housekeeping.
-**VALIDATED against live FSW (2026-07-16, `de_0010_overflow_audit_log.py`
-`--attack-level 2 --flood-count 500`):**
+**Description:** Flood EVS with events (script sends `CFE_EVS_NOOP`, MID 0x1801) so the audit
+trail is drowned. Observable in the EVS housekeeping. Script
+`de_0010_overflow_audit_log.py`.
 
-- **Signal class: ON_BOARD, strong.** `CFE_EVS_HK.MessageSendCounter` 10564→11080
-  (Δ+516) and **`AppData[CFE_EVS].AppMessageSentCounter` 2→490 (Δ+488)**, +303
-  events in a single frame at peak — a huge, clean, already-subscribed signal.
-- **Hypothesis CORRECTED:** the footprint is the **sent** counter, NOT
-  `AppMessageSquelchedCounter`. Squelch never fired even on an instantaneous
-  200-event burst (config `CFE_PLATFORM_EVS_MAX_APP_EVENT_BURST=32`,
-  `APP_EVENTS_PER_SEC=15`) — the FSW's command-processing pace keeps the event
-  rate under the refill. The squelch-signal claim (here + the AppData analysis +
-  `V5_DETECTOR_COVERAGE.md`) is refuted for NOS3 event floods; correct to sent-rate.
-- **Deployed detector MISSES it:** the v5 IF held `is_anomaly=0 / alert=0` across
-  all 263 flood-burst frames (score ~0.12 vs thr ~0). The per-mode, GNC-dominated
-  IF doesn't weight CDH/EVS counters; since the classifier is IF-gated, DE-0010 is
-  **undetected end-to-end** despite the loud footprint.
+**Acceptance Criteria:** Per the common criteria — confirm the EVS-flood footprint moves live,
+record the signal class, and report the detection verdict.
 
-**Re-run 2026-07-16 (post 16-MID subscription):** footprint reconfirmed (EVS sent
-+379). New footprint element: **`CFE_SB.MsgSendErrorCounter` +96** (flood induces SB
-send errors; already subscribed). **`CI.IngestPackets` did NOT move** — externally
-injected commands hit the NOS3 UDP→SB bridge at :5012 and **bypass CI_LAB**, so
-`CI_LAB_HK` is NOT a command-injection signal in NOS3 (refutes a triage assumption;
-same likely applies to the EX-0013 flood tickets). No new MID adds DE-0010 signal.
+**Findings (chronological):**
 
-**Revised AC:** footprint is confirmed ON_BOARD ✓. Folding into the corpus is
-**not** guaranteed to make the IF catch it — the honest next step is (a) collect
-DE-0010 + retrain and re-measure whether the IF learns the EVS-flood signature, or
-more likely (b) add a targeted EVS-send-rate feature/rule, since the per-mode IF
-structurally under-weights CDH-layer signal. This reframes DE-0010 from "just
-validate" to "signal present but detector-blind — needs a feature, not just data."
+- **2026-07-16 — signal class ON_BOARD, strong** (`--attack-level 2 --flood-count 500`).
+  `CFE_EVS_HK.MessageSendCounter` 10564→11080 (Δ+516) and **`AppData[CFE_EVS].AppMessageSentCounter`
+  2→490 (Δ+488)**, +303 events in a single frame at peak — a huge, clean, already-subscribed
+  signal.
+- **2026-07-16 — hypothesis corrected:** the footprint is the **sent** counter, not
+  `AppMessageSquelchedCounter`. Squelch never fired even on an instantaneous 200-event burst
+  (config `CFE_PLATFORM_EVS_MAX_APP_EVENT_BURST=32`, `APP_EVENTS_PER_SEC=15`) — the FSW's
+  command-processing pace keeps the event rate under the refill. The squelch-signal claim
+  (here + the AppData analysis + `V5_DETECTOR_COVERAGE.md`) is refuted for NOS3 event floods;
+  correct to sent-rate.
+- **2026-07-16 — deployed detector misses it.** The v5 IF held is_anomaly=0 / alert=0 across
+  all 263 flood-burst frames (score ~0.12 vs thr ~0). The per-mode, GNC-dominated IF doesn't
+  weight CDH/EVS counters; since the classifier is IF-gated, DE-0010 was undetected end-to-end
+  despite the loud footprint — so folding into the corpus wouldn't teach the IF to catch it;
+  the honest remedy is a targeted EVS-send-rate feature/rule.
+- **2026-07-16 — re-run (post 16-MID subscription).** Footprint reconfirmed (EVS sent +379).
+  New footprint element: **`CFE_SB.MsgSendErrorCounter` +96** (flood induces SB send errors;
+  already subscribed). **`CI.IngestPackets` did not move** — externally injected commands hit
+  the NOS3 UDP→SB bridge at :5012 and bypass CI_LAB, so `CI_LAB_HK` is not a command-injection
+  signal in NOS3 (refutes a triage assumption; same likely applies to the EX-0013 flood
+  tickets). No new MID adds DE-0010 signal.
+- **2026-07-17 — detection closed — R2.** The "needs a feature/rule" gap is filled: the
+  rule-gate **R2:evs** rule catches the EVS send-rate spike and its label maps to DE-0010.
+  Re-verified live (`--flood-count 500`): `R2:evs` fired → `[rule_gate][INCIDENT] cluster=DE-0010
+  sub=evs-flood` (frames 5536-5668, 133f). DE-0010 is now detected end-to-end by the rule-gate
+  even though the v5 IF stays blind.
 
-**DETECTION CLOSED — R2 (2026-07-17).** The "needs a feature/rule" gap is filled: the
-rule-gate **R2:evs** rule catches the EVS send-rate spike and its label maps to DE-0010.
-Re-verified live today (`--flood-count 500`): `R2:evs` fired → `[rule_gate][INCIDENT]
-cluster=DE-0010 sub=evs-flood` (frames 5536-5668, 133f). So DE-0010 is now detected
-end-to-end by the rule-gate even though the v5 IF stays blind — upgraded ◑ → ✔.
+**Result:** ✔ VALIDATED — EVS send-rate; R2:evs → DE-0010 incident (IF stays blind).
+
+---
 
 ### AINOS3-61 — Validate PER-0001 (Memory Compromise) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate persistent memory compromise.
 
-**Description:** Persistent on-board memory modification (persistence tactic). The
-script exercises every command path an attacker would use to survive a reset:
-CFE_TBL LOAD/ACTIVATE (backdoor table), SC RTS/ATS (dormant stored-command payload),
-MM memory writes, CFE_ES app reload/start — then hides evidence with counter RESETs.
-NOS3 models no non-volatile boot memory, so persistence-across-reset can't be shown;
-the *command signatures* are the observable.
-
-**Script:** `gsw/attack_scripts/sparta/persistence/per_0001_memory_compromise.py`
+**Description:** Persistent on-board memory modification (persistence tactic). The script
+exercises every command path an attacker would use to survive a reset: CFE_TBL LOAD/ACTIVATE
+(backdoor table), SC RTS/ATS (dormant stored-command payload), MM memory writes, CFE_ES app
+reload/start — then hides evidence with counter RESETs. NOS3 models no non-volatile boot
+memory, so persistence-across-reset can't be shown; the command signatures are the observable.
+Script `gsw/attack_scripts/sparta/persistence/per_0001_memory_compromise.py`
 (`--attack-level 3`).
 
-**VALIDATED live (2026-07-17, fresh stack):**
+**Acceptance Criteria:** Per the common criteria — confirm the command-signature footprint
+moves live and report the detection verdict (closing any gate gap found); persistence-across-
+reset is out of scope in NOS3 (no NV boot memory).
 
-- **Signal class: ON_BOARD. Footprint (peaks during the window — the final values are
-  masked by the attacker's RESET step):** `CFE_TBL.CommandCounter 0→1` +
+**Findings (chronological):**
+
+- **2026-07-17 — signal class ON_BOARD** (fresh stack). Footprint peaks during the window (the
+  final values are masked by the attacker's RESET step): `CFE_TBL.CommandCounter 0→1` +
   `CFE_TBL.CommandErrorCounter 0→3` (table load/activate attempts), `SC.CmdCtr 5→6` +
-  `SC.CmdErrCtr 0→3` (stored-command RTS/ATS). `CFE_TBL.CommandCounter` is **static-0
-  in nominal**. MM is **not subscribed** (no MM_HK) so MM writes are unobservable; the
-  CFE_ES app-reload commands didn't register (poll-missed the transient before RESET).
-- **⚠ Was a 4-gate MISS, closed by new rule R9.** No gate caught it first pass: the IF
-  is blind (table/memory commands don't perturb dynamics), consistency/staleness are
-  N/A (no backward counter, no freeze), and R4's per-frame cmd-error threshold isn't
-  tripped by 3 errors spread across frames. Fix = **R9 (`CFE_TBL.CommandCounter`)**,
-  the 4th static-in-nominal command-counter rule after R6/R7/R8. Live after redeploy:
-  `R9:tbl-command` ALERT → **PER-0001/tbl-command incident** (frames 436-448) → CLEAR.
-- **R9 survives the evidence-hiding RESET.** PER-0001's `CFE_TBL_RESET` zeroes the
-  counter, but the rule's running-max already latched the new high before the reset,
-  so the catch stands. (Same design point that makes R6/R7/R8 robust to the OnAIR
-  double buffer.)
+  `SC.CmdErrCtr 0→3` (stored-command RTS/ATS). `CFE_TBL.CommandCounter` is static-0 in nominal.
+  MM is not subscribed (no MM_HK) so MM writes are unobservable; the CFE_ES app-reload commands
+  didn't register (poll-missed the transient before RESET).
+- **Was a 4-gate miss, closed by new rule R9.** No gate caught it first pass: the IF is blind
+  (table/memory commands don't perturb dynamics), consistency/staleness are N/A (no backward
+  counter, no freeze), and R4's per-frame cmd-error threshold isn't tripped by 3 errors spread
+  across frames. Fix = **R9 (`CFE_TBL.CommandCounter`)**, the 4th static-in-nominal
+  command-counter rule after R6/R7/R8. Live after redeploy: `R9:tbl-command` ALERT →
+  **PER-0001/tbl-command incident** (frames 436-448) → CLEAR.
+- **R9 survives the evidence-hiding RESET.** PER-0001's `CFE_TBL_RESET` zeroes the counter, but
+  the rule's running-max already latched the new high before the reset, so the catch stands.
+  (Same design point that makes R6/R7/R8 robust to the OnAIR double buffer.)
 
-**AC:** met — footprint ON_BOARD (`CFE_TBL`/SC command counters) ✓, detection closed
-via R9 with a PER-0001 incident ✓. Persistence-across-reset is out of scope in NOS3
-(no non-volatile boot memory modeled), documented above. Residual gaps: SC
+**Result:** ✔ VALIDATED — footprint ON_BOARD (`CFE_TBL`/SC command counters), detection closed
+via R9. Persistence-across-reset out of scope (no NV boot memory). Residual gaps: SC
 stored-command counters and MM (unsubscribed) have no rule yet.
+
+---
 
 ### AINOS3-62 — Validate LM-0002 (Exploit Lack of Bus Segregation) · `Task` · Medium · ✔ VALIDATED 2026-07-17
 
 **Summary:** Validate lateral movement via unsegregated Software Bus.
 
-**Description:** The cFE Software Bus is flat — any external sender can inject any MID.
-The script demonstrates the reach: a NOOP to **all 24 command MIDs** ("the scale is the
-signal" — a legitimate pass touches 1–3 subsystems, an attacker sweeps many). The one
-Lateral-Movement technique that is on-board-detectable.
+**Description:** The cFE Software Bus is flat — any external sender can inject any MID. The
+script demonstrates the reach: a NOOP to **all 24 command MIDs** ("the scale is the signal" —
+a legitimate pass touches 1–3 subsystems, an attacker sweeps many). The one Lateral-Movement
+technique that is on-board-detectable. Script
+`gsw/attack_scripts/sparta/lateral_movement/lm_0002_bus_segregation.py` (`--attack-level 2` =
+the 24-MID reach sweep).
 
-**Script:** `gsw/attack_scripts/sparta/lateral_movement/lm_0002_bus_segregation.py`
-(`--attack-level 2` = the 24-MID reach sweep).
+**Acceptance Criteria:** Per the common criteria — confirm the multi-MID sweep footprint moves
+live and report the detection verdict (giving the sweep its own label if it collapses to
+another class).
 
-**VALIDATED live (2026-07-17, fresh stack):**
+**Findings (chronological):**
 
-- **Signal class: ON_BOARD, LOUD.** The 24-MID sweep ticks every reachable app's
-  command counter once; crucially it hits the four static-in-nominal CDH counters, so
-  **R6 (CFE_SB) + R7 (CFE_EVS) + R8 (CFE_ES) all fired together at the same frame**
-  (`CFE_SB/EVS/ES.CommandCounter 0→1` each), and the command volume spiked the EVS
-  event rate → **R2:evs**. Net: a **45-frame incident** emitted. Device counters
-  (IMU/EPS/THRUSTER/TORQUER/MAG `.CommandCount +1`) also ticked.
-- **⚠ Correction — `CFE_SB_SUBS` is NOT the observable.** The assumed footprint was
-  wrong: `CFE_SB_SUBS.Entries` reads `[0]`/never-received in OnAIR (subscriptions
-  aren't SBN-forwarded — same finding as EX-0012.02). The **real** signal is the
-  *simultaneous firing of multiple command-counter rules* (R6+R7+R8) plus the EVS-rate
-  spike — the "many MIDs in a short window" scale expressed through the deployed rules.
-- **Detected but not distinctly labeled.** The incident collapsed to
-  `cluster=DE-0010 sub=evs-flood` (R2 sustained while the single-step R6/R7/R8 dwells
-  expired, so R2 dominated the label) — the same label-collapse as EX-0013.01. LM-0002
-  is *caught* end-to-end but reads as an EVS flood, not as a bus sweep.
-- **R9 (CFE_TBL) did not trip** despite `CFE_TBL.CommandCounter 0→1`: CFE_TBL HK
-  publishes too slowly for OnAIR to sample the single transient NOOP (same poll-miss as
-  the CFE_ES path in PER-0001). Not a rule defect.
+- **2026-07-17 — signal class ON_BOARD, loud** (fresh stack). The 24-MID sweep ticks every
+  reachable app's command counter once; crucially it hits the four static-in-nominal CDH
+  counters, so **R6 (CFE_SB) + R7 (CFE_EVS) + R8 (CFE_ES) all fired together at the same frame**
+  (`CFE_SB/EVS/ES.CommandCounter 0→1` each), and the command volume spiked the EVS event rate →
+  **R2:evs**. Net: a **45-frame incident** emitted. Device counters (IMU/EPS/THRUSTER/TORQUER/MAG
+  `.CommandCount +1`) also ticked.
+- **Correction — `CFE_SB_SUBS` is not the observable.** The assumed footprint was wrong:
+  `CFE_SB_SUBS.Entries` reads `[0]`/never-received in OnAIR (subscriptions aren't SBN-forwarded —
+  same finding as EX-0012.02). The **real** signal is the *simultaneous firing of multiple
+  command-counter rules* (R6+R7+R8) plus the EVS-rate spike — the "many MIDs in a short window"
+  scale expressed through the deployed rules.
+- **Detected but not distinctly labeled (first pass).** The incident collapsed to
+  `cluster=DE-0010 sub=evs-flood` (R2 sustained while the single-step R6/R7/R8 dwells expired, so
+  R2 dominated the label) — the same label-collapse as EX-0013.01. LM-0002 was caught end-to-end
+  but read as an EVS flood.
+- **R9 (CFE_TBL) did not trip** despite `CFE_TBL.CommandCounter 0→1`: CFE_TBL HK publishes too
+  slowly for OnAIR to sample the single transient NOOP (same poll-miss as the CFE_ES path in
+  PER-0001). Not a rule defect.
+- **Meta-rule built — R10 bus-sweep.** The "≥N distinct command-counter rules fire in one window
+  ⇒ bus sweep" meta-rule is deployed (`BusSweepMinRules`=3), priced above the individual command
+  rules + R2 so the sweep gets its own label. Live after redeploy: the 24-MID sweep fired
+  R6+R7+R8+R9 together → **R10:bus-sweep** → `INCIDENT cluster=LM-0002 sub=bus-sweep` (frames
+  245-259) — no longer collapsing to DE-0010. (A separate trailing DE-0010/evs-flood incident
+  still follows, correctly, as the EVS-event aftermath.) +3 unit tests (28 pass). Rule-gate now
+  R1–R10.
 
-**AC:** met — footprint ON_BOARD, detected loudly by R6+R7+R8+R2. Corrected the
-observable (`CFE_SB_SUBS` unobservable → multi-command-rule + EVS-rate signature).
-
-**Meta-rule BUILT — R10 bus-sweep (2026-07-17).** The "≥N distinct command-counter
-rules fire in one window ⇒ bus sweep" meta-rule is deployed (`BusSweepMinRules`=3),
-priced above the individual command rules + R2 so the sweep gets its OWN label. Live
-after redeploy: the 24-MID sweep fired R6+R7+R8+R9 together → **R10:bus-sweep** →
-`INCIDENT cluster=LM-0002 sub=bus-sweep` (frames 245-259) — no longer collapsing to
-DE-0010. (A separate trailing DE-0010/evs-flood incident still follows, correctly, as
-the EVS-event aftermath.) +3 unit tests (28 pass). Rule-gate now R1–R10.
+**Result:** ✔ VALIDATED — 24-MID sweep detected loudly by R6+R7+R8+R2, labeled LM-0002/bus-sweep
+via R10; corrected the observable (`CFE_SB_SUBS` unobservable → multi-command-rule + EVS-rate
+signature).
 
 ---
 
 ## Campaign synthesis — the IF is a *dynamics* detector, and the 4-gate roadmap
 
-Per-technique results (footprint, which gate caught it, script bugs fixed) live in
-each `### AINOS3-5x` task block above — that is the source of truth. This section is
-the cross-cutting thesis and the detector roadmap the campaign produced.
+Per-technique results (footprint, which gate caught it, script bugs fixed) live in each
+`### AINOS3-5x` task block above — that is the source of truth. This section is the
+cross-cutting thesis and the detector roadmap the campaign produced.
 
 **Core finding.** Across every validated Section-A technique, the v5 per-mode
 Isolation Forest only flags anomalies in the *physical/attitude dynamics*. It is
@@ -643,7 +670,7 @@ the IF misses; the campaign built a complementary gate for each:
 
 - **dynamics-IF** — physical/attitude anomalies (subsystem-value corruption,
   thruster/RW perturbation).
-- **rule-gate (R1–R9)** — sustained state/counter changes: R1 device-disable, R2
+- **rule-gate (R1–R10)** — sustained state/counter changes: R1 device-disable, R2
   EVS-rate, R3 SB-errors, R4 cmd-errors, R5 monitor-state (LC/HS), and the
   static-in-nominal command-counter rules R6 (CFE_SB), R7 (CFE_EVS), R8 (CFE_ES),
   R9 (CFE_TBL), and the R10 bus-sweep meta-rule (≥3 command rules in one window ⇒
@@ -661,17 +688,17 @@ their own epic **AINOS3-63** (detector-gates) with tickets **AINOS3-64…67**; t
 detailed writeups live in [`SPRINT_25_PLAN.md`](SPRINT_25_PLAN.md) and the mapping in
 [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md) — not in this backlog.
 
-**Corpus & demo folding (AC 3-4, done 2026-07-17).** All 13 are **gate-detected, not
-classifier-trained**, so they are *validated standalone* (each footprint + detecting
-gate + live incident documented in its task block above) rather than folded into the
-mode-balanced training corpus — the classifier is IF-gated and does not learn the
-flag/counter/freeze/spoof class the gates own, so a `run_attack_batch.py` re-collection
-would not move it. Folded into the **demo** (`app/gen_nos3_coverage.py` `GATE_DETECTED`
-→ `nos3_coverage.js` → `sparta_coverage.html`; they render as **"detected (gate)"** with
-the detector named) and the **stakeholder doc** (`V5_DETECTOR_COVERAGE.md` §5
-"Complementary detector gates"). The 2 hybrid cases (EX-0005.02 78 %, EX-0011 52 %) are
-*also* IF-caught, so a future corpus regen could additionally teach the classifier to
-label them — deferred (not required for detection).
+**Corpus & coverage-overview folding (common acceptance criteria 3-4, done 2026-07-17).** All 13 are
+**gate-detected, not classifier-trained**, so they are *validated standalone* (each
+footprint + detecting gate + live incident documented in its task block above) rather
+than folded into the mode-balanced training corpus — the classifier is IF-gated and does
+not learn the flag/counter/freeze/spoof class the gates own, so a `run_attack_batch.py`
+re-collection would not move it. Folded into the **coverage overview**
+(`app/gen_nos3_coverage.py` `GATE_DETECTED` → `nos3_coverage.js` → `sparta_coverage.html`;
+they render as **"detected (gate)"** with the detector named) and the **stakeholder doc**
+(`V5_DETECTOR_COVERAGE.md` §5 "Complementary detector gates"). The 2 hybrid cases
+(EX-0005.02 78%, EX-0011 52%) are *also* IF-caught, so a future corpus regen could
+additionally teach the classifier to label them — deferred (not required for detection).
 
 **Two lessons carried to memory (recorded here for provenance):**
 
