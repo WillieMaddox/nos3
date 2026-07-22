@@ -61,7 +61,6 @@ ENRICH = {
     "DE-0003.04": ("OUT-OF-SCOPE", "CONCEPTUAL",   None, "Command receiver RSSI"),
     "DE-0003.05": ("OUT-OF-SCOPE", "CONCEPTUAL",   None, "Command receiver lock modes"),
     "DE-0003.07": ("OUT-OF-SCOPE", "CONCEPTUAL",   None, "Cryptographic modes"),
-    "DE-0003.11": ("OUT-OF-SCOPE", "UNSUBSCRIBED", None, "Watchdog timer"),
     "DE-0003.12": ("OUT-OF-SCOPE", "CONCEPTUAL",   None, "Poison AI/ML training"),
 }
 
@@ -104,7 +103,6 @@ REVIEW = {
     "DE-0003.12": "Poisoning corrupts an offline training dataset, not a live telemetry event. Needs: training-data provenance/integrity checks in the ML pipeline.",
     # -- reviewed but NOT scripted/scored (added via REVIEW_ADD below) --
     "EX-0003":    "Authentication runs inside CryptoLib (CFE_LIB, no SB telemetry); auth-process changes leave no HK footprint. Needs: a CryptoLib auth/SA-state HK packet.",
-    "EX-0004":    "Boot-memory/boot-ROM tampering occurs below the running FSW; NOS3 models no boot layer or its telemetry. Needs: secure/measured-boot attestation.",
     "EX-0006":    "Encryption enable state (SA est flag) is internal to CryptoLib; no SB packet carries it. Needs: CryptoLib SA-state HK, or a weak RADIO frame-error proxy when bad frames are rejected downstream.",
     "EX-0009.02": "Exploiting the host Linux OS operates below the cFS application layer OnAIR observes. Needs: host-OS security monitoring (auditd/EDR) — a separate sensor from cFS telemetry.",
     "EX-0009.03": "A library-CVE exploit has no cFS-telemetry signature until it causes a downstream effect (a separate technique). Needs: SBOM/vulnerability scanning, off-board.",
@@ -119,13 +117,16 @@ REVIEW = {
     "DE-0007":    "Same as the rootkit case (EX-0010.03): the rootkit hides the evasion and NOS3 has no host-integrity sensor. Needs: file/memory attestation off the cFS bus.",
     "DE-0008":    "Same as the bootkit case (EX-0010.04): sub-OS persistence with no running-FSW telemetry. Needs: measured-boot attestation.",
     "DE-0011":    "Uses valid (stolen) credentials, so actions appear authorized on the bus. Needs: an identity/session layer NOS3 doesn't model; telemetry can't tell a thief from an operator.",
+    "PER-0005":   "Persists using valid (stolen) credentials, so the actions look authorized on the bus — telemetry can't tell a credentialed attacker from an operator (sibling of DE-0011). Needs: an identity/session layer NOS3 doesn't model.",
 }
 
 # Reviewed out-of-scope techniques that are NOT in the scored corpus — added to
 # the overlay purely to record the review verdict. id -> (name, signal).
+# NOTE: EX-0004 (boot memory) was moved OUT of here — per SPARTA_COVERAGE_TRIAGE.md
+# Section D it is Not-Applicable (NOS3 models no boot layer, so the target doesn't
+# exist), not out-of-scope. N/A is classified in the overlay's NA_TECH map, not here.
 REVIEW_ADD = {
     "EX-0003":     ("Modify Authentication Process",   "CONCEPTUAL"),
-    "EX-0004":     ("Compromise Boot Memory",          "CONCEPTUAL"),
     "EX-0006":     ("Disable/Bypass Encryption",       "CONCEPTUAL"),
     "EX-0009.02":  ("Operating System",                "CONCEPTUAL"),
     "EX-0009.03":  ("Known Vulnerability (COTS/FOSS)",  "CONCEPTUAL"),
@@ -136,6 +137,7 @@ REVIEW_ADD = {
     "PER-0002.01": ("Hardware Backdoor",               "CONCEPTUAL"),
     "PER-0002.02": ("Software Backdoor",               "CONCEPTUAL"),
     "PER-0004":    ("Replace Cryptographic Keys",      "CONCEPTUAL"),
+    "PER-0005":    ("Credentialed Persistence",        "CONCEPTUAL"),
     "DE-0004":     ("Masquerading",                    "CONCEPTUAL"),
     "DE-0007":     ("Evasion via Rootkit",             "CONCEPTUAL"),
     "DE-0008":     ("Evasion via Bootkit",             "CONCEPTUAL"),

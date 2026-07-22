@@ -8,7 +8,7 @@ window.NOS3_COVERAGE_META = {
   ],
   "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3",
   "incident_recall_headline": 0.6783,
-  "n_techniques": 61
+  "n_techniques": 60
 };
 window.NOS3_COVERAGE = {
   "EX-0008.01": {
@@ -401,19 +401,6 @@ window.NOS3_COVERAGE = {
     "explanation": "",
     "review": "Crypto state lives only in CryptoLib process memory (a CFE_LIB with zero Software Bus telemetry). Needs: a CryptoLib SA-state HK packet \u2014 none exists in this build."
   },
-  "DE-0003.11": {
-    "name": "Watchdog timer",
-    "tier": "OUT-OF-SCOPE",
-    "signal": "UNSUBSCRIBED",
-    "frame_rate": null,
-    "incident_detected": 0,
-    "incident_total": 3,
-    "incident_recall": 0.0,
-    "label_ok": 0,
-    "cluster": null,
-    "explanation": "",
-    "review": "Watchdog state is not among the subscribed MIDs and nothing downstream surfaces it. Needs: subscribe a watchdog/health telemetry packet (UNSUBSCRIBED \u2014 recoverable, not permanent)."
-  },
   "DE-0003.12": {
     "name": "Poison AI/ML training",
     "tier": "OUT-OF-SCOPE",
@@ -622,19 +609,6 @@ window.NOS3_COVERAGE = {
     "explanation": "",
     "review": "Authentication runs inside CryptoLib (CFE_LIB, no SB telemetry); auth-process changes leave no HK footprint. Needs: a CryptoLib auth/SA-state HK packet."
   },
-  "EX-0004": {
-    "name": "Compromise Boot Memory",
-    "tier": "OUT-OF-SCOPE",
-    "signal": "CONCEPTUAL",
-    "frame_rate": null,
-    "incident_detected": null,
-    "incident_total": null,
-    "incident_recall": null,
-    "label_ok": null,
-    "cluster": null,
-    "explanation": "",
-    "review": "Boot-memory/boot-ROM tampering occurs below the running FSW; NOS3 models no boot layer or its telemetry. Needs: secure/measured-boot attestation."
-  },
   "EX-0006": {
     "name": "Disable/Bypass Encryption",
     "tier": "OUT-OF-SCOPE",
@@ -764,6 +738,19 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "Key material (ekid/akid) is internal to CryptoLib's SADB; a key swap is invisible on the SB. Needs: CryptoLib key-index HK, or ground-side downlink-auth-failure detection."
+  },
+  "PER-0005": {
+    "name": "Credentialed Persistence",
+    "tier": "OUT-OF-SCOPE",
+    "signal": "CONCEPTUAL",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Persists using valid (stolen) credentials, so the actions look authorized on the bus \u2014 telemetry can't tell a credentialed attacker from an operator (sibling of DE-0011). Needs: an identity/session layer NOS3 doesn't model."
   },
   "DE-0004": {
     "name": "Masquerading",
