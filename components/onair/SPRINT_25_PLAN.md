@@ -122,7 +122,7 @@ prior `rollout-s24`).
 | AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion (add signal) |
 | AINOS3-30 | extra-mids | Story | Highest | 8 | 2.5 | ◑ COMMIT — subscribe pruned MIDs to recover nominal-ambiguous DEAD classes |
 | AINOS3-32 | explainability | Epic | — | — | — | Explainability (Phase 7) |
-| AINOS3-48 | appdata-slot-map | Task | High | 3 | 0.75 | ◑ COMMIT — EVS `AppData` slot→app crosswalk; unblocks the counter-reliance audit |
+| AINOS3-48 | appdata-slot-map | Task | High | 3 | 0.75 | ✅ DONE — EVS `AppData` slot→app crosswalk; unblocks the counter-reliance audit |
 | AINOS3-31 | classification-trust | Epic | — | — | — | Classification trust (close the mode gap) |
 | AINOS3-39 | counter-reliance-audit | Spike | Medium | 3 | 0.75 | ◑ COMMIT — audit classifier reliance on generic activity counters |
 | AINOS3-37 | selective-mode-hybrid | Story | Medium | 5 | 1.5 | ○ STRETCH — bank INERTIAL/SUNSAFE/ROBUST gains, no BDOT/PASSIVE regression |
@@ -301,7 +301,7 @@ anonymous 16×4 array, so "AppData drove it" isn't yet actionable. This task
 resolves the slots to app names, which is the missing piece that makes the
 attribution useful *and* unblocks the counter-reliance audit.
 
-### AINOS3-48 — EVS AppData slot→app reference map · `Task` · High · E 3 · T 0.75 (~6h) · ◑ COMMIT
+### AINOS3-48 — EVS AppData slot→app reference map · `Task` · High · E 3 · T 0.75 (~6h) · ✅ DONE
 
 **Summary:** As a developer/analyst, I want a reference map from each
 `CFE_EVS_HK.AppData` slot to the human-readable app it represents, so the

@@ -35,7 +35,7 @@ Jira 2026-07-15 and entered below.
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
 | AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | ◑ Committed |
 | AINOS3-32 | explainability | Epic | — | Explainability (Phase 7) | — |
-| AINOS3-48 | appdata-slot-map | Task | explainability | EVS AppData slot→app reference map | ◑ Committed |
+| AINOS3-48 | appdata-slot-map | Task | explainability | EVS AppData slot→app reference map | ✅ Done |
 | AINOS3-31 | classification-trust | Epic | — | Classification trust (close the mode gap) | — |
 | AINOS3-39 | counter-reliance-audit | Spike | classification-trust | Activity-counter reliance audit | ◑ Committed |
 | AINOS3-37 | selective-mode-hybrid | Story | classification-trust | Selective per-mode hybrid | ○ Stretch |
@@ -54,7 +54,7 @@ Jira 2026-07-15 and entered below.
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
 
-From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md). All Tasks under `coverage-expansion` (AINOS3-41), delivered as unplanned mid-Sprint-25 work. All keys created and all 13 validated live — transition each to Done in Jira to match.
+From [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) / [`COVERAGE_VALIDATION_BACKLOG.md`](COVERAGE_VALIDATION_BACKLOG.md). All Tasks under `coverage-expansion` (AINOS3-41), delivered as unplanned mid-Sprint-25 work. All 13 validated live and **assigned to Sprint 25 + Done in Jira (2026-07-22)**.
 
 | Jira | Slug | Type | Epic (parent) | Title (SPARTA) | Status |
 |---|---|---|---|---|---|
