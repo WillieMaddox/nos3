@@ -22,7 +22,30 @@ How to use it:
   `rollout-s25`, …), never an arbitrary counter.
 - `—` in the Jira column = not yet created / not yet entered.
 
-## Sprint 25 (current)
+## Sprint 26 (planning)
+
+Workstream Sprint 5 (`SPRINT_26_PLAN.md`), theme "Section B Coverage & Close the Trust
+Epic". The Section-B detections turn the 2026-07-16 recording-MID pass into validated
+detections; the classification-trust carryover (`AINOS3-39`, `AINOS3-37`) closes that
+epic. New slugs get Jira keys when the tickets are created — `subscribe-recording-mids`
+documents already-done work (create + close it).
+
+| Jira | Slug | Type | Epic (parent) | Title | Status |
+|---|---|---|---|---|---|
+| AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
+| AINOS3-70 | subscribe-recording-mids | Task | coverage-expansion | Subscribe the 16 Section-B recording MIDs (pipe cap 32→48; schema 383 cols) | ✅ Done (2026-07-16) |
+| AINOS3-71 | detect-wiper-ransomware | Story | coverage-expansion | DS/FM file-operation detector (EX-0010.01/.02) | ◑ Committed |
+| AINOS3-72 | detect-downlink-exfil | Story | coverage-expansion | TO downlink-path detector (EXF-0003.02 / IMP-0006) | ◑ Committed |
+| AINOS3-73 | detect-fault-mgmt | Task | coverage-expansion | DE-0001 fault-management-disable detection | ○ Stretch |
+| AINOS3-74 | watchdog-probe | Spike | coverage-expansion | Watchdog telemetry-packet existence probe | ○ Stretch |
+| AINOS3-75 | borderline-footprint-check | Spike | coverage-expansion | Footprint-check EX-0001.02 / EX-0005.01 / DE-0006 | ○ Stretch |
+| AINOS3-31 | classification-trust | Epic | — | Classification trust (close the mode gap) | — |
+| AINOS3-39 | counter-reliance-audit | Spike | classification-trust | Activity-counter reliance audit | ◑ Committed |
+| AINOS3-37 | selective-mode-hybrid | Story | classification-trust | Selective per-mode hybrid | ○ Stretch |
+| AINOS3-42 | stakeholder-rollout | Epic | — | Stakeholder rollout & feedback (recurring) | — |
+| AINOS3-76 | rollout-s26 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 26 | ◑ Committed |
+
+## Sprint 25 (prior)
 
 Workstream Sprint 4 (`SPRINT_25_PLAN.md`), theme "Consolidate & Add Signal" —
 executes the `next-ml-bet` (`NOS3_330`) CONSOLIDATE verdict. All committed items
@@ -50,7 +73,7 @@ Jira 2026-07-15 and entered below.
 | AINOS3-45 | corpus-instance-4 | Task | — | 4th corpus instance | Backlog |
 | AINOS3-46 | demo-tier-bc | Story | — | Demo app Tier B/C (live execution / agent) | Backlog |
 | AINOS3-47 | foundation-baseline | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
-| — | deepsad-revisit | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
+| AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
 
@@ -105,7 +128,7 @@ detailed ticket writeups (Summary/Description/AC + actuals) are in
 | AINOS3-40 | surface-explanations | Story | explainability | Surface explanations in incident + demo | ✅ Done |
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
 | AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | Backlog |
-| — | next-ml-bet | Spike | — | Next big-ML bet (Phase 5/6 vs consolidate) | ✅ Done |
+| AINOS3-69 | next-ml-bet | Spike | — | Next big-ML bet (Phase 5/6 vs consolidate) | ✅ Done |
 | AINOS3-42 | stakeholder-rollout | Epic | — | Stakeholder rollout & feedback (recurring) | — |
 | AINOS3-43 | rollout-s24 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 24 | Ready |
 
