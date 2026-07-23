@@ -37,9 +37,8 @@ retrain that might not work); **T ≈ E** ⇒ it's just big-but-known.
 Jira-key mapping is maintained in **[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md)**
 (cross-sprint, append-only) — that file is where you *enter* keys. The `Jira`
 column below is a read-only mirror (keys are immutable, so it can't drift). In the
-section bodies below, a ticket is referenced by its **Jira key** where one exists
-(`next-ml-bet` has none yet, so it uses its slug); look any key up in this table
-or the crosswalk. Recurring work keeps a stable epic slug and tags each instance
+section bodies below, a ticket is referenced by its **Jira key**; look any key up in
+this table or the crosswalk. Recurring work keeps a stable epic slug and tags each instance
 with the Jira sprint number (`rollout-s24`, next `rollout-s25`).
 
 | Jira | Slug | Type | Pri | E | T | Summary |
@@ -57,7 +56,7 @@ with the Jira sprint number (`rollout-s24`, next `rollout-s25`).
 | — | appdata-slot-map | Task | Medium | 3 | 0.75 | Backlog — EVS AppData slot→app reference map; unblocks counter-reliance-audit + targeted event-suppression features |
 | AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion |
 | AINOS3-30 | extra-mids | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
-| — | next-ml-bet | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
+| AINOS3-69 | next-ml-bet | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
 | AINOS3-42 | stakeholder-rollout | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
 | AINOS3-43 | rollout-s24 | Task | High | 2 | 0.5 | ◑ READY — under stakeholder-rollout; rollout materials + demo prepared; owner presents |
 
@@ -537,7 +536,7 @@ feedback as backlog candidates.
 
 ## 🔬 Spike
 
-### next-ml-bet — Next big-ML bet · `Spike` · Medium · E 3 · T 0.75 (~6h) · ✅ DONE 2026-07-05
+### AINOS3-69 — Next big-ML bet · `Spike` · Medium · E 3 · T 0.75 (~6h) · ✅ DONE 2026-07-05
 
 **Summary:** Decide whether Phase 5 (VAE/DeepSAD) or Phase 6 (graph root-cause)
 is the next investment, or whether to consolidate.
@@ -551,9 +550,18 @@ consolidating the current system instead.
 CONSOLIDATE GO.** The binding constraint is *information* (observability), not
 model capacity — AINOS3-33 (PASSIVE = info limit), Phase-4 deep-model plateau, and
 the nominal-ambiguous DEAD classes all point to signal, not architecture. Invest
-in AINOS3-30 (extra MIDs) + 306 → 305; reopen DeepSAD only after 321 broadens the
+in AINOS3-30 (extra MIDs), then the classification-trust pair AINOS3-39 (audit) →
+AINOS3-37 (selective hybrid); reopen DeepSAD only after AINOS3-30 broadens the
 signal; hold the graph model until coverage is broad + operators ask for causal
 chains beyond the shipped explanations.
+
+**Outcome (as of 2026-07-22):** the CONSOLIDATE verdict held and was executed in
+Sprint 25. AINOS3-30 was completed but returned **NULL** (its CFE_TBL premise was
+disproven), so the Phase-5 DeepSAD reopen gate is **still not cleared** (tracked as
+`deepsad-revisit`). The "add signal, not model" thesis was still validated — just on a
+different axis than anticipated: the Section-A campaign added detection coverage via four
+complementary detector gates (rule-gate R1–R10, consistency-check, staleness-check), not
+via DEAD-class recovery. AINOS3-39 carries to Sprint 26; AINOS3-37 stays a stretch.
 
 **Acceptance criteria — met:** one-page go/no-go delivered (`NOS3_330_NEXT_ML_BET.md`).
 
@@ -574,7 +582,7 @@ chains beyond the shipped explanations.
 
 **Two readings of the same overcommit:**
 
-- **Effort:** committed E across AINOS3-33/AINOS3-34/AINOS3-35/AINOS3-38/AINOS3-40/AINOS3-43/next-ml-bet = **32**
+- **Effort:** committed E across AINOS3-33/AINOS3-34/AINOS3-35/AINOS3-38/AINOS3-40/AINOS3-43/AINOS3-69 = **32**
   vs ~16/sprint capacity.
 - **Time:** the same set = **~9.25 T** (≈ 74 ideal hours) vs ~7–8 T realistic
   solo capacity for a 2-week sprint (10 working days × ~0.7 focus factor).
@@ -590,4 +598,4 @@ gap is closed.
 1. **AINOS3-34** (honest out-of-fold numbers — grounds everything else).
 2. **AINOS3-33** (mode-aware classifier — the core trust fix).
 3. **AINOS3-38 → 312** (explainability on the improved model).
-5. **AINOS3-43** (rollout) + **next-ml-bet** (next-bet spike) in parallel.
+5. **AINOS3-43** (rollout) + **AINOS3-69** (next-ml-bet spike) in parallel.

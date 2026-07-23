@@ -29,7 +29,7 @@ A VAE or a GNN is a bigger hammer. The problem isn't hammer size; it's that some
 
 ## Recommended path
 
-1. **Consolidate + add signal.** Make AINOS3-30 the next headliner; it's the lever the evidence keeps pointing at. Pair with 306 → 305.
+1. **Consolidate + add signal.** Make AINOS3-30 the next headliner; it's the lever the evidence keeps pointing at. Pair with the classification-trust pair AINOS3-39 (audit) → AINOS3-37 (selective hybrid).
 2. **Re-evaluate Phase 5 (DeepSAD only) *after* AINOS3-30** — with more MIDs and a larger corpus the data-sufficiency picture changes; that's the trigger to reopen this.
 3. **Hold Phase 6** until coverage is broad and stakeholders (AINOS3-43) explicitly want causal-chain root-cause beyond the shipped top-fields explanations.
 
