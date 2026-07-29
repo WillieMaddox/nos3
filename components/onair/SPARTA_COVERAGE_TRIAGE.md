@@ -59,7 +59,7 @@ whether a script exists:
 | **Resource Development** (RD) | ~15 | **N/A** | Attacker building infra/malware off-board |
 | **Initial Access** (IA) | ~16 | **N/A** | The *entry vector* (ground/supply-chain/RF). Its on-board *result* — a malicious command or code — is a separate EX technique, which is where we detect |
 | **Lateral Movement** (LM) | 7 | mostly **N/A** | Payload/crosslink/VM/proximity — NOS3 is a single sat with no hosted payload or VM. Exception: LM-0002 (bus segregation) is on-board-observable |
-| **Exfiltration** (EXF) | 16 | mostly **N/A** | Physical side-channels, RF, off-board sites. Exception: EXF-0003.02 downlink exfil (observable via the telemetry-output path) |
+| **Exfiltration** (EXF) | 16 | mostly **N/A** | Physical side-channels, RF, off-board sites. Exception: EXF-0003.02 downlink exfil — ✅ validated (R12/R13 on the full `to` app telemetry-output path) |
 
 Scripts exist for many of these (REC/RD/IA skeletons), but a script ≠ detectability.
 
@@ -79,9 +79,10 @@ Of those, **32 are validated (done)** and **all 6 Impact techniques are done.**
     32 attack runs collapse to 24 leaf IDs) + 13 Section-A gate leaves.
   - **23 out of scope** — applicable but structurally unobservable by construction
     (Section C: crypto, self-hiding malware, registers, credentials).
-  - **9 not evaluated** — applicable, plausibly observable, not yet validated:
-    **6 pending** (Section B — MID now subscribed: `DE-0001`, `EX-0010.01`, `EX-0010.02`,
-    `EXF-0003.02`, and the `EX-0012.11` / `DE-0003.11` watchdog pair) + **3 borderline
+  - **6 not evaluated** — applicable, plausibly observable, not yet validated:
+    **3 pending** (Section B — MID now subscribed: `DE-0001` and the
+    `EX-0012.11` / `DE-0003.11` watchdog pair; `EX-0010.01` / `EX-0010.02` validated
+    2026-07-29 via R11; `EXF-0003.02` validated 2026-07-29 via R12/R13) + **3 borderline
     held-out** (`EX-0001.02`, `DE-0006`, `EX-0005.01`).
   - **108 not applicable** — the attack can't run against NOS3 at all (off-board / RF /
     ground / not-modelled; Section D: REC/RD/IA whole tactics, most LM/EXF, plus
@@ -109,6 +110,9 @@ corrected below.
 | EX-0005.02 | Malicious Use of Hardware Commands | ✅ | R1 + dynamics-IF (78 %) | device `CommandCount` climbs, NO cmd-errors; TORQUER disable + thruster/RW physics |
 | EX-0011 | Exploit Reduced Protections in Safe-Mode | ✅ | R5/R1 + dynamics-IF (52 %) | LC state + CSS/EPS/thruster (**NOT ADCS mode** — corrected) |
 | EX-0012.02 | Internal Routing Tables | ✅ | staleness + R6 | route-disable freezes the MID; `CFE_SB.CommandCounter` is the command signal (**`CFE_SB_SUBS` NOT observable**, reads `[0]`) |
+| EX-0010.01 | Ransomware (mass file encryption) | ✅ | R11 | `FM.CommandCounter` file-op burst (static-in-nominal; COPY→.enc + DELETE churn) — labeled `EX-0010`, telemetry-indistinguishable from the wiper |
+| EX-0010.02 | Wiper (mass file destruction) | ✅ | R11 | `FM.CommandCounter` file-op burst (DELETE_ALL); **NOT `DS.FileWriteCounter`** — that climbs continuously in nominal |
+| EXF-0003.02 | Downlink Exfiltration | ✅ | R12 + R13 | `TO.usCmdCnt` (full-`to` app, static-in-nominal) + `usEnabledRoutes`/`usConfigRoutes` route-mask change on `TO_ENABLE_OUTPUT` redirect. Required re-pointing OnAIR from the idle `to_lab` HK (`0x08E8`, counter-only) to the full `to` HK (`0x0880`). R13 also sharpens IMP-0006 theft |
 | EX-0012.10 | Command & Data Handling Subsystem | ✅ | R8 | `CFE_ES.CommandCounter` + `MaxProcessorResets` (SET_MAX_PR_COUNT) |
 | EX-0013.01 | Flooding — Valid Commands | ✅ | R2 (+R3/R6/R7) | EVS send-rate spike (labeled DE-0010 — shared footprint) |
 | EX-0013.02 | Flooding — Erroneous Input | ✅ | R4 | subsystem `CommandError` family (garbage rejected upstream; `MsgReceiveErrorCounter` stays 0) |
@@ -132,9 +136,9 @@ successor backlog to Section A.
 
 | MID (now subscribed as) | Could unlock | Status / finding |
 |---|---|---|
-| **`TO` (TO_LAB_HK 0x08E8)** | **EXF-0003.02** downlink exfil · sharpen **IMP-0006** theft | subscribed (`TO.Payload.*`); not yet validated |
+| **`TO` (full `to` app HK 0x0880)** | **EXF-0003.02** downlink exfil · sharpen **IMP-0006** theft | ✅ validated 2026-07-29 → **R12** (`TO.usCmdCnt`) + **R13** (`usEnabledRoutes`/`usConfigRoutes` route-mask change). ⚠ OnAIR was mis-subscribed to the idle `to_lab` HK `0x08E8` (counter-only, never emitted); re-pointed to the full `to` HK `0x0880` (COSMOS-read, carries route masks) |
 | **`LC` (LC_HK 0x08A7)** | **DE-0001** disable fault management | subscribed + **already in use** (R5 `LC.CurrentLCState`, staleness `LC.MonitoredMsgCount`); DE-0001 itself not yet validated |
-| **`DS` + `FM` (0x08B8 / 0x088A)** | **EX-0010.01** ransomware · **EX-0010.02** wiper | subscribed (`DS.Payload.FileWriteCounter` etc., `FM.*`); not yet validated |
+| **`DS` + `FM` (0x08B8 / 0x088A)** | **EX-0010.01** ransomware · **EX-0010.02** wiper | ✅ validated 2026-07-29 → **R11** on `FM.CommandCounter` (static-in-nominal file-op burst). `DS.Payload.FileWriteCounter` is NOT usable — it climbs continuously in nominal (DS logging) |
 | **`CI` (CI_LAB_HK 0x08E0)** | command-injection family at the ingress | subscribed, but **NOT a cmd-injection signal in NOS3** — externally injected commands hit the `:5012` UDP→SB bridge and **bypass CI_LAB**, so `CI.Payload.IngestPackets` doesn't move (found during DE-0010) |
 | **sensor DEVICE pkts** (`IMU_DEV`/`CSS_DEV`/`MAG_DEV`/`FSS_DEV`/`ST_DEV`) | sharpen **EX-0014.03** sensor spoof (DEAD) | subscribed, but **redundant** with the fused `ADCS_DI` view and the freeze isn't IF-detectable (AINOS3-30 NULL / EX-0014.03 finding); kept dormant |
 | *(watchdog MID)* | **EX-0012.11 / DE-0003.11** WDT | **still UNSUBSCRIBED — no subscribable WDT/health packet exists** in this build (verified 2026-07-17) |

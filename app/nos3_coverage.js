@@ -8,7 +8,7 @@ window.NOS3_COVERAGE_META = {
   ],
   "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3",
   "incident_recall_headline": 0.6783,
-  "n_techniques": 60
+  "n_techniques": 63
 };
 window.NOS3_COVERAGE = {
   "EX-0008.01": {
@@ -595,6 +595,48 @@ window.NOS3_COVERAGE = {
     "explanation": "",
     "review": "Caught by rule-gate R10 bus-sweep meta (R6+R7+R8+R9) \u2192 LM-0002 incident (dynamics-IF blind by design).",
     "gate": "rule-gate R10 bus-sweep meta (R6+R7+R8+R9) \u2192 LM-0002 incident"
+  },
+  "EX-0010.01": {
+    "name": "Ransomware (mass file encryption)",
+    "tier": "RULE-GATE",
+    "signal": "ON_BOARD",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Caught by rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
+    "gate": "rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident"
+  },
+  "EX-0010.02": {
+    "name": "Wiper (mass file destruction)",
+    "tier": "RULE-GATE",
+    "signal": "ON_BOARD",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Caught by rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
+    "gate": "rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident"
+  },
+  "EXF-0003.02": {
+    "name": "Downlink exfiltration",
+    "tier": "RULE-GATE",
+    "signal": "ON_BOARD",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Caught by rule-gate R12 (TO command) + R13 (downlink route-mask change) \u2192 EXF-0003.02 incident (dynamics-IF blind by design).",
+    "gate": "rule-gate R12 (TO command) + R13 (downlink route-mask change) \u2192 EXF-0003.02 incident"
   },
   "EX-0003": {
     "name": "Modify Authentication Process",

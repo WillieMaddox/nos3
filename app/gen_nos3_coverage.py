@@ -85,6 +85,9 @@ GATE_DETECTED = {
     "DE-0010":    (None, "Overflow audit log",              "rule-gate R2 (EVS send-rate) → DE-0010 incident"),
     "PER-0001":   (None, "Memory compromise",               "rule-gate R9 (CFE_TBL command) → PER-0001 incident"),
     "LM-0002":    (None, "Exploit lack of bus segregation", "rule-gate R10 bus-sweep meta (R6+R7+R8+R9) → LM-0002 incident"),
+    "EX-0010.01": (None, "Ransomware (mass file encryption)", "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
+    "EX-0010.02": (None, "Wiper (mass file destruction)",    "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
+    "EXF-0003.02": (None, "Downlink exfiltration",           "rule-gate R12 (TO command) + R13 (downlink route-mask change) → EXF-0003.02 incident"),
 }
 
 # Per-technique REVIEW rationale for out-of-scope techniques — WHY it can't be

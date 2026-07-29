@@ -177,6 +177,34 @@ scores them is_anomaly≈0 unless noted):
 This is the direct answer to the old "Stage 2 doesn't widen the net" caveat: the
 gate layer *does* widen it, by a different mechanism than the classifier.
 
+**Section-B additions** (MIDs subscribed 2026-07-16, turned into detections in
+Sprint 26 — the technique's footprint lives in a *recorded* MID that nothing read
+until now):
+
+| SPARTA | Technique | Caught by |
+|---|---|---|
+| EX-0010.01 | Ransomware (mass file encryption) | rule-gate R11 (FM command) → EX-0010 incident |
+| EX-0010.02 | Wiper (mass file destruction) | rule-gate R11 (FM command) → EX-0010 incident |
+| EXF-0003.02 | Downlink exfiltration | rule-gate R12 (TO command) + R13 (route-mask change) → EXF-0003.02 incident |
+
+R11 keys on `FM.CommandCounter` (static-in-nominal, validated live 0/1). The two
+sub-techniques are telemetry-indistinguishable at the HK level (both a File Manager
+file-op burst), so R11 catches the class as one `EX-0010` incident; the command mix
+disambiguates wiper vs ransomware. Deliberately does **not** key on
+`DS.Payload.FileWriteCounter` — that counter climbs continuously in nominal ops (DS
+logging), so it would false-positive.
+
+R12/R13 required a subscription fix: OnAIR was originally mis-subscribed to the idle
+`to_lab` HK (`0x08E8`, command-counter only). Re-pointed to the **full `to` app** HK
+(`0x0880`), which COSMOS actually reads and which carries the downlink route masks
+`usEnabledRoutes`/`usConfigRoutes`. R12 keys on `TO.usCmdCnt` (static-in-nominal, an
+R6–R11 sibling); R13 fires when the route mask leaves its baseline (the specific
+"downlink reconfigured" signal). A `TO_ENABLE_OUTPUT` redirect to an attacker trips
+both. R13 also **sharpens IMP-0006 (theft)** — a downlink redirect is the on-board
+footprint of telemetry theft, previously only inferred via side effects. (The re-point
+also put the full **CI** app HK `0x0884` on the pipe — real command-ingest observability,
+deferred to a follow-up.)
+
 ---
 
 ## What it does NOT catch (the honest limits)
@@ -330,7 +358,7 @@ reliability. Signal = observability class.
 | IMP-0002 disruption | 58 % | **STABLE-MID** | ON_BOARD | |
 | IMP-0003 denial | 100 % | **STABLE-MID** | ON_BOARD | |
 | IMP-0005 destruction | 75 % | **ROBUST** | ON_BOARD | reliably caught & labeled |
-| IMP-0006 theft | 62 % | STABLE-MID | UNSUBSCRIBED | detected via side effects |
+| IMP-0006 theft | 62 % | STABLE-MID | UNSUBSCRIBED | side effects + R13 route-mask change (downlink-redirect variant) |
 | DE-0003.01 disable logging | < 25 % | **ROBUST** | OBFUSCATION | labelable when flagged |
 | DE-0003.02 clear logs | < 25 % | low-stable | OBFUSCATION | counter telescoped |
 | DE-0003.03 | < 25 % | DEAD (nominal) | UNSUBSCRIBED | out of scope |

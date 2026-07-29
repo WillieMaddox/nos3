@@ -34,8 +34,8 @@ documents already-done work (create + close it).
 |---|---|---|---|---|---|
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
 | AINOS3-70 | subscribe-recording-mids | Task | coverage-expansion | Subscribe the 16 Section-B recording MIDs (pipe cap 32→48; schema 383 cols) | ✅ Done (2026-07-16) |
-| AINOS3-71 | detect-wiper-ransomware | Story | coverage-expansion | DS/FM file-operation detector (EX-0010.01/.02) | ◑ Committed |
-| AINOS3-72 | detect-downlink-exfil | Story | coverage-expansion | TO downlink-path detector (EXF-0003.02 / IMP-0006) | ◑ Committed |
+| AINOS3-71 | detect-wiper-ransomware | Story | coverage-expansion | FM file-operation detector (EX-0010.01/.02) — rule-gate R11 | ✅ Done (2026-07-29) |
+| AINOS3-72 | detect-downlink-exfil | Story | coverage-expansion | TO downlink-path detector (EXF-0003.02 / IMP-0006) — rule-gate R12+R13; re-pointed OnAIR to full `to`/`ci` HK | ✅ Done (2026-07-29) |
 | AINOS3-73 | detect-fault-mgmt | Task | coverage-expansion | DE-0001 fault-management-disable detection | ○ Stretch |
 | AINOS3-74 | watchdog-probe | Spike | coverage-expansion | Watchdog telemetry-packet existence probe | ○ Stretch |
 | AINOS3-75 | borderline-footprint-check | Spike | coverage-expansion | Footprint-check EX-0001.02 / EX-0005.01 / DE-0006 | ○ Stretch |

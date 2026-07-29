@@ -2334,82 +2334,75 @@
                 },
                 "description": "Validation-campaign recording field (TORQUER MID)"
             },
-            "TO.Payload.CommandCounter": {
+            "TO.usCmdCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (TO MID)"
+                "description": "Full TO app: count of all commands received (static-in-nominal)"
             },
-            "TO.Payload.CommandErrorCounter": {
+            "TO.usCmdErrCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (TO MID)"
+                "description": "Full TO app: count of command errors"
             },
-            "TO.Payload.spareToAlign": {
+            "TO.usMsgSubCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (TO MID)"
+                "description": "Full TO app: count of subscribed messages across telemetry pipes"
             },
-            "CI.Payload.CommandErrorCounter": {
+            "TO.usMsgSubErrCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (CI MID)"
+                "description": "Full TO app: count of subscription errors"
             },
-            "CI.Payload.CommandCounter": {
+            "TO.usTblUpdateCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (CI MID)"
+                "description": "Full TO app: count of table updates through CFE_TBL"
             },
-            "CI.Payload.EnableChecksums": {
+            "TO.usTblErrCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (CI MID)"
+                "description": "Full TO app: count of table update errors"
             },
-            "CI.Payload.SocketConnected": {
+            "TO.usConfigRoutes": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (CI MID)"
+                "description": "Full TO app: current mask of configured downlink routes (exfil signal)"
             },
-            "CI.Payload.Spare1": {
+            "TO.usEnabledRoutes": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (CI MID)"
+                "description": "Full TO app: current mask of enabled downlink routes (exfil signal)"
             },
-            "CI.Payload.IngestPackets": {
+            "CI.usCmdCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (CI MID)"
+                "description": "Full CI app: count of all commands received (static-in-nominal)"
             },
-            "CI.Payload.IngestErrors": {
+            "CI.usCmdErrCnt": {
                 "conversion": "",
                 "tests": {
                     "NOOP": "[]"
                 },
-                "description": "Validation-campaign recording field (CI MID)"
-            },
-            "CI.Payload.Spare2": {
-                "conversion": "",
-                "tests": {
-                    "NOOP": "[]"
-                },
-                "description": "Validation-campaign recording field (CI MID)"
+                "description": "Full CI app: count of command errors"
             },
             "LC.CmdCount": {
                 "conversion": "",
@@ -3020,17 +3013,16 @@
         "TORQUER.DeviceEnabled",
         "TORQUER.TorquerPeriod",
         "TORQUER.TrqInfo",
-        "TO.Payload.CommandCounter",
-        "TO.Payload.CommandErrorCounter",
-        "TO.Payload.spareToAlign",
-        "CI.Payload.CommandErrorCounter",
-        "CI.Payload.CommandCounter",
-        "CI.Payload.EnableChecksums",
-        "CI.Payload.SocketConnected",
-        "CI.Payload.Spare1",
-        "CI.Payload.IngestPackets",
-        "CI.Payload.IngestErrors",
-        "CI.Payload.Spare2",
+        "TO.usCmdCnt",
+        "TO.usCmdErrCnt",
+        "TO.usMsgSubCnt",
+        "TO.usMsgSubErrCnt",
+        "TO.usTblUpdateCnt",
+        "TO.usTblErrCnt",
+        "TO.usConfigRoutes",
+        "TO.usEnabledRoutes",
+        "CI.usCmdCnt",
+        "CI.usCmdErrCnt",
         "LC.CmdCount",
         "LC.CmdErrCount",
         "LC.CurrentLCState",
@@ -3207,13 +3199,13 @@
             "TORQUER",
             "GENERIC_TORQUER_Hk_tlm_t"
         ],
-        "0x08E8": [
+        "0x0880": [
             "TO",
-            "TO_LAB_HkTlm_t"
+            "TO_HkTlm_t"
         ],
-        "0x08E0": [
+        "0x0884": [
             "CI",
-            "CI_LAB_HkTlm_t"
+            "CI_HkTlm_t"
         ],
         "0x08A7": [
             "LC",

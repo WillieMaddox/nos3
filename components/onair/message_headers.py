@@ -1014,6 +1014,35 @@ class CI_LAB_HkTlm_t(Structure):
         ("Payload",   CI_LAB_HkTlm_Payload_t),
     ]
 
+# --- Telemetry Output (full 'to' app, Odyssey/OSR) --- 0x0880 HK
+# The full TO app (not to_lab) is the one COSMOS reads and that owns the real
+# downlink routing. Its HK is richer: 8 uint16 fields including usConfigRoutes /
+# usEnabledRoutes (the route/destination masks) — the genuine downlink-exfil signal
+# to_lab's bare command-counter HK (0x08E8) lacks. Fields sit directly under the
+# struct (no Payload sub-struct), so they name as TO.usCmdCnt, TO.usEnabledRoutes, …
+class TO_HkTlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",       sbn.CFE_SB_Msg_t),
+        ("usCmdCnt",        c_uint16),
+        ("usCmdErrCnt",     c_uint16),
+        ("usMsgSubCnt",     c_uint16),
+        ("usMsgSubErrCnt",  c_uint16),
+        ("usTblUpdateCnt",  c_uint16),
+        ("usTblErrCnt",     c_uint16),
+        ("usConfigRoutes",  c_uint16),
+        ("usEnabledRoutes", c_uint16),
+    ]
+
+# --- Command Ingest (full 'ci' app, Odyssey/OSR) --- 0x0884 HK
+class CI_HkTlm_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",   sbn.CFE_SB_Msg_t),
+        ("usCmdCnt",    c_uint16),
+        ("usCmdErrCnt", c_uint16),
+    ]
+
 # --- Limit Checker (LC) --- 0x08A7 HK
 class LC_HkPacket_t(Structure):
     _pack_ = 1
