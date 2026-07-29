@@ -40,7 +40,7 @@ documents already-done work (create + close it).
 | AINOS3-74 | watchdog-probe | Spike | coverage-expansion | Watchdog telemetry-packet existence probe | ○ Stretch |
 | AINOS3-75 | borderline-footprint-check | Spike | coverage-expansion | Footprint-check EX-0001.02 / EX-0005.01 / DE-0006 | ○ Stretch |
 | AINOS3-31 | classification-trust | Epic | — | Classification trust (close the mode gap) | — |
-| AINOS3-39 | counter-reliance-audit | Spike | classification-trust | Activity-counter reliance audit | ◑ Committed |
+| AINOS3-39 | counter-reliance-audit | Spike | classification-trust | Activity-counter reliance audit — rec: keep v3 | ✅ Done (2026-07-29) |
 | AINOS3-37 | selective-mode-hybrid | Story | classification-trust | Selective per-mode hybrid | ○ Stretch |
 | AINOS3-42 | stakeholder-rollout | Epic | — | Stakeholder rollout & feedback (recurring) | — |
 | AINOS3-76 | rollout-s26 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 26 | ◑ Committed |

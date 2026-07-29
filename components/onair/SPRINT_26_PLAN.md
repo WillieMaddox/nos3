@@ -53,7 +53,7 @@ slugs get keys when you create the tickets.
 | AINOS3-74 | watchdog-probe | Spike | Low | 1 | 0.25 | ○ STRETCH — does a WDT/health packet exist? resolve EX-0012.11 / DE-0003.11 |
 | AINOS3-75 | borderline-footprint-check | Spike | Low | 2 | 0.5 | ○ STRETCH — footprint-check EX-0001.02 / EX-0005.01 / DE-0006 (borderline held-outs) |
 | AINOS3-31 | classification-trust | Epic | — | — | — | Classification trust (close the mode gap) |
-| AINOS3-39 | counter-reliance-audit | Spike | Medium | 3 | 0.75 | ○ COMMIT — audit v3 reliance on generic activity counters (carryover) |
+| AINOS3-39 | counter-reliance-audit | Spike | Medium | 3 | 0.75 | ✅ DONE — audit v3 reliance on generic activity counters (carryover); rec: keep v3 |
 | AINOS3-37 | selective-mode-hybrid | Story | Medium | 5 | 1.5 | ○ STRETCH — bank INERTIAL/SUNSAFE/ROBUST gains, no BDOT/PASSIVE regression (carryover) |
 | AINOS3-42 | stakeholder-rollout | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
 | AINOS3-76 | rollout-s26 | Task | Medium | 2 | 0.5 | ○ COMMIT — Sprint-26 readout: Section-B detections + audit findings |
@@ -294,7 +294,7 @@ here also unblocks the AINOS3-68 gate.
 which grounds the hybrid's feature decision. Carried from Sprint 25 (full prior bodies in
 [`SPRINT_25_PLAN.md`](SPRINT_25_PLAN.md)).
 
-### AINOS3-39 — Audit classifier reliance on activity counters · `Spike` · Medium · E 3 · T 0.75 (~6h) · ○ COMMIT
+### AINOS3-39 — Audit classifier reliance on activity counters · `Spike` · Medium · E 3 · T 0.75 (~6h) · ✅ DONE
 
 **Summary:** Determine whether v3's heavy reliance on generic high-traffic counters is
 genuine discriminative signal or an activity-level shortcut.
@@ -314,6 +314,26 @@ drop/regularize experiment over the frozen `csv_corpus_v3stage` under LOIO.
   accuracy reported.
 - Recommendation only (leave v3 as-is, or a scoped feature change for a *future* retrain —
   any model change interacts with AINOS3-33's "keep v3" decision).
+
+**Result:** ✅ DONE (2026-07-29). Two-part audit — (1) genuine-vs-shortcut classification from
+the SHAP catalog (`explanation_catalog.json`, AppData resolved to app names); (2) a drop/LOIO
+experiment over the frozen `csv_corpus_v3stage` (new `training/audit_counter_reliance.py`,
+reuses the exact `eval_classifier_clusters` LOIO recipe; `--max-iter` override for fast relative
+runs). **Finding: the reliance is NOT a uniform shortcut — it's a mix.** Dropping the pure
+generic-core block (core-app `AppData[0-5]` + `CFE_ES`/`CFE_SB`/`CFE_TBL`/EVS-rate scalars, 118
+feats) costs only **~4 pts** overall (0.629→0.589), broken down as:
+(a) **genuine** where the C&DH core app *is* the target — clock→`CFE_TIME` (EX-0012.12/.01),
+memory-write & scheduling→tables (EX-0012.03/.05); (b) **fragile activity-shortcut** for the
+impact-*outcome* labels that have no dedicated telemetry — IMP-0001 Deception collapses 0.55→0.00,
+IMP-0002/IMP-0005 drop hard (an **information limit**, per AINOS3-31/NOS3-301, not a feature bug);
+(c) **net-harmful** for a few where the generic *masks* real signal — EX-0014.04 PNT F1 **rises**
+when the `CFE_SB.MemInUse` shortcut is removed (+0.11 refined, +0.56 at full recipe), likewise
+IMP-0003 / IMP-0006. **Recommendation: leave deployed v3 as-is** (the generics net-contribute and
+much reliance is genuine/unavoidable; interacts with AINOS3-33 keep-v3). For a *future* retrain
+(not urgent): scoped removal/regularization of only the demonstrably-harmful pure bus-activity
+features (`CFE_SB.MemInUse`, global EVS rate) — small upside for PNT/theft/denial, no downside.
+The impact-label fragility is an observability gap → the real fix is signal-adding, not feature
+surgery. (Reports in `/tmp/ainos3_39{,_refined}/`.)
 
 ### AINOS3-37 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · ○ STRETCH
 
