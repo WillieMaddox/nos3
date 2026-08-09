@@ -48,7 +48,7 @@ documents already-done work (create + close it).
 ## Sprint 25 (prior)
 
 Workstream Sprint 4 (`SPRINT_25_PLAN.md`), theme "Consolidate & Add Signal" —
-executes the `next-ml-bet` (`NOS3_330`) CONSOLIDATE verdict. All committed items
+executes the `next-ml-bet` (`AINOS3-69`) CONSOLIDATE verdict. All committed items
 carried over from the Sprint 24 backlog; only `rollout-s25` is new. The two new
 keys (`appdata-slot-map → AINOS3-48`, `rollout-s25 → AINOS3-49`) were created in
 Jira 2026-07-15 and entered below.
@@ -74,6 +74,15 @@ Jira 2026-07-15 and entered below.
 | AINOS3-46 | demo-tier-bc | Story | — | Demo app Tier B/C (live execution / agent) | Backlog |
 | AINOS3-47 | foundation-baseline | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
 | AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
+| AINOS3-79 | detector-rigor | Epic | — | Detector hardening & measurement honesty | Sprint 27 |
+| AINOS3-77 | mode-transition-rule | Task | coverage-expansion | R14: flag ADCS mode-force (SET_MODE) IF blind spot | Sprint 27 |
+| AINOS3-78 | cluster-345-regression | Spike | coverage-expansion | Diagnose hybrid EX-0012.{03,04,05} label regression | Sprint 27 |
+| AINOS3-80 | metric-provenance-audit | Spike | detector-rigor | Sweep reported metrics for in-sample optimism | Sprint 27 |
+| AINOS3-81 | hybrid-drift-soak | Task | detector-rigor | Long soak: live hybrid + calibration hold, no drift | Sprint 27 |
+| AINOS3-82 | benchmark-fayyaz | Spike | detector-rigor | Compare vs Fayyaz CuCD-ID NOS3/cFS dataset (Data in Brief 2026) | Sprint 27 |
+| AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Sprint 27 |
+| AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | AINOS3-39 follow-up: retrain dropping harmful bus-activity features | Backlog |
+| AINOS3-85 | actuator-saturation-fidelity | Spike | — | Injection that reaches actuator saturation (recovery-boundary test) | Backlog |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
 
