@@ -12,7 +12,7 @@
 **explainability** epics — the classifier is honestly measured (out-of-fold),
 its PASSIVE weakness is a documented information limit (not a modeling one), the
 mode-switch warmup is tuned + deployed, and every incident now carries a
-human-readable "why." The `next-ml-bet` spike (`NOS3_330_NEXT_ML_BET.md`)
+human-readable "why." The `next-ml-bet` spike (`AINOS3_69_NEXT_ML_BET.md`)
 returned a clear verdict: **Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE GO** — the
 binding constraint is **observability (signal), not model capacity**. Sprint 25
 executes that verdict.
@@ -206,7 +206,7 @@ separate** above the DEAD floor.
 the real risk that the classes stay dead even with the new MIDs (in which case
 the deliverable is the negative finding + the ruled-out MIDs, not a deploy).
 
-**Dependency for downstream bets:** this is also the gate `NOS3_330` set on
+**Dependency for downstream bets:** this is also the gate `AINOS3-69` set on
 re-opening Phase 5 (DeepSAD) — a broader signal + larger corpus is what changes
 that data-sufficiency picture.
 
@@ -414,7 +414,7 @@ accuracy), proved PASSIVE labeling is an information limit, and kept the deploye
 v3 classifier as-is. Two backlog items remain under this epic: an audit of *how*
 v3 forms its verdicts (does it lean on genuine signal or an activity shortcut),
 and the selective per-mode hybrid that banks the dynamic-mode upside AINOS3-33
-uncovered. Both are sequenced after AINOS3-30 per `NOS3_330` ("306 → 305").
+uncovered. Both are sequenced after AINOS3-30 per `AINOS3-69` ("306 → 305").
 
 ### AINOS3-39 — Audit classifier reliance on activity counters · `Spike` · Medium · E 3 · T 0.75 (~6h) · ◑ COMMIT
 
@@ -515,7 +515,7 @@ capture feedback.
 (`gen_nos3_coverage.py` → `nos3_coverage.js` → `app/sparta_coverage.html`) so it
 reflects any classes AINOS3-30 recovered and any `AppData`-by-app explanation
 improvements. Walk stakeholders through what changed since Sprint 24, and — per
-the `NOS3_330` Phase-6 hold — explicitly ask whether operators want causal-chain
+the `AINOS3-69` Phase-6 hold — explicitly ask whether operators want causal-chain
 root-cause beyond the current top-fields explanations (that answer is the gate on
 reopening the graph model).
 
@@ -626,7 +626,7 @@ incident; **0 FP** (CommandCounter static at its boot value across the run).
 | AINOS3-45 | corpus-instance-4 | Task | 3 | 0.75 | 4th corpus instance (LOIO variance already ±3.6%; ~5h wall-clock) |
 | AINOS3-46 | demo-tier-bc | Story | 3 | 1.0 | Demo app Tier B/C (live execution / agent) |
 | AINOS3-47 | foundation-baseline | Story | 8 | 2.5 | Optional: foundation-model (MOMENT/THEMIS) zero-shot baseline |
-| — | deepsad-revisit | Spike | 3 | 0.75 | Reopen Phase 5 DeepSAD **only after** AINOS3-30 broadens signal (`NOS3_330` gate) |
+| — | deepsad-revisit | Spike | 3 | 0.75 | Reopen Phase 5 DeepSAD **only after** AINOS3-30 broadens signal (`AINOS3-69` gate) |
 
 ---
 

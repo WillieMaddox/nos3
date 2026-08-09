@@ -546,7 +546,7 @@ weeks to Phase 5 or 6, run a scoped feasibility read (data sufficiency, expected
 lift over v5+v3, operational value) and recommend the next bet — or recommend
 consolidating the current system instead.
 
-**Recommendation (`NOS3_330_NEXT_ML_BET.md`):** **Phase 5 NO-GO, Phase 6 DEFER,
+**Recommendation (`AINOS3_69_NEXT_ML_BET.md`):** **Phase 5 NO-GO, Phase 6 DEFER,
 CONSOLIDATE GO.** The binding constraint is *information* (observability), not
 model capacity — AINOS3-33 (PASSIVE = info limit), Phase-4 deep-model plateau, and
 the nominal-ambiguous DEAD classes all point to signal, not architecture. Invest
@@ -563,7 +563,7 @@ different axis than anticipated: the Section-A campaign added detection coverage
 complementary detector gates (rule-gate R1–R10, consistency-check, staleness-check), not
 via DEAD-class recovery. AINOS3-39 carries to Sprint 26; AINOS3-37 stays a stretch.
 
-**Acceptance criteria — met:** one-page go/no-go delivered (`NOS3_330_NEXT_ML_BET.md`).
+**Acceptance criteria — met:** one-page go/no-go delivered (`AINOS3_69_NEXT_ML_BET.md`).
 
 ---
 

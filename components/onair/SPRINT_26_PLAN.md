@@ -12,7 +12,7 @@
 gate-validated) and shipped the 4 detector gates (rule-gate R1–R10, consistency-check,
 staleness-check). That campaign relied on a 16-MID *recording* subscription pass
 (2026-07-16) which added the `TO`/`CI`/`LC`/`DS`/`FM` housekeeping + sensor packets —
-exactly the MIDs that make the **Section-B** techniques observable. `NOS3_330` still
+exactly the MIDs that make the **Section-B** techniques observable. `AINOS3-69` still
 binds: the limiting factor is **observability (signal), not model capacity**.
 
 **Sprint goal:** Turn the newly-subscribed Section-B MIDs into *validated detections*
@@ -507,7 +507,7 @@ creation and its reopen gate needs documenting:
 anomaly-detector (DeepSAD / VAE) feasibility assessment once a signal-broadening effort has
 changed the data-sufficiency picture that drove the original NO-GO.
 
-**Description:** `NOS3_330` (next-ml-bet) returned Phase-5 DeepSAD as **NO-GO** — the
+**Description:** `AINOS3-69` (next-ml-bet) returned Phase-5 DeepSAD as **NO-GO** — the
 binding constraint was signal / observability, not model capacity, so a deep
 semi-supervised model wouldn't beat the deployed IF + XGB stack on the available data. This
 spike is **gated, not scheduled**: it reopens only when the signal picture materially
