@@ -49,22 +49,26 @@ slugs get keys when you create the tickets.
 | AINOS3-70 | subscribe-recording-mids | Task | High | 3 | 1.0 | ✅ DONE — subscribe the 16 Section-B recording MIDs (pipe cap 32→48; schema 383 cols) |
 | AINOS3-71 | detect-wiper-ransomware | Story | High | 5 | 1.5 | ✅ DONE — FM file-operation detector (EX-0010.02 wiper + EX-0010.01 ransomware) via rule-gate R11 |
 | AINOS3-72 | detect-downlink-exfil | Story | High | 5 | 1.5 | ✅ DONE — TO downlink-path detector (EXF-0003.02 exfil + sharpen IMP-0006 theft) via rule-gate R12+R13 |
-| AINOS3-73 | detect-fault-mgmt | Task | Medium | 2 | 0.5 | ○ STRETCH — DE-0001 fault-management-disable detection (LC) |
-| AINOS3-74 | watchdog-probe | Spike | Low | 1 | 0.25 | ○ STRETCH — does a WDT/health packet exist? resolve EX-0012.11 / DE-0003.11 |
-| AINOS3-75 | borderline-footprint-check | Spike | Low | 2 | 0.5 | ○ STRETCH — footprint-check EX-0001.02 / EX-0005.01 / DE-0006 (borderline held-outs) |
+| AINOS3-73 | detect-fault-mgmt | Task | Medium | 2 | 0.5 | ✅ DONE — DE-0001 caught by R5 (shared LC-disable footprint); 2 script bugs fixed + dwell |
+| AINOS3-74 | watchdog-probe | Spike | Low | 1 | 0.25 | ✅ DONE — no WDT/health packet exists → EX-0012.11 / DE-0003.11 out-of-scope |
+| AINOS3-75 | borderline-footprint-check | Spike | Low | 2 | 0.5 | ✅ DONE — DE-0006 detected (R8+R9); EX-0001.02 OOS; EX-0005.01 N/A |
 | AINOS3-31 | classification-trust | Epic | — | — | — | Classification trust (close the mode gap) |
 | AINOS3-39 | counter-reliance-audit | Spike | Medium | 3 | 0.75 | ✅ DONE — audit v3 reliance on generic activity counters (carryover); rec: keep v3 |
-| AINOS3-37 | selective-mode-hybrid | Story | Medium | 5 | 1.5 | ○ STRETCH — bank INERTIAL/SUNSAFE/ROBUST gains, no BDOT/PASSIVE regression (carryover) |
+| AINOS3-37 | selective-mode-hybrid | Story | Medium | 5 | 1.5 | ✅ DONE — hybrid banks INERTIAL +.058/SUNSAFE +.061/ROBUST +.099, 0 BDOT/PASSIVE regression; **LIVE + verified 2026-07-30** (both per-mode heads) |
 | AINOS3-42 | stakeholder-rollout | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
-| AINOS3-76 | rollout-s26 | Task | Medium | 2 | 0.5 | ○ COMMIT — Sprint-26 readout: Section-B detections + audit findings |
+| AINOS3-76 | rollout-s26 | Task | Medium | 2 | 0.5 | ◐ PREP DONE — overlay + docs refreshed to Sprint-26 state; live presentation = owner action |
 
 **Committed set:** E = **15** (AINOS3-71 5 · AINOS3-72 5 ·
 AINOS3-39 3 · AINOS3-76 2) · T ≈ **4.25** — inside the ~16 E / ~7–8 T
 capacity. AINOS3-70 is already ✅ Done (retrospective E/T, not a forward
-commit).
+commit). **All committed items ✅ DONE.**
 
 **Stretch set:** E = **10** (AINOS3-73 2 · AINOS3-74 1 · AINOS3-75
-2 · AINOS3-37 5) — pulled in only if the committed chain lands with headroom.
+2 · AINOS3-37 5) — were pulled in only if the committed chain landed with headroom.
+**All four stretch items ✅ DONE** (2026-07-29): the committed chain landed early, so the
+full stretch set was completed — and AINOS3-37's hybrid was **cut over live and verified
+2026-07-30** (both per-mode heads exercised end-to-end; survives a fresh launch).
+Sprint-26 delivered the full E=25 (15 committed + 10 stretch).
 
 ---
 
@@ -215,7 +219,7 @@ cmd-err flat). +7 tests (rule-gate suite now 39). Folded into the coverage overv
 **R1–R13**. Note: R13 latches on the persistent route change until the downlink is restored
 (correct — an unrestored exfil route is an ongoing anomaly).
 
-### AINOS3-73 — DE-0001 fault-management-disable detection · `Task` · Medium · E 2 · T 0.5 (~4h) · ○ STRETCH
+### AINOS3-73 — DE-0001 fault-management-disable detection · `Task` · Medium · E 2 · T 0.5 (~4h) · ✅ DONE
 
 **Summary:** As a defender, I want an attacker disabling on-board fault management (DE-0001)
 caught via the now-subscribed Limit Checker HK.
@@ -236,7 +240,20 @@ fault-management disable raises a DE-0001 incident.
 **Note:** likely cheap — the LC observables + the R5 mechanism already exist; this is
 mostly validation + a label/rule extension.
 
-### AINOS3-74 — Watchdog telemetry-packet existence probe · `Spike` · Low · E 1 · T 0.25 (~2h) · ○ STRETCH
+**Result:** ✅ DONE (2026-07-29). As anticipated, cheap — no new rule/field. Live-validated
+against the fresh FSW: DE-0001's `LC SET_LC_STATE → DISABLED` drives `LC.CurrentLCState 1→3`
+(caught by **R5**: ALERT frame 2520 → incident, cluster EX-0011, conf 1.0), with `LC.CmdCount`
+ticking and `LC.CmdErrCount` flat. DE-0001 is **telemetry-indistinguishable** from EX-0011 /
+DE-0005 at the LC level (all three drive the state to DISABLED(3)), so R5 catches the shared
+fault-management-disable class — extended R5's label to name the whole family. R5's 0-FP
+property is unchanged (nominal `LC.CurrentLCState` constant=1 over 1500+ frames; no new
+rule/field). Fixed 2 attack-script bugs (`SET_LC_STATE` payload `>H`→`<HH`, restore state
+2(PASSIVE)→1(ACTIVE)) and added a `--dwell` so the DISABLED transient crosses ≥2 HK cycles
+and is telemetered (the old 0.4 s disable→restore fell between LC_HK packets). +2 rule-gate
+tests (suite **41 pass**); plugin synced; folded into the coverage overview + triage +
+`V5_DETECTOR_COVERAGE.md`.
+
+### AINOS3-74 — Watchdog telemetry-packet existence probe · `Spike` · Low · E 1 · T 0.25 (~2h) · ✅ DONE
 
 **Summary:** Determine whether any watchdog / health telemetry packet exists and is
 subscribable, to resolve EX-0012.11 / DE-0003.11 from *pending* to either Section B or
@@ -255,7 +272,18 @@ out-of-scope (structurally unobservable in this build).
 - The coverage overview + triage updated to match (both currently held as *not evaluated /
   pending* per the 2026-07-22 decision to leave them pending until this check).
 
-### AINOS3-75 — Footprint-check the borderline held-outs · `Spike` · Low · E 2 · T 0.5 (~4h) · ○ STRETCH
+**Result:** ✅ DONE (2026-07-29). Verdict: **OUT-OF-SCOPE** — no subscribable watchdog/health
+telemetry packet exists in this build. Evidence: (1) the pc-linux PSP watchdog
+(`fsw/psp/fsw/pc-linux/src/cfe_psp_watchdog.c`) is a **stub** — a single in-memory
+`CFE_PSP_WatchdogValue` global, all Init/Enable/Disable/Service functions empty no-ops
+("does not actually implement a watchdog timeout"), so no MID and never on the SB; (2) there
+is **no HS (Health & Safety) app** in this build (not in the source tree; startup apps are
+ci/ci_lab/ds/fm/lc/sbn/sc/sch/to/to_lab); (3) LC's "WDT" is the *Watchpoint Definition Table*
+(a config table), a name false-positive — not a watchdog timer. EX-0012.11 / DE-0003.11 →
+out-of-scope (structurally unobservable). Triage + coverage overlay updated; no live stack
+needed.
+
+### AINOS3-75 — Footprint-check the borderline held-outs · `Spike` · Low · E 2 · T 0.5 (~4h) · ✅ DONE
 
 **Summary:** Resolve the 3 borderline ON_BOARD held-outs — EX-0001.02 (Bus Traffic
 Replay), EX-0005.01 (Design Flaws), DE-0006 (Modify Whitelist) — from "not evaluated" to
@@ -283,6 +311,29 @@ running it, watch whether it moves the CFE_TBL table-activity fields (`LastUpdat
 `AINOS3-30`, whose dormant CFE_TBL change-detect feature reads constant-0 because no
 validated attack activates a table (see [`SPRINT_25_PLAN.md`](SPRINT_25_PLAN.md)); a hit
 here also unblocks the AINOS3-68 gate.
+
+**Result:** ✅ DONE (2026-07-29). All three resolved per evaluation-provenance:
+
+- **DE-0006** (modify whitelist) → **DETECTION CANDIDATE, already covered.** Run live: its
+  simulatable footprint is CFE_ES + CFE_TBL command activity — `CFE_ES.CommandCounter` 0→1
+  and `CFE_TBL.CommandCounter` 0→2 → **R8 + R9** fire → incident. Presents as generic command
+  activity (not uniquely labelable). **AINOS3-30 reopen trigger NOT tripped:** the script sends
+  only NOOPs, so it activates no table — every CFE_TBL table-activity field
+  (`LastUpdatedTable`/`LastFileLoaded`/`ValidationCounter`/`TableLoadCount`/…) stayed constant.
+  The AINOS3-30 dormant feature stays constant-0 and the **AINOS3-68 DeepSAD gate stays
+  uncleared** (a real table LOAD/ACTIVATE, which this script does not do, would be needed).
+- **EX-0001.02** (bus-traffic replay) → **OUT-OF-SCOPE.** Internal SBN bus replay has no
+  external injection path in stock NOS3 (SBN-over-UDP is telemetry-OUT only; the `:5012`
+  bridge injects CCSDS *commands* = EX-0001.01 / EX-0014.02, not raw bus messages); the
+  foothold prerequisite is a malicious in-partition app (EX-0010). Already MARKDOWN-ONLY.
+- **EX-0005.01** (design flaws) → **NOT-APPLICABLE.** NOS3 models functional behaviour, not
+  the firmware / FPGA / register layer this technique targets (parent EX-0005 is documented
+  NOT SIMULATABLE); its effect-equivalent (corrupted sensor output) is covered by
+  EX-0012 / EX-0014.
+
+Coverage overview + triage updated so none remains "not evaluated." Together with AINOS3-73/74
+this closed the last 9 not-evaluated leaves → per-leaf split **42 detected · 26 OOS · 0
+not-evaluated · 109 N/A = 177**.
 
 ---
 
@@ -335,7 +386,7 @@ features (`CFE_SB.MemInUse`, global EVS rate) — small upside for PNT/theft/den
 The impact-label fragility is an observability gap → the real fix is signal-adding, not feature
 surgery. (Reports in `/tmp/ainos3_39{,_refined}/`.)
 
-### AINOS3-37 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · ○ STRETCH
+### AINOS3-37 — Selective per-mode classifier hybrid · `Story` · Medium · E 5 · T 1.5 (~12h) · ✅ DONE
 
 **Summary:** Bank the INERTIAL/SUNSAFE/ROBUST gains from per-mode heads without the
 BDOT/PASSIVE regressions, via mode-routed classification.
@@ -357,6 +408,45 @@ calibration so confidences stay comparable.
 **Sequencing:** STRETCH — pull in only after AINOS3-39 clears (the audit may change *which*
 features the per-mode heads train on).
 
+**Result:** ✅ DONE (2026-07-29). Added a `selective_hybrid` variant to
+`eval_mode_aware_classifier.py` (routes `--route-modes MODE_INERTIAL,MODE_SUNSAFE` to
+per-mode heads; every other mode keeps the global head). Because the non-routed modes
+reuse the *exact* global head, they are **baseline-identical by construction** — the hybrid
+cannot regress BDOT/PASSIVE. LOIO on the frozen `csv_corpus_v3stage` (max_iter=300, 3-fold,
+cluster-acc on attack frames):
+
+| variant | overall | BDOT | INERTIAL | PASSIVE | SUNSAFE | ROBUST |
+|---|--:|--:|--:|--:|--:|--:|
+| baseline (v3) | 0.627 | 0.419 | 0.341 | 0.148 | 0.396 | 0.685 |
+| per_mode | 0.639 | 0.372 | 0.399 | 0.120 | 0.457 | 0.753 |
+| **selective_hybrid** | **0.646** | **0.419** | **0.399** | **0.148** | **0.457** | **0.784** |
+
+All AC met: INERTIAL **+0.058**, SUNSAFE **+0.061** retained; BDOT/PASSIVE **+0.000** (no
+regression — identical to v3); ROBUST **0.784** (no regression — **+0.099** vs baseline, and
+beats per_mode by taking the global head's ROBUST strength in the quiescent modes *and* the
+per-mode heads' strength in the dynamic modes); overall **0.646 > 0.627**. per_mode's
+BDOT/PASSIVE losses (−0.047 / −0.028) are avoided entirely.
+
+Deployable artifact via new `training/build_hybrid_classifier.py`: reuses v3's global head,
+fits full-corpus per-mode heads for INERTIAL/SUNSAFE, and fits a **per-mode isotonic
+confidence calibration** (top-1 prob → reliability, held-out instance; stored as np.interp
+(x,y) arrays so the flight runtime needs no sklearn). Calibration validated out-of-fold
+(fit/eval split — raw HistGB max-prob is badly miscalibrated under `class_weight='balanced'`):
+per-mode ECE **BDOT 0.273→0.027 · INERTIAL 0.355→0.021 · PASSIVE 0.459→0.031 ·
+SUNSAFE 0.254→0.028** (~10× tighter, all four heads onto a comparable reliability scale).
+Calibration is monotone, so the argmax — hence the accuracy above — is unchanged. The `xgb_classifier` plugin routes by
+mode + applies the calibration, labelling each prediction by the *active head's* own
+`classes_` (a per-mode head carries only its mode's class subset) — **backward-compatible**:
+a plain v3 pickle (no hybrid keys) falls through to the single-head path unchanged. +5 plugin
+tests (xgb suite **16 pass**). Plugin synced to the build tree. **Cut over LIVE and verified
+2026-07-30:** `ClassifierPath` (both source + build-tree inis) → `xgb_attack_classifier_v3_hybrid.pkl`;
+OnAIR loads the hybrid startup line and routes SUNSAFE frames through the SUNSAFE per-mode head
+(→ IMP-0005) and INERTIAL frames through the INERTIAL head (→ EX-0014.04) — the *same* attack
+labelled differently per mode confirms genuine per-mode routing; calibration active; no errors;
+survives a fresh `make launch-quiet`. IF gate + top_k/min_confidence unchanged from v3. Rollback =
+one-line ini flip back to `xgb_attack_classifier_v3.pkl` + restart. Closes the AINOS3-31
+classification-trust epic alongside AINOS3-39.
+
 ---
 
 ## 🟪 EPIC AINOS3-42 — Stakeholder rollout & feedback (recurring)
@@ -364,7 +454,7 @@ features the per-mode heads train on).
 **Summary:** Recurring stakeholder readout — show the coverage overview + doc and turn
 feedback into backlog.
 
-### AINOS3-76 — Stakeholder rollout (Sprint 26) · `Task` · Medium · E 2 · T 0.5 (~4h) · ○ COMMIT
+### AINOS3-76 — Stakeholder rollout (Sprint 26) · `Task` · Medium · E 2 · T 0.5 (~4h) · ◐ PREP DONE (presentation = owner action)
 
 **Summary:** Present the Sprint-26 result — the Section-B detections + the counter-reliance
 audit findings — on the coverage overview, and capture feedback.
@@ -383,6 +473,17 @@ stakeholders through what changed since Sprint 25.
 
 **Depends on:** the committed `detect-*` tickets + AINOS3-39 (so the readout shows new
 results).
+
+**Result:** ◐ PREP DONE (2026-07-29) — the automatable prep is complete; the live
+presentation + feedback capture remain owner-action (cannot be automated). Regenerated the
+coverage-overview overlay (`gen_nos3_coverage.py` + `build_overlay.py` → `sparta_coverage.html`,
+now **68** COV techniques) so the new Section-B detections (DE-0001, DE-0006, plus the
+AINOS3-71/72 wiper/ransomware + exfil) show as detected and the watchdog verdict shows
+out-of-scope. Refreshed `V5_DETECTOR_COVERAGE.md`, `STAKEHOLDER_ROLLOUT.md` (added a "What
+changed since Sprint 25" section + the AINOS3-37 result), and `SPARTA_COVERAGE_TRIAGE.md`
+(per-leaf split reconciled to **42 detected · 26 OOS · 0 not-evaluated · 109 N/A = 177**).
+Still owner-action: walk stakeholders through it and log feedback in the
+`STAKEHOLDER_ROLLOUT.md` table → file as backlog tickets.
 
 ---
 
@@ -442,6 +543,10 @@ first and holds AINOS3-73 / AINOS3-74 / AINOS3-37 as
 de-risked stretch.
 
 ## Suggested execution order
+
+> **Actual (2026-07-29/30): all steps executed.** The committed chain landed with headroom, so
+> the full stretch set (AINOS3-73/74/75/37) was completed the same session. AINOS3-37's hybrid
+> was **cut over live and verified 2026-07-30**; AINOS3-76's presentation remains owner-action.
 
 1. **AINOS3-71** + **AINOS3-72** — the Section-B headliners
    (DS/FM + TO are the triage's highest-leverage MIDs). Kick off the FP soaks early so the

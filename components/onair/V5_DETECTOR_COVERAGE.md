@@ -2,12 +2,18 @@
 
 **Audience:** mission, security, and program stakeholders (no ML background assumed).
 
-**Scope:** the v5 anomaly detector + v3 attack classifier + the four parallel
-detector gates (rule-gate R1–R10, consistency-check, staleness-check) currently
-deployed in the OnAIR plugin against the NOS3 cFS flight software.
+**Scope:** the v5 anomaly detector + the v3-hybrid attack classifier (selective
+per-mode heads) + the four parallel detector gates (rule-gate R1–R13,
+consistency-check, staleness-check) currently deployed in the OnAIR plugin against
+the NOS3 cFS flight software.
 
-**Last updated:** 2026-07-17 (added §5 — the detector gates and the 13 Section-A
-techniques they catch). Numbers are from attack scripts empirically validated
+**Last updated:** 2026-07-30 (Sprint 26 — folded in the Section-B detections
+EX-0010.01/.02, EXF-0003.02, DE-0001, DE-0006; resolved the watchdog pair +
+EX-0001.02 out-of-scope and EX-0005.01 not-applicable, closing the last
+not-evaluated leaves; **deployed the AINOS3-37 selective per-mode hybrid classifier**
+— live-verified 2026-07-30, both per-mode heads exercised; **moved the coverage overlay's
+incident-label numbers to honest hybrid out-of-fold** — 42.3 % vs the v3 global head's
+34.6 % OOF, replacing the in-sample-optimistic 76.9 %). Numbers are from attack scripts empirically validated
 against live FSW and from calibrated nominal soaks — not from simulation
 assumptions.
 
@@ -24,12 +30,16 @@ telemetry fields at ~5 Hz:
    0.0–0.2 % in steady-state flight.**
 2. **Stage 2 — "What kind of attack?"** When Stage 1 alarms, an attack
    classifier (gradient-boosted trees) labels the event with a SPARTA
-   technique (e.g. *EX-0012.07 propulsion command*). **~63 % correct
-   technique identification on novel runs.**
+   technique (e.g. *EX-0012.07 propulsion command*). **~65 % correct
+   technique identification on novel runs.** The deployed classifier is the
+   **selective per-mode hybrid** (AINOS3-37): the signal-rich INERTIAL/SUNSAFE
+   modes route to their own per-mode heads (+0.06 each, ROBUST +0.10) while
+   PASSIVE/BDOT keep the global head (no regression), with per-mode confidence
+   calibration so a reported confidence means the same thing across heads.
 3. **Parallel gate layer — "What the dynamics model can't see."** Four
    complementary gates run *beside* the IF for attacks whose footprint is a
    discrete flag/counter change, a transient spoof, or a frozen stream — none
-   of which perturb the physics Stage 1 watches: **rule-gate (R1–R10)**,
+   of which perturb the physics Stage 1 watches: **rule-gate (R1–R13)**,
    **consistency-check** (per-sample bus-spoof), and **staleness-check**
    (telemetry-freeze). The firing rule *is* the label, so no classifier is
    needed for this class. See *"Complementary detector gates"* below.
@@ -103,7 +113,7 @@ corpus at this granularity:
 |---|---|
 | Incident recall — genuinely detectable state-change attacks | **92.8 % (77/83)** |
 | Incident recall — all SPARTA techniques (incl. undetectable-by-design) | 67.8 % (78/115) |
-| Incident label accuracy (of detected; **out-of-fold**) | **34.6 %** (in-sample was 76.9 %) |
+| Incident label accuracy (of detected; **out-of-fold**, deployed hybrid) | **42.3 %** (v3 global head 34.6 % OOF; the old 76.9 % was in-sample-optimistic) |
 
 **The jump from ~61 % (frame) to ~93 % (incident) is the whole point of the
 incident layer:** even a brief burst of flagged frames during an attack raises
@@ -134,9 +144,11 @@ cross-validation — i.e. accuracy on a spacecraft run the model never saw):
   `EX-0012.07/.08/.09`, `EX-0014.04` — correct on some runs, not others.
 - **DEAD (cannot be labeled as-is):** see next section.
 
-Overall technique-identification accuracy is **~63 %** (top-1, novel run) —
-calibrated, not overfit (held-out and cross-validated numbers agree within
-~1 point).
+Overall technique-identification accuracy is **~65 %** (top-1, novel run;
+deployed selective per-mode hybrid, LOIO 0.646) — calibrated, not overfit
+(held-out and cross-validated numbers agree within ~1 point). The hybrid keeps
+the global head's overall level while banking the dynamic-mode gains
+(INERTIAL/SUNSAFE +0.06 each, ROBUST +0.10) at zero PASSIVE/BDOT cost.
 
 ### 5. Complementary detector gates (what the dynamics-IF can't see)
 
@@ -147,9 +159,10 @@ stream. Four lightweight gates run in parallel with the IF to close that gap. Th
 rule that fires *is* the label (no classifier needed), and each was live-verified
 raising an incident:
 
-- **rule-gate (R1–R10):** R1 device-disable · R2 EVS-rate · R3 SB-errors · R4
-  cmd-errors · R5 monitor-state (LC/HS) · R6/R7/R8/R9 static-in-nominal command
-  counters (CFE_SB / CFE_EVS / CFE_ES / CFE_TBL) · R10 bus-sweep meta-rule.
+- **rule-gate (R1–R13):** R1 device-disable · R2 EVS-rate · R3 SB-errors · R4
+  cmd-errors · R5 monitor-state (LC/HS; fault-management disable DE-0001/EX-0011/DE-0005)
+  · R6/R7/R8/R9/R11/R12 static-in-nominal command counters (CFE_SB / CFE_EVS / CFE_ES /
+  CFE_TBL / FM / TO) · R10 bus-sweep meta-rule · R13 downlink route-mask change.
 - **consistency-check:** per-sample counter-monotonicity — catches an injected
   spoof (a counter that jumps backwards) the IF and rule-gate both miss.
 - **staleness-check:** a wide monotonic counter's max stops advancing — catches
@@ -186,6 +199,8 @@ until now):
 | EX-0010.01 | Ransomware (mass file encryption) | rule-gate R11 (FM command) → EX-0010 incident |
 | EX-0010.02 | Wiper (mass file destruction) | rule-gate R11 (FM command) → EX-0010 incident |
 | EXF-0003.02 | Downlink exfiltration | rule-gate R12 (TO command) + R13 (route-mask change) → EXF-0003.02 incident |
+| DE-0001 | Disable fault management | rule-gate R5 (LC state → DISABLED) — shared LC-disable footprint with EX-0011/DE-0005 |
+| DE-0006 | Modify whitelist | rule-gate R8 (CFE_ES cmd) + R9 (CFE_TBL cmd) — presents as command activity |
 
 R11 keys on `FM.CommandCounter` (static-in-nominal, validated live 0/1). The two
 sub-techniques are telemetry-indistinguishable at the HK level (both a File Manager
@@ -204,6 +219,24 @@ both. R13 also **sharpens IMP-0006 (theft)** — a downlink redirect is the on-b
 footprint of telemetry theft, previously only inferred via side effects. (The re-point
 also put the full **CI** app HK `0x0884` on the pipe — real command-ingest observability,
 deferred to a follow-up.)
+
+DE-0001 needed no new rule: its on-board footprint is `LC.CurrentLCState` leaving the
+protective ACTIVE(1) baseline for DISABLED(3), the same signal EX-0011/DE-0005 produce
+— telemetry-indistinguishable at LC (all drive the state to 3), so R5 catches the shared
+fault-management-disable class (incident cluster EX-0011, the family representative).
+DE-0006 (modify whitelist) likewise needed no new rule: its simulatable footprint is
+CFE_ES + CFE_TBL command activity, caught by R8+R9; the NOOP-only script activates no
+table, so the CFE_TBL table-activity fields stay constant (the AINOS3-30 DEAD-class
+reopen trigger is **not** tripped).
+
+Two watchdog techniques (EX-0012.11 modify-WDT, DE-0003.11 WDT-for-evasion) and one
+replay technique (EX-0001.02 bus-traffic replay) were resolved **out-of-scope** this
+sprint after a structural footprint check: NOS3's pc-linux PSP watchdog is a no-op stub
+(no MID, no HS app; LC's "WDT" is the Watchpoint Definition Table, not a timer), and the
+internal SBN bus has no external injection path. EX-0005.01 (firmware design flaws) is
+**not-applicable** — NOS3 models functional behaviour, not the firmware/FPGA layer the
+technique targets. This closed the last of the not-evaluated leaves: the per-leaf SPARTA
+split is now **42 detected · 26 out-of-scope · 0 not-evaluated · 109 not-applicable = 177**.
 
 ---
 
@@ -272,12 +305,22 @@ Incident **detection** is IF-gate-driven and already honest (the threshold is
 calibrated on held-out nominal). Incident **labelling** had only ever been
 measured in-sample. Re-scoring the same `csv_corpus_v3stage` corpus with
 leave-one-instance-out, out-of-fold predictions (AINOS3-34) gives the honest
-figure: **34.6 % label accuracy of detected attacks, versus 76.9 % in-sample** —
-the in-sample number was more than 2× optimistic. Incident detection recall is
-identical either way (78/115), exactly as expected: only the label source
-changed, not the IF gate.
+figure. For the **deployed selective per-mode hybrid** (AINOS3-37): **42.3 % label
+accuracy of detected attacks** out-of-fold — up **+7.7 pts** from the v3 global
+head's 34.6 % OOF on identical folds, concentrated in the dynamic-mode / ROBUST-tier
+techniques the per-mode heads target (DE-0003.10, IMP-0002, IMP-0006, EX-0014.01,
+EX-0012.07 up; the telemetry-indistinguishable `EX-0012.{03,04,05}` cluster down a
+little). **The coverage overlay now reports these honest OOF numbers.** ⚠ Note the
+scale: the overlay previously showed **76.9 %**, which was *in-sample* and >2×
+optimistic — the honest OOF hybrid figure (42.3 %) is a truer picture *and* better
+than the honest v3 (34.6 %), even though the displayed number went down when the
+methodology was corrected. Incident detection recall is identical either way
+(78/115), exactly as expected: only the label source changed, not the IF gate.
 
-The label collapse is tier- and mode-dependent:
+The label collapse is tier- and mode-dependent (the per-cluster figures below are
+the v3 global-head OOF breakdown that motivated the hybrid; the **current
+per-technique `label_ok` under the deployed hybrid is in the coverage overlay** —
+e.g. the hybrid lifts IMP-0002 and IMP-0006 to fully labelled):
 
 - **By tier** (coherent with §4): ROBUST clusters keep their labels out-of-fold
   (`EX-0008.02` 100 %, `IMP-0005` 100 %, the `IMP-0001/2/3/6` family ~67 %);
@@ -308,14 +351,20 @@ PASSIVE labeling is an **information limit, not a modeling one**, so no
 mode-aware architecture on the current 894 features closes it. The real fix must
 add *signal* (extra discriminating MIDs — AINOS3-30 — or temporal features), not
 rearrange the model. Per-mode heads *do* help the higher-signal modes
-(INERTIAL +0.06, SUNSAFE +0.06, ROBUST +0.07, overall +0.01); that upside is
-filed as **AINOS3-37** (selective hybrid, backlog).
+(INERTIAL +0.06, SUNSAFE +0.06, ROBUST +0.10, overall +0.02); that upside is
+now **banked and deployed** — the **AINOS3-37 selective per-mode hybrid** routes
+INERTIAL/SUNSAFE to per-mode heads and keeps the global head for PASSIVE/BDOT
+(baseline-identical, so no regression), live since 2026-07-30. PASSIVE remains an
+information limit the hybrid does not (and cannot) close.
 
 Bottom line: today, trust an incident's *existence* far more than its *label*,
-and treat **PASSIVE labels as low-confidence regardless of model**. (Source:
-`data/onair/models/cluster_rescore/incident_rescore_oof.json`; out-of-fold
-predictions in `cluster_rescore/loio_predictions_oof_v3stage.npz`; mode-aware
-sweep in `data/onair/models/mode_aware/`.)
+and treat **PASSIVE labels as low-confidence regardless of model**. (Source: the
+deployed overlay's `data/onair/models/cluster_rescore/incident_rescore.json` is now
+the hybrid OOF rescore; hybrid out-of-fold predictions in
+`cluster_rescore/loio_predictions_oof_v3hybrid.npz` — produced by
+`training/export_hybrid_oof.py`, rescored via `eval_incident_rescore.py
+--oof-predictions`; the v3 global-head OOF baseline is in
+`loio_predictions_oof_v3stage.npz`; mode-aware sweep in `data/onair/models/mode_aware/`.)
 
 ### E. Stage 2 sharpens, it does not widen
 
@@ -377,10 +426,13 @@ telemetry detection.)*
 - **Detection / FP numbers:** per-mode Isolation Forest
   `iforest_per_mode_v5_invariant_bolstered`, calibrated to 1 % FP; soak FP
   rates measured on nominal-flight side-files.
-- **Classification numbers:** v3 classifier
-  `xgb_attack_classifier_v3`, leave-one-instance-out over a 3-instance,
-  mode-balanced corpus (independently reproduced 2026-06-09 at
-  0.627 ± 0.040, matching the deployed 0.645 ± 0.036).
+- **Classification numbers:** the deployed selective per-mode hybrid
+  `xgb_attack_classifier_v3_hybrid` (v3 global head + INERTIAL/SUNSAFE per-mode
+  heads + per-mode isotonic calibration), leave-one-instance-out over a
+  3-instance, mode-balanced corpus: overall **0.646** vs the v3 global head's
+  0.627 baseline on identical folds (INERTIAL +0.058, SUNSAFE +0.061,
+  ROBUST +0.099, BDOT/PASSIVE +0.000). Calibration validated out-of-fold
+  (per-mode ECE ~10× tighter). Live-verified on the running FSW 2026-07-30.
 - **Attack realism:** all cited techniques were executed against live NOS3 FSW
   and confirmed to actually change spacecraft state; no number here derives
   from an unvalidated script.

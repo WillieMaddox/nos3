@@ -74,25 +74,32 @@ Of those, **32 are validated (done)** and **all 6 Impact techniques are done.**
   Section-A gate-validated (all live-verified through 2026-07-17; caught by the
   rule-gate / consistency / staleness gates the dynamics-IF misses).
 - **Per-leaf coverage** — the `app/sparta_coverage.html` overview now carries a verdict
-  for **every** leaf. The precise per-leaf split reconciles as **37 + 23 + 9 + 108 = 177**:
-  - **37 carry a detection verdict** — 24 unique leaves in the classifier corpus (the
-    32 attack runs collapse to 24 leaf IDs) + 13 Section-A gate leaves.
-  - **23 out of scope** — applicable but structurally unobservable by construction
-    (Section C: crypto, self-hiding malware, registers, credentials).
-  - **6 not evaluated** — applicable, plausibly observable, not yet validated:
-    **3 pending** (Section B — MID now subscribed: `DE-0001` and the
-    `EX-0012.11` / `DE-0003.11` watchdog pair; `EX-0010.01` / `EX-0010.02` validated
-    2026-07-29 via R11; `EXF-0003.02` validated 2026-07-29 via R12/R13) + **3 borderline
-    held-out** (`EX-0001.02`, `DE-0006`, `EX-0005.01`).
-  - **108 not applicable** — the attack can't run against NOS3 at all (off-board / RF /
+  for **every** leaf. **Sprint 26 closed out the last 9 not-evaluated leaves** (AINOS3-71/72/73/74/75),
+  so the split reconciles as **42 + 26 + 0 + 109 = 177**:
+  - **42 carry a detection verdict** — 24 unique leaves in the classifier corpus (the
+    32 attack runs collapse to 24 leaf IDs) + 13 Section-A gate leaves + the 5 Section-B
+    detections validated 2026-07-29: `EX-0010.01`/`EX-0010.02` (R11), `EXF-0003.02`
+    (R12/R13), `DE-0001` (R5, shared LC-disable footprint), `DE-0006` (R8+R9, presents as
+    CFE_ES/CFE_TBL command activity).
+  - **26 out of scope** — applicable but structurally unobservable / unexercisable by
+    construction (Section C: crypto, self-hiding malware, registers, credentials) + the
+    `EX-0012.11` / `DE-0003.11` watchdog pair (AINOS3-74: no telemeterable WDT/health
+    packet exists — PSP watchdog is a pc-linux stub, no HS app) + `EX-0001.02` bus-traffic
+    replay (AINOS3-75: internal SBN bus has no external injection path; the foothold
+    prereq is EX-0010 and the externally-reachable variants EX-0001.01 / EX-0014.02 are
+    handled separately).
+  - **0 not evaluated** — every applicable leaf now has a verdict (was 9; all resolved in
+    Sprint 26 per the evaluation-provenance rule — run against the live FSW and read the
+    telemetry, or record the structural reason it can't run).
+  - **109 not applicable** — the attack can't run against NOS3 at all (off-board / RF /
     ground / not-modelled; Section D: REC/RD/IA whole tactics, most LM/EXF, plus
-    SEU/ASAT/jamming/directed-energy/etc.).
+    SEU/ASAT/jamming/directed-energy/etc.) + `EX-0005.01` Design Flaws (AINOS3-75: NOS3
+    models functional behaviour, not the firmware / FPGA / register layer this technique
+    targets — its effect-equivalent, corrupted sensor output, is covered by EX-0012/EX-0014).
 - Note: the "**~90** on-board-detectable universe" figure cited in the sections below
   counts EX+PER+DE+IMP *gross*, **before** subtracting the SEU/ASAT/jamming/etc.
-  techniques that Section D pulls out as not-applicable — the per-leaf view above (69
-  on-board-relevant = 37 + 23 + 9) is the reconciled figure. The watchdog pair is held
-  as *pending* until a live check confirms no telemeterable WDT packet exists (then it
-  moves to out-of-scope).
+  techniques that Section D pulls out as not-applicable — the per-leaf view above (68
+  on-board-relevant = 42 + 26) is the reconciled figure.
 
 ## A. Applicable · in-scope now · ✅ ALL 13 VALIDATED (campaign complete 2026-07-17)
 
@@ -137,11 +144,11 @@ successor backlog to Section A.
 | MID (now subscribed as) | Could unlock | Status / finding |
 |---|---|---|
 | **`TO` (full `to` app HK 0x0880)** | **EXF-0003.02** downlink exfil · sharpen **IMP-0006** theft | ✅ validated 2026-07-29 → **R12** (`TO.usCmdCnt`) + **R13** (`usEnabledRoutes`/`usConfigRoutes` route-mask change). ⚠ OnAIR was mis-subscribed to the idle `to_lab` HK `0x08E8` (counter-only, never emitted); re-pointed to the full `to` HK `0x0880` (COSMOS-read, carries route masks) |
-| **`LC` (LC_HK 0x08A7)** | **DE-0001** disable fault management | subscribed + **already in use** (R5 `LC.CurrentLCState`, staleness `LC.MonitoredMsgCount`); DE-0001 itself not yet validated |
+| **`LC` (LC_HK 0x08A7)** | **DE-0001** disable fault management | ✅ validated 2026-07-29 (AINOS3-73) → already caught by **R5** (`LC.CurrentLCState` 1→3). DE-0001 is telemetry-indistinguishable from EX-0011/DE-0005 at LC — all three drive the state to DISABLED(3); R5 catches the shared fault-management-disable class (incident cluster EX-0011, the family representative). No new rule/field needed (R5's 0-FP property unchanged). Fixed 2 attack-script bugs: LC `SET_LC_STATE` payload `>H`→`<HH`, restore state 2→1(ACTIVE); added a `--dwell` so the DISABLED transient is telemetered across HK cycles |
 | **`DS` + `FM` (0x08B8 / 0x088A)** | **EX-0010.01** ransomware · **EX-0010.02** wiper | ✅ validated 2026-07-29 → **R11** on `FM.CommandCounter` (static-in-nominal file-op burst). `DS.Payload.FileWriteCounter` is NOT usable — it climbs continuously in nominal (DS logging) |
 | **`CI` (CI_LAB_HK 0x08E0)** | command-injection family at the ingress | subscribed, but **NOT a cmd-injection signal in NOS3** — externally injected commands hit the `:5012` UDP→SB bridge and **bypass CI_LAB**, so `CI.Payload.IngestPackets` doesn't move (found during DE-0010) |
 | **sensor DEVICE pkts** (`IMU_DEV`/`CSS_DEV`/`MAG_DEV`/`FSS_DEV`/`ST_DEV`) | sharpen **EX-0014.03** sensor spoof (DEAD) | subscribed, but **redundant** with the fused `ADCS_DI` view and the freeze isn't IF-detectable (AINOS3-30 NULL / EX-0014.03 finding); kept dormant |
-| *(watchdog MID)* | **EX-0012.11 / DE-0003.11** WDT | **still UNSUBSCRIBED — no subscribable WDT/health packet exists** in this build (verified 2026-07-17) |
+| *(watchdog MID)* | **EX-0012.11 / DE-0003.11** WDT | **OUT-OF-SCOPE — no subscribable WDT/health packet exists** in this build (AINOS3-74, 2026-07-29). The pc-linux PSP watchdog (`cfe_psp_watchdog.c`) is a stub — a single in-memory `CFE_PSP_WatchdogValue` global, all Init/Enable/Disable/Service functions are empty no-ops ("does not actually implement a watchdog timeout"), so it has no MID and never reaches the SB. No HS (Health & Safety) app exists in this build (not in the source tree). LC's "WDT" is the *Watchpoint Definition Table* (a config table), a name false-positive — not a watchdog timer. Both techniques are structurally unobservable → out-of-scope, not pending. |
 
 Net: the remaining work is **turning the newly-recorded MIDs into validated detections**
 (a new backlog), not adding MIDs. Watchdog (EX-0012.11 / DE-0003.11) is the only genuine
@@ -188,14 +195,19 @@ EXF-0010, LM-0001/0006), space-domain-awareness (DE-0009.*), ground-segment
    leverage: `TO` (exfil + theft) and `DS`/`FM` (wiper/ransomware). Two findings narrow
    it: `CI` is not a command-injection signal (`:5012` bypass) and the sensor DEVICE
    packets are redundant with `ADCS_DI` (AINOS3-30 NULL). Watchdog (EX-0012.11/DE-0003.11)
-   is the only genuine unsubscribed holdout — verify a WDT packet even exists.
+   was the only genuine unsubscribed holdout — resolved OUT-OF-SCOPE (AINOS3-74: no
+   telemeterable WDT/health packet exists in this build).
 3. **Document C/D as closed:** the CONCEPTUAL and N/A sets are out-of-scope *by
    construction*; recording that is itself a coverage answer (we cover ~X of ~90
    detectable techniques, not X of 177).
 
 **Note on numbers:** counts are "~" because a handful of techniques are judgment
-calls at the ON_BOARD/UNSUBSCRIBED/CONCEPTUAL boundary (e.g. `DE-0006` modify-
-whitelist, still held out). LM-0002 bus-segregation *was* one such call — it has since
-been resolved ON_BOARD and validated (Section A). Each such call is resolved the same
-way any footprint is — run it against the live FSW and read the telemetry (evaluation-
-provenance), not by assumption.
+calls at the ON_BOARD/UNSUBSCRIBED/CONCEPTUAL boundary. `DE-0006` modify-whitelist —
+formerly one such held-out call — was resolved ON_BOARD in Sprint 26 (AINOS3-75): run
+live, its simulatable footprint is CFE_ES + CFE_TBL command activity, caught by R8+R9;
+the NOOP-only script does not activate a table, so the CFE_TBL table-activity fields
+stay constant and the AINOS3-30 reopen trigger is NOT tripped (the AINOS3-68 DeepSAD
+gate stays uncleared). LM-0002 bus-segregation *was* also such a call — resolved ON_BOARD
+and validated (Section A). Each such call is resolved the same way any footprint is —
+run it against the live FSW and read the telemetry (evaluation-provenance), not by
+assumption.

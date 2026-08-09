@@ -90,6 +90,35 @@ def fit_predict_moderebal(Xtr, ytr, mtr, Xte, hp):
     return clf.predict(Xte)
 
 
+def fit_predict_selective(Xtr, ytr, mtr, Xte, mte, hp, routed_modes):
+    """AINOS3-37 selective per-mode hybrid: route only the signal-rich dynamic
+    modes (routed_modes, default INERTIAL/SUNSAFE) to their own per-mode head;
+    every other mode (PASSIVE/BDOT) keeps the global head. This banks the
+    per_mode gains where they help and is BASELINE-IDENTICAL where per_mode
+    regresses — so the non-routed modes carry ZERO regression by construction.
+
+    A per-mode head is used only if its routed mode has enough training rows
+    (>= 50) and >= 2 classes; otherwise that mode falls back to the global head
+    too. The global head is always fit (it serves every non-routed mode)."""
+    routed = set(routed_modes)
+    heads = {}
+    for m in routed:
+        sel = mtr == m
+        if sel.sum() < 50 or len(np.unique(ytr[sel])) < 2:
+            continue  # too thin / single-class → global fallback
+        h = make_clf(hp)
+        h.fit(Xtr[sel], ytr[sel])
+        heads[m] = h
+    global_clf = make_clf(hp)
+    global_clf.fit(Xtr, ytr)
+    ypred = np.empty(len(Xte), dtype=object)
+    for m in np.unique(mte):
+        sel = mte == m
+        clf = heads.get(m, global_clf)   # routed+trained → per-mode; else global
+        ypred[sel] = clf.predict(Xte[sel])
+    return ypred
+
+
 def fit_predict_permode(Xtr, ytr, mtr, Xte, mte, hp):
     """One head per training mode; route each test row to its mode's head.
     Unseen-mode rows fall back to a global head — fit lazily, only if some test
@@ -148,6 +177,9 @@ def main():
     p.add_argument("--taxonomy",
                    default="data/onair/models/cluster_rescore/cluster_taxonomy.json")
     p.add_argument("--variants", default="baseline,mode_feat,per_mode")
+    p.add_argument("--route-modes", default="MODE_INERTIAL,MODE_SUNSAFE",
+                   help="selective_hybrid: modes routed to their own per-mode "
+                        "head; all others keep the global head")
     p.add_argument("--max-iter", type=int, default=None,
                    help="override HistGB max_iter (screening); default = v3 hp")
     p.add_argument("--smoke", type=int, default=None,
@@ -157,6 +189,10 @@ def main():
 
     t0 = time.time()
     variants = [v.strip() for v in args.variants.split(",") if v.strip()]
+    route_modes = [m.strip() for m in args.route_modes.split(",") if m.strip()]
+    if "selective_hybrid" in variants:
+        print(f"selective_hybrid routes {route_modes} to per-mode heads; "
+              f"all other modes keep the global head")
 
     with open(args.classifier, "rb") as f:
         v3 = pickle.load(f)
@@ -216,6 +252,8 @@ def main():
                 yp = fit_predict_permode(Xtr, ytr, mtr, Xte, mte, hp)
             elif v == "mode_rebal":
                 yp = fit_predict_moderebal(Xtr, ytr, mtr, Xte, hp)
+            elif v == "selective_hybrid":
+                yp = fit_predict_selective(Xtr, ytr, mtr, Xte, mte, hp, route_modes)
             else:
                 sys.exit(f"unknown variant {v}")
             pred_all[v].append(yp)
@@ -228,7 +266,9 @@ def main():
     ct = map_to_cluster(y_true, clusters)
 
     report = {"corpus": args.csv_dir, "max_iter": hp["max_iter"],
-              "smoke": args.smoke, "modes": real_modes, "variants": {}}
+              "smoke": args.smoke, "modes": real_modes,
+              "route_modes": route_modes if "selective_hybrid" in variants else None,
+              "variants": {}}
     for v in variants:
         yp = np.concatenate(pred_all[v]).astype(object)
         cp = map_to_cluster(yp, clusters)

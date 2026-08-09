@@ -38,6 +38,7 @@
   // id or id-prefix -> reason.
   const NA_TECH = {
     "EX-0004": "Boot-ROM / boot-memory tampering targets a boot layer NOS3 doesn't model — there is no such target in the simulation.",
+    "EX-0005.01": "Design-flaw exploitation targets device firmware / FPGA logic / hardware registers. NOS3 models subsystems at the functional level only — there is no firmware layer to corrupt (AINOS3-75). Its effect-equivalent (corrupted sensor output) is covered by EX-0012 / EX-0014.",
     "EX-0007": "Single-event upset is a radiation / hardware fault; NOS3 models no SEU mechanism to attack.",
     "EX-0012.06": "Targets a science / payload subsystem NOS3 doesn't carry.",
     "EX-0014.05": "Missile-warning spoof targets a sensor / payload absent from the NOS3 model.",

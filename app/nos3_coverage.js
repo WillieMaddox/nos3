@@ -6,9 +6,9 @@ window.NOS3_COVERAGE_META = {
     "cluster_taxonomy.json",
     "explanation_catalog.json"
   ],
-  "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3",
+  "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3_hybrid (AINOS3-37 selective per-mode)",
   "incident_recall_headline": 0.6783,
-  "n_techniques": 63
+  "n_techniques": 68
 };
 window.NOS3_COVERAGE = {
   "EX-0008.01": {
@@ -45,7 +45,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
-    "label_ok": 5,
+    "label_ok": 2,
     "cluster": "EX-0012.{03,04,05}",
     "explanation": "CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:22%|CFE_SB.UnmarkedMem:22%|SCH.UnexpectedMajorFrameCount:6%|SCH.SameSlotCount:6%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:5%|ADCS_GNC.bvb:4%",
     "review": ""
@@ -58,7 +58,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 5,
     "incident_total": 6,
     "incident_recall": 0.8333,
-    "label_ok": 4,
+    "label_ok": 1,
     "cluster": "EX-0012.{03,04,05}",
     "explanation": "CFE_SB.UnmarkedMem:41%|SCH.MultipleSlotsCount:11%|SCH.SameSlotCount:9%|ADCS_GNC.svb:8%|RW.DeviceCount_RW2:5%|RW.DeviceCount_RW0:5%",
     "review": ""
@@ -71,7 +71,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
-    "label_ok": 4,
+    "label_ok": 1,
     "cluster": "EX-0012.{03,04,05}",
     "explanation": "CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:34%|SCH.SameSlotCount:20%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:10%|ADCS_GNC.bvb:5%|CFE_SB.MemInUse:5%|SCH.UnexpectedMajorFrameCount:3%",
     "review": ""
@@ -97,7 +97,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 2,
     "incident_total": 3,
     "incident_recall": 0.6667,
-    "label_ok": 2,
+    "label_ok": 1,
     "cluster": "EX-0012.08",
     "explanation": "ADCS_GNC.Tcmd:46%|ADCS_GNC.bvb:22%|CFE_EVS_HK.MessageSendCounter:13%|ADCS_DI.Payload.Css.Sensor:8%|ADCS_GNC.wbn:4%|CFE_SB.NoSubscribersCounter\u0394:2%",
     "review": ""
@@ -110,7 +110,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
-    "label_ok": 3,
+    "label_ok": 0,
     "cluster": "EX-0012.09",
     "explanation": "CFE_EVS_HK.MessageSendCounter:57%|EPS.DeviceCount:42%|SCH.UnexpectedMajorFrameCount:1%|ADCS_GNC.bvb:0%|RW.data.momentum:0%|ADCS_DI.Payload.Rw.HwhlB:0%",
     "review": ""
@@ -123,7 +123,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
-    "label_ok": 3,
+    "label_ok": 1,
     "cluster": "EX-0012.12/EX-0014.01",
     "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:44%|CFE_SB.MsgSendErrorCounter:14%|SCH.SameSlotCount:13%|SCH.UnexpectedMajorFrameCount:6%|RW.DeviceCount_RW1:5%|ADCS_DI.Payload.Mag.bvb:3%",
     "review": ""
@@ -136,7 +136,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
-    "label_ok": 5,
+    "label_ok": 2,
     "cluster": "EX-0012.12/EX-0014.01",
     "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:31%|CFE_SB.MsgSendErrorCounter:15%|SCH.SameSlotCount:8%|RADIO_HK.DeviceErrorCount:5%|SCH.UnexpectedMajorFrameCount:4%|CFE_EVS_HK.MessageSendCounter:3%",
     "review": ""
@@ -149,7 +149,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
-    "label_ok": 2,
+    "label_ok": 0,
     "cluster": "EX-0014.03",
     "explanation": "ADCS_GNC.bvb:13%|SCH.SameSlotCount:13%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:9%|CFE_EVS_HK.MessageSendCounter:8%|EPS.DeviceCount:6%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:6%",
     "review": ""
@@ -162,7 +162,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
-    "label_ok": 3,
+    "label_ok": 0,
     "cluster": "EX-0014.04",
     "explanation": "CFE_SB.MemInUse:46%|CFE_EVS_HK.MessageSendCounter:9%|CFE_SB.MsgSendErrorCounter:6%|EPS.DeviceCount:6%|SCH.SameSlotCount:5%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:5%",
     "review": ""
@@ -201,7 +201,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
-    "label_ok": 3,
+    "label_ok": 2,
     "cluster": "IMP-0003",
     "explanation": "CFE_EVS_HK.CommandCounter:32%|RW.CommandCounter:12%|CFE_SB.MsgSendErrorCounter:10%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:10%|RW.DeviceCount_RW1:10%|CFE_SB.UnmarkedMem:5%",
     "review": ""
@@ -305,7 +305,7 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 4,
     "incident_recall": 0.75,
-    "label_ok": 3,
+    "label_ok": 1,
     "cluster": "DE-0003.09",
     "explanation": "CFE_TIME.CommandCounter:58%|SCH.MultipleSlotsCount:35%|SCH.UnexpectedMajorFrameCount:1%|ADCS_DI.Payload.Imu.wbn:1%|SCH.UnexpectedMajorFrame:1%|ADCS_DI.Payload.Css.svb:1%",
     "review": ""
@@ -638,6 +638,34 @@ window.NOS3_COVERAGE = {
     "review": "Caught by rule-gate R12 (TO command) + R13 (downlink route-mask change) \u2192 EXF-0003.02 incident (dynamics-IF blind by design).",
     "gate": "rule-gate R12 (TO command) + R13 (downlink route-mask change) \u2192 EXF-0003.02 incident"
   },
+  "DE-0001": {
+    "name": "Disable fault management",
+    "tier": "RULE-GATE",
+    "signal": "ON_BOARD",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Caught by rule-gate R5 (LC state \u2192 DISABLED) \u2014 shared LC-disable footprint with EX-0011/DE-0005 (AINOS3-73) (dynamics-IF blind by design).",
+    "gate": "rule-gate R5 (LC state \u2192 DISABLED) \u2014 shared LC-disable footprint with EX-0011/DE-0005 (AINOS3-73)"
+  },
+  "DE-0006": {
+    "name": "Modify whitelist",
+    "tier": "RULE-GATE",
+    "signal": "ON_BOARD",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Caught by rule-gate R8 (CFE_ES cmd) + R9 (CFE_TBL cmd) \u2014 presents as command activity; NOOP-only script activates no table (AINOS3-75) (dynamics-IF blind by design).",
+    "gate": "rule-gate R8 (CFE_ES cmd) + R9 (CFE_TBL cmd) \u2014 presents as command activity; NOOP-only script activates no table (AINOS3-75)"
+  },
   "EX-0003": {
     "name": "Modify Authentication Process",
     "tier": "OUT-OF-SCOPE",
@@ -845,5 +873,44 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "Uses valid (stolen) credentials, so actions appear authorized on the bus. Needs: an identity/session layer NOS3 doesn't model; telemetry can't tell a thief from an operator."
+  },
+  "EX-0012.11": {
+    "name": "Modify Watchdog / Health Monitor",
+    "tier": "OUT-OF-SCOPE",
+    "signal": "UNSUBSCRIBED",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Modifying the watchdog timer has no telemetry footprint for the same reason as DE-0003.11 (AINOS3-74): the pc-linux PSP watchdog is a no-op stub with no MID, no HS app, and LC's 'WDT' is a config table, not a timer. Needs a watchdog/health telemetry packet that does not exist in this build."
+  },
+  "DE-0003.11": {
+    "name": "Watchdog State for Evasion",
+    "tier": "OUT-OF-SCOPE",
+    "signal": "UNSUBSCRIBED",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "No subscribable watchdog/health telemetry packet exists in this build (AINOS3-74): the pc-linux PSP watchdog is a stub (a single in-memory global, all Service/Enable/Disable calls are no-ops), there is no HS (Health & Safety) app, and LC's 'WDT' is the Watchpoint Definition Table, not a timer. Structurally unobservable \u2014 not recoverable by subscribing a MID."
+  },
+  "EX-0001.02": {
+    "name": "Bus Traffic Replay",
+    "tier": "OUT-OF-SCOPE",
+    "signal": "CONCEPTUAL",
+    "frame_rate": null,
+    "incident_detected": null,
+    "incident_total": null,
+    "incident_recall": null,
+    "label_ok": null,
+    "cluster": null,
+    "explanation": "",
+    "review": "Internal SBN bus replay has no external injection path in stock NOS3 (AINOS3-75): SBN over UDP is telemetry-OUT only, and the :5012 bridge injects CCSDS commands (EX-0001.01 / EX-0014.02), not raw bus messages. The foothold prerequisite is a malicious in-partition app (EX-0010). Structurally unexercisable from outside the container."
   }
 };

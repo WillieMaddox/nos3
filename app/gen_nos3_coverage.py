@@ -88,6 +88,8 @@ GATE_DETECTED = {
     "EX-0010.01": (None, "Ransomware (mass file encryption)", "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
     "EX-0010.02": (None, "Wiper (mass file destruction)",    "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
     "EXF-0003.02": (None, "Downlink exfiltration",           "rule-gate R12 (TO command) + R13 (downlink route-mask change) → EXF-0003.02 incident"),
+    "DE-0001":    (None, "Disable fault management",         "rule-gate R5 (LC state → DISABLED) — shared LC-disable footprint with EX-0011/DE-0005 (AINOS3-73)"),
+    "DE-0006":    (None, "Modify whitelist",                 "rule-gate R8 (CFE_ES cmd) + R9 (CFE_TBL cmd) — presents as command activity; NOOP-only script activates no table (AINOS3-75)"),
 }
 
 # Per-technique REVIEW rationale for out-of-scope techniques — WHY it can't be
@@ -102,7 +104,9 @@ REVIEW = {
     "DE-0003.04": "Command-receiver RSSI is an RF-analog value the NOS3 radio sim doesn't model or telemeter. Needs: RSSI added to RADIO device telemetry (would become UNSUBSCRIBED, not conceptual).",
     "DE-0003.05": "Receiver carrier/lock state is an RF-layer state absent from the software bus. Needs: lock state exposed in RADIO device telemetry.",
     "DE-0003.07": "Crypto state lives only in CryptoLib process memory (a CFE_LIB with zero Software Bus telemetry). Needs: a CryptoLib SA-state HK packet — none exists in this build.",
-    "DE-0003.11": "Watchdog state is not among the subscribed MIDs and nothing downstream surfaces it. Needs: subscribe a watchdog/health telemetry packet (UNSUBSCRIBED — recoverable, not permanent).",
+    "DE-0003.11": "No subscribable watchdog/health telemetry packet exists in this build (AINOS3-74): the pc-linux PSP watchdog is a stub (a single in-memory global, all Service/Enable/Disable calls are no-ops), there is no HS (Health & Safety) app, and LC's 'WDT' is the Watchpoint Definition Table, not a timer. Structurally unobservable — not recoverable by subscribing a MID.",
+    "EX-0012.11": "Modifying the watchdog timer has no telemetry footprint for the same reason as DE-0003.11 (AINOS3-74): the pc-linux PSP watchdog is a no-op stub with no MID, no HS app, and LC's 'WDT' is a config table, not a timer. Needs a watchdog/health telemetry packet that does not exist in this build.",
+    "EX-0001.02": "Internal SBN bus replay has no external injection path in stock NOS3 (AINOS3-75): SBN over UDP is telemetry-OUT only, and the :5012 bridge injects CCSDS commands (EX-0001.01 / EX-0014.02), not raw bus messages. The foothold prerequisite is a malicious in-partition app (EX-0010). Structurally unexercisable from outside the container.",
     "DE-0003.12": "Poisoning corrupts an offline training dataset, not a live telemetry event. Needs: training-data provenance/integrity checks in the ML pipeline.",
     # -- reviewed but NOT scripted/scored (added via REVIEW_ADD below) --
     "EX-0003":    "Authentication runs inside CryptoLib (CFE_LIB, no SB telemetry); auth-process changes leave no HK footprint. Needs: a CryptoLib auth/SA-state HK packet.",
@@ -145,6 +149,11 @@ REVIEW_ADD = {
     "DE-0007":     ("Evasion via Rootkit",             "CONCEPTUAL"),
     "DE-0008":     ("Evasion via Bootkit",             "CONCEPTUAL"),
     "DE-0011":     ("Credentialed Evasion",            "CONCEPTUAL"),
+    # AINOS3-74/75 (Sprint 26): watchdog pair + bus-traffic replay resolved
+    # out-of-scope after a live/structural footprint check.
+    "EX-0012.11":  ("Modify Watchdog / Health Monitor", "UNSUBSCRIBED"),
+    "DE-0003.11":  ("Watchdog State for Evasion",       "UNSUBSCRIBED"),
+    "EX-0001.02":  ("Bus Traffic Replay",               "CONCEPTUAL"),
 }
 
 
@@ -211,7 +220,7 @@ def main():
     meta = {
         "generated_from": ["V5_DETECTOR_COVERAGE.md", "incident_rescore.json",
                            "cluster_taxonomy.json", "explanation_catalog.json"],
-        "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3",
+        "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3_hybrid (AINOS3-37 selective per-mode)",
         "incident_recall_headline": rescore.get("incident_detection_recall"),
         "n_techniques": len(coverage),
     }
