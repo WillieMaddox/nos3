@@ -69,9 +69,20 @@ HK_TARGETS = [
     (TORQUER_HK_REQ_MID, "TORQUER"),
 ]
 
-# Re-issue the mode command every N seconds. Overrides any autonomous FSW
-# transition (eclipse → SUNSAFE, high-rate → BDOT) so the soak stays pinned
-# to the commanded mode.
+# Re-issue the mode command every N seconds.
+#
+# ⚠ This was added to override "autonomous FSW transitions (eclipse → SUNSAFE,
+# high-rate → BDOT)". **No such logic exists.** `generic_adcs_app.c` assigns
+# `GNCPacket.Payload.Mode` in exactly ONE place — the SET_MODE command handler
+# — and nothing else in the FSW writes it. The belief traces to an "idle mode
+# lock" that our own notes later refuted as a CSV-parsing artifact
+# (`awk -F','` misaligning quoted array columns), but the tooling built around
+# it was never revisited.
+#
+# The re-commanding is therefore probably vestigial, and it is not free: 60 s
+# mode dwells against the detector's 250-frame (~45 s) post-switch blind window
+# put 83 % of the attack corpus inside a suppression window. Pass
+# `--recmd-interval 0` to disable and test stickiness directly.
 RECMD_INTERVAL_S = 30
 
 # HK poll cadence; 8s × 7 targets ≈ 56s per full cycle.
@@ -106,15 +117,18 @@ def now_utc_iso() -> str:
     return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")
 
 
-def soak(c: Commander, mode_name: str, duration_s: int) -> dict:
+def soak(c: Commander, mode_name: str, duration_s: int,
+         recmd_interval_s: int = RECMD_INTERVAL_S) -> dict:
     mode_code = MODE_TABLE[mode_name]
+    recmd_note = (f"re-cmd every {recmd_interval_s}s" if recmd_interval_s > 0
+                  else "NO re-command (stickiness test)")
     print(f"  [soak] entering {mode_name} for {duration_s}s "
-          f"(~{duration_s/60:.0f} min)")
+          f"(~{duration_s/60:.0f} min), {recmd_note}")
     c.adcs_set_mode(mode_code)
 
     t0 = time.monotonic()
     end = t0 + duration_s
-    next_recmd = t0 + RECMD_INTERVAL_S
+    next_recmd = (t0 + recmd_interval_s) if recmd_interval_s > 0 else float("inf")
     hk_idx = 0
     last_progress = t0
 
@@ -125,7 +139,7 @@ def soak(c: Commander, mode_name: str, duration_s: int) -> dict:
         now = time.monotonic()
         if now >= next_recmd:
             c.adcs_set_mode(mode_code)
-            next_recmd = now + RECMD_INTERVAL_S
+            next_recmd = now + recmd_interval_s
         # Per-minute progress line so a 60-min soak isn't silent.
         if now - last_progress >= 60:
             elapsed_min = (now - t0) / 60
@@ -155,6 +169,11 @@ def main():
                    help="Look up sc01-nos-fsw IP via 'docker inspect'")
     p.add_argument("--dry-run", action="store_true",
                    help="Walk the loop without sending UDP packets")
+    p.add_argument("--recmd-interval", type=int, default=RECMD_INTERVAL_S,
+                   help="Seconds between re-issuing SET_MODE. 0 = command once "
+                        "and never again — the stickiness test (see the note on "
+                        "RECMD_INTERVAL_S; the FSW has no autonomous mode logic, "
+                        "so a mode should hold indefinitely on its own).")
     p.add_argument("--out-dir", default="data/onair/scenarios",
                    help="Where to write the soak manifest JSON")
     args = p.parse_args()
@@ -184,7 +203,7 @@ def main():
     }
 
     try:
-        result = soak(c, args.mode, duration_s)
+        result = soak(c, args.mode, duration_s, args.recmd_interval)
         manifest["result"] = result
     except KeyboardInterrupt:
         print("\ninterrupted — writing partial manifest")

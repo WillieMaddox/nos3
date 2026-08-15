@@ -1,0 +1,22 @@
+[
+  {"key": "de_0003_03_command_receiver_mode",       "level": 2, "chain": false, "_tier": "DEAD",     "_f1": 0.000},
+  {"key": "de_0003_06_telemetry_downlink_modes",    "level": 2, "chain": false, "_tier": "DEAD",     "_f1": 0.000},
+  {"key": "de_0003_08_received_commands",           "level": 2, "chain": false, "_tier": "DEAD",     "_f1": 0.000},
+  {"key": "ex_0012_08_adcs_subsystem",              "level": 4, "chain": false, "_tier": "DEAD",     "_f1": 0.000},
+  {"key": "ex_0014_03_sensor_data",                 "level": 4, "chain": false, "_tier": "DEAD",     "_f1": 0.000},
+  {"key": "ex_0014_04_pnt_spoofing",                "level": 4, "chain": false, "_tier": "DEAD",     "_f1": 0.000},
+
+  {"key": "de_0003_09_system_clock_for_evasion",    "level": 2, "chain": false, "_tier": "NEAR_DEAD", "_f1": 0.024},
+  {"key": "de_0003_01_vehicle_command_counter",     "level": 2, "chain": false, "_tier": "NEAR_DEAD", "_f1": 0.030},
+  {"key": "ex_0012_04_app_subscriber_tables",       "level": 4, "chain": false, "_tier": "NEAR_DEAD", "_f1": 0.011},
+
+  {"key": "ex_0014_01_time_spoof",                  "level": 4, "chain": false, "_tier": "HIGH_VAR", "_f1": 0.144},
+  {"key": "ex_0012_03_memory_write",                "level": 4, "chain": false, "_tier": "HIGH_VAR", "_f1": 0.164},
+  {"key": "ex_0012_12_system_clock",                "level": 4, "chain": false, "_tier": "HIGH_VAR", "_f1": 0.178},
+  {"key": "ex_0012_09_eps_subsystem",               "level": 4, "chain": false, "_tier": "HIGH_VAR", "_f1": 0.179},
+  {"key": "imp_0001_deception",                     "level": 3, "chain": false, "_tier": "HIGH_VAR", "_f1": 0.391},
+
+  {"key": "imp_0002_disruption",                    "level": 3, "chain": false, "_tier": "ANCHOR",   "_f1": 0.666},
+  {"key": "ex_0008_02_relative_time_sequences",     "level": 3, "chain": true,  "_tier": "ANCHOR",   "_f1": 0.826},
+  {"key": "imp_0005_destruction",                   "level": 3, "chain": false, "_tier": "ANCHOR",   "_f1": 0.848}
+]
