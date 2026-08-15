@@ -7,7 +7,12 @@ per-mode heads) + the four parallel detector gates (rule-gate R1–R14,
 consistency-check, staleness-check) currently deployed in the OnAIR plugin against
 the NOS3 cFS flight software.
 
-**Last updated:** 2026-07-30 (Sprint 26 — folded in the Section-B detections
+**Last updated:** 2026-08-15 — ⚠ **the per-technique catch rates are UNDER REVIEW** (boxed
+caveat in Section 2); the briefing-slide summary has been withdrawn and replaced. Added R14
+mode-force detection, the AINOS3-80 provenance tags, and the AINOS3-81 soak results
+including an INERTIAL false-alarm regression.
+
+**Previously:** 2026-07-30 (Sprint 26 — folded in the Section-B detections
 EX-0010.01/.02, EXF-0003.02, DE-0001, DE-0006; resolved the watchdog pair +
 EX-0001.02 out-of-scope and EX-0005.01 not-applicable, closing the last
 not-evaluated leaves; **deployed the AINOS3-37 selective per-mode hybrid classifier**
@@ -119,6 +124,40 @@ In SUNSAFE mode, **15 of 23 state-changing techniques are caught ≥ 50 %** of
 their corruption window, many at or near 100 %. Provenance: `[unverifiable]` per
 AINOS3-80 **F2** — the attack rows were never fitted (the IF trains on nominal only), but
 the IF's training-corpus identity is unrecorded, so disjointness cannot be proven:
+
+> ### ⚠ UNDER REVIEW (2026-08-15) — these rates may measure manoeuvre transients
+>
+> **Do not quote the per-technique catch rates below as steady-state detection until this
+> is resolved.** They may substantially overstate what the detector achieves during ordinary
+> flight.
+>
+> **Why.** The corpus these rates come from cycles ADCS modes every 60 s, while the deployed
+> detector suppresses alerts for 250 frames (~45 s) after every mode switch. Measured:
+> **83.2 % of all attack frames sit inside that blind window**, and 100 % within 600 frames
+> of a switch. Separately, in a 6.7 h SUNSAFE soak, **every** false alarm fell in the 2-minute
+> sun-acquisition transient and **67 % of detections sat in 17 % of frames** — the dynamically
+> active ones. Both point the same way: the numbers may reflect *transient response* rather
+> than attack detection.
+>
+> **A pilot testing this directly was inconclusive but not reassuring.** Re-collecting with
+> one ADCS mode held throughout (alert-eligible frames 16.8 % → 84.4 %) and scoring attack
+> frames against each run's *own* nominal frames, **lift was zero or negative in 11 of 16
+> cells**. `EX-0012.09` — dynamics-relevant, published at **99 %** below — measured **−1.4**
+> lift in steady SUNSAFE.
+>
+> **Why this is not yet a conclusion.** Four techniques, **one run per cell**. Two of the four
+> have discrete flag/counter footprints and are rule-gate catches, so the IF was never their
+> detector. INERTIAL's nominal false-alarm rate in those short runs (19.6–55.2 %) far exceeds
+> the 7.5 % from a 60-min soak, indicating a settling transient longer than the warmup — so
+> that column is untrustworthy in both directions.
+>
+> **Scope — the gate layer is unaffected.** Rule-gate R1–R14, consistency-check and
+> staleness-check are deterministic rules on counters, flags and state, separately validated
+> and live-verified. **The 13 Section-A techniques stand.** This concerns the dynamics IF only.
+>
+> **Resolution:** replication with dynamics-relevant techniques, longer pre-holds, and several
+> runs per cell, using **lift** rather than raw detection. ~1 night of collection. See the
+> per-mode-pilot section of [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md).
 
 | Technique | Catch rate | Technique | Catch rate |
 |---|--:|---|--:|
@@ -459,6 +498,10 @@ A 2-minute hold in the new mode produced no further incidents (the rule re-basel
 Catch rate = SUNSAFE corruption-window flag rate. Tier = classifier
 reliability. Signal = observability class.
 
+⚠ **The Catch column is UNDER REVIEW** — see the boxed caveat in Section 2. It may measure
+manoeuvre transients rather than steady-state detection. The **Tier**, **Signal** and
+gate-layer columns are unaffected.
+
 | Technique | Catch (SUNSAFE) | Classifier tier | Signal | Note |
 |---|--:|---|---|---|
 | EX-0008.01 ATS | 91 % | HIGH-VAR | ON_BOARD | |
@@ -519,8 +562,23 @@ telemetry detection.)*
 
 ## One-line summary for a briefing slide
 
-> *In SUNSAFE flight the monitor reliably flags real attacks (15/23 techniques
-> ≥ 50 %, many ~100 %) at under 1 % false alarms, and names ~8 of them with
-> high confidence; outside SUNSAFE, and for a documented set of
-> telemetry-identical or unmonitored techniques, coverage is limited by design
-> rather than by tuning.*
+⚠ **The previous version of this line is withdrawn pending the Section-2 review.** It read
+that the monitor "reliably flags real attacks (15/23 techniques ≥ 50 %, many ~100 %)" and
+that coverage outside SUNSAFE "is limited by design rather than by tuning." Both claims rest
+on the catch rates now under review, and the second is affirmatively contradicted: coverage
+outside SUNSAFE was limited by **how we collected data**, not by design — 83 % of the corpus
+sat inside the detector's own post-mode-switch blind window, and modes hold indefinitely on a
+single command, so long per-mode collection was always possible.
+
+Use this instead, which claims only what is currently supported:
+
+> *A deterministic rule layer catches **13 validated attack techniques** — device disables,
+> command-counter changes, fault-management shutdown, downlink redirection, file-operation
+> bursts, telemetry freezes and forced mode changes — each live-verified against the running
+> flight software, independent of any model. Alongside it, an anomaly detector watches
+> spacecraft dynamics and raises **no false alarms in steady flight**; its false alarms occur
+> only in a ~2-minute sun-acquisition transient each orbit. When it does alarm, a classifier
+> names the technique correctly **~65 % of the time on a spacecraft run it has never seen**
+> (0.645 ± 0.036, out-of-fold). **How much the dynamics detector adds during steady flight is
+> under active review** — our per-technique catch rates may reflect manoeuvre transients, and
+> we are re-measuring.*
