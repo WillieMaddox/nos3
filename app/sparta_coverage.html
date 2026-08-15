@@ -7402,7 +7402,15 @@ window.NOS3_COVERAGE_META = {
   ],
   "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3_hybrid (AINOS3-37 selective per-mode)",
   "incident_recall_headline": 0.6783,
-  "n_techniques": 68
+  "n_techniques": 68,
+  "provenance": {
+    "label_ok": "OOF \u2014 leave-one-instance-out over the 3-instance frozen corpus, rescored through the deployed hybrid's routing (export_hybrid_oof.py). Replaced an in-sample figure that was >2x optimistic (76.9% -> 42.3%).",
+    "incident_recall": "unverifiable \u2014 the attack rows were never fitted (the IF trains on nominal only), but the deployed IF artifact records no training-corpus identity, so disjointness cannot be proven. See AINOS3-80 F2.",
+    "frame_rate": "unverifiable \u2014 same basis as incident_recall.",
+    "false_positive_rate": "live-soak \u2014 independent nominal soaks. SUNSAFE 0.02%, PASSIVE/BDOT 0.00% (AINOS3-81, 7h). INERTIAL is a known regression at 0.54% (raw 7.5%) against a documented 0.00% \u2014 its threshold is mis-calibrated, re-calibration ticketed. The 1% figure quoted elsewhere is a design-target calibrated in-sample, not a measurement (AINOS3-80 F1 / AINOS3-81).",
+    "technique_top1": "OOF \u2014 0.645 +/- 0.036 across three instances; the spread exceeds most deltas quoted against it.",
+    "audit": "components/onair/AINOS3_80_METRIC_PROVENANCE.md"
+  }
 };
 window.NOS3_COVERAGE = {
   "EX-0008.01": {
@@ -7945,8 +7953,8 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Caught by rule-gate R5 (LC) + staleness-check (dynamics-IF blind by design).",
-    "gate": "rule-gate R5 (LC) + staleness-check"
+    "review": "Caught by rule-gate R5 (LC) + R14 ADCS mode-force + staleness-check (AINOS3-77) (dynamics-IF blind by design).",
+    "gate": "rule-gate R5 (LC) + R14 ADCS mode-force + staleness-check (AINOS3-77)"
   },
   "DE-0010": {
     "name": "Overflow audit log",
