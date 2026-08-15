@@ -53,16 +53,16 @@ keys are now assigned (`AINOS3-77`–`AINOS3-85`). Carryover keys (`AINOS3-30`, 
 | Jira | Slug | Type | Pri | E | T | Summary |
 |---|---|---|---|--:|--:|---|
 | AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion (signal lever) |
-| AINOS3-30 | extra-mids | Story | High | 5 | 1.5 | ○ COMMIT — signal-feasibility slice: collect a 382-col weak-class corpus + ablate whether any recorded Section-B MID adds discrimination → GO/NO-GO on a retrain |
-| AINOS3-77 | mode-transition-rule | Task | High | 3 | 1.0 | ○ COMMIT — R14: flag ADCS mode-force (SET_MODE) — the live-observed IF warmup blind spot (DE-0005) |
+| AINOS3-30 | extra-mids | Story | High | 5 | 1.5 | ✅ DONE — signal-feasibility: 17-attack 359-col corpus + 7-arm ablation → **NO-GO (documented NULL)**; no block beats split noise |
+| AINOS3-77 | mode-transition-rule | Task | High | 3 | 1.0 | ✅ DONE — **R14 live** (debounced `ADCS_GNC.Mode` → DE-0005); IF verified blind across the transition |
 | AINOS3-78 | cluster-345-regression | Spike | Medium | 2 | 0.5 | ○ STRETCH — why the hybrid regressed `EX-0012.{03,04,05}` (label_ok −3); recover or accept |
 | AINOS3-45 | corpus-instance-4 | Task | Medium | 3 | 0.75 | ○ STRETCH — 4th corpus instance, collected at the 382-col schema (feeds signal-feasibility) |
 | AINOS3-68 | deepsad-revisit | Spike | Low | 3 | 0.75 | ○ STRETCH — reopen Phase-5 DeepSAD **only if** signal-feasibility clears the gate |
 | AINOS3-83 | ci-command-feature | Task | Low | 2 | 0.5 | ○ STRETCH — turn the full-`ci` HK (0x0884, now on-pipe) into a command-ingest detector |
 | AINOS3-79 | detector-rigor | Epic | — | — | — | Detector hardening & measurement honesty |
-| AINOS3-80 | metric-provenance-audit | Spike | Medium | 2 | 0.5 | ○ COMMIT — sweep reported metrics for in-sample optimism (the 76.9→42.3 lesson) |
-| AINOS3-81 | hybrid-drift-soak | Task | Medium | 1 | 0.25 | ○ COMMIT — long soak: live hybrid + per-mode calibration hold, 0-FP, no drift |
-| AINOS3-82 | benchmark-fayyaz | Spike | Medium | 3 | 1.0 | ○ COMMIT — scan the Fayyaz CuCD-ID NOS3 dataset paper + compare method/results with ours |
+| AINOS3-80 | metric-provenance-audit | Spike | Medium | 2 | 0.5 | ✅ DONE — 2 material findings: IF threshold calibrated **in-sample** (doc claimed held-out); IF training corpus **unrecorded** |
+| AINOS3-81 | hybrid-drift-soak | Task | Medium | 1 | 0.25 | ✅ DONE — 7 h soak: **no drift** (margin widens); ⚠ **INERTIAL FP regression 0.54 %** vs documented 0.00 % |
+| AINOS3-82 | benchmark-fayyaz | Spike | Medium | 3 | 1.0 | ✅ DONE — dataset pulled + reproduced; CuCD-ID is **trivially separable by session artifacts**; no head-to-head possible |
 | AINOS3-42 | stakeholder-rollout | Epic | — | — | — | Stakeholder rollout & feedback (recurring) |
 | AINOS3-76 | rollout-s26 | Task | Medium | 2 | 0.5 | ○ COMMIT — carryover: present the Sprint-26 readout + capture feedback (owner-action, slipped last sprint) |
 
@@ -70,6 +70,12 @@ keys are now assigned (`AINOS3-77`–`AINOS3-85`). Carryover keys (`AINOS3-30`, 
 metric-provenance-audit 2 · hybrid-drift-soak 1 · benchmark-fayyaz 3 · AINOS3-76 2) ·
 T ≈ **4.75** — right at the ~16 E / ~7–8 T capacity, leaving headroom for the
 signal-feasibility corpus run's unattended wall-clock.
+
+**Status (2026-08-11): 5 of 6 committed items ✅ DONE** (E = 14 of 16). Only **AINOS3-76**
+(stakeholder rollout) remains — owner action, slipped a second sprint. No stretch items
+attempted. The sprint's headline outcome is not the one planned: the signal lever returned
+a **NULL**, while the *hardening* half surfaced four defects nobody had tickets for — see
+below.
 
 **Stretch set:** E = **10** (AINOS3-45 3 · AINOS3-68 3 · ci-command-feature 2 ·
 cluster-345-regression 2) — pulled in only if the committed chain lands with headroom.
@@ -119,6 +125,51 @@ those classes as truly information-limited.
 **Estimate note:** E 5 carries corpus-collection + feature-design uncertainty and the real
 possibility of a NULL. Unattended corpus wall-clock (~5 h) is on top of the T.
 
+**Result:** ✅ DONE (2026-08-11) — **NO-GO, documented NULL.** Corpus: 17 attacks selected
+from the measured per-class F1 in `cluster_taxonomy.json` (6 DEAD · 3 NEAR-DEAD · 5
+HIGH-VAR · **3 ROBUST anchors** for contrast), 17/17 exit 0 in 2 h 43 m, **41,434 labeled
+rows**, staged at `data/onair/csv_ainos3_30_s27/`. Live schema is a **strict superset** of
+the frozen corpus (359 kept cols vs 250; 109 added, 0 removed), so the ablation is properly
+controlled. Seven arms share one feature build and one row split
+(`training/ablation_ainos3_30_s27.py`); the 109 columns were split into five blocks so a
+positive result would point at a subsystem: baseline mF1 0.5261 → `+INGRESS` +0.0030,
+`+SENSOR_HK` +0.0268, `+SENSOR_DEV` +0.0168, `+CDH` +0.0078, `+TBL` **+0.0000**,
+`+ALL` +0.0159. **The negative control passed** — `TBL` reproduced the Sprint-25 NULL to
+four decimals.
+
+**Nothing survives the noise band.** Three attempts at sizing it, and the first two were
+wrong in instructive ways: (1) a **seed sweep returned ±0.0000 on every arm** — a *dead
+instrument*, since `HistGradientBoostingClassifier` with `early_stopping=False` is
+deterministic below sklearn's 200k binning-subsample threshold; (2) a **test-set bootstrap**
+gave `+SENSOR_HK` = +0.0270, 95 % CI [+0.0167, +0.0373], **excluding zero** — a trap, because
+it resamples test rows while holding fixed the two things that actually vary; (3) a **split
+sweep** (train_frac 0.60→0.80) shows the same effect **flipping sign**: +0.0832 / +0.0264 /
++0.0268 / −0.0260 / −0.0022, mean +0.0216, **std 0.0365 > mean**. The bootstrap CI was ~3×
+too narrow. The baseline itself swings 0.3992→0.5615 on split placement alone.
+
+**`INGRESS` is untested, not refuted** — all 10 `CI.*`/`TO.*` columns are numerically
+constant 0 because the full `to`/`ci` apps are **idle by design** here (commands go via
+`:5012`, telemetry via SBN). That is the *static-in-nominal* precondition R12/R13 rely on,
+so it corroborates AINOS3-72; it just means **no attack in this corpus commands them**
+(`EXF-0003.02` does, and wasn't in the weak-class list). ⚠ Two mis-diagnoses en route are
+recorded in the writeup: a raw-string census counted OnAIR's `'[0]'` placeholder as variance,
+and a suspected AINOS3-72 recording regression was refuted by diffing
+`message_headers.py::TO_HkTlm_t` against `to_hktlm.h` (field-for-field match).
+
+**Provenance:** ONE execution per technique ⇒ LOIO impossible; absolute numbers are
+within-instance and **not comparable** to the LOIO 0.645 in `V5_DETECTOR_COVERAGE.md`. Only
+deltas were ever the deliverable, and even those don't resolve. **The binding constraint is
+corpus size, not feature design** — `AINOS3-45` (2nd instance) is now the prerequisite for
+any re-run, and the tooling makes it a re-invocation. `AINOS3-68` (DeepSAD) **stays gated**:
+this spike was its trigger and it did not fire. Full detail:
+[`AINOS3_30_SIGNAL_FEASIBILITY.md`](AINOS3_30_SIGNAL_FEASIBILITY.md).
+
+**Incidental:** 15 of 109 added columns are constant corpus-wide — all 6 `CFE_TBL` (known),
+4 `TORQUER`, and 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`). An ADCS-relevant
+sensor reporting nothing is worth its own look. Also **answers AINOS3-83's first AC**: no
+full-`ci` ingest counter moves under `:5012`-injected commands, across 17 attacks / 41,434
+frames.
+
 ### AINOS3-77 — Flag ADCS mode-force (R14) · `Task` · High · E 3 · T 1.0 (~8h) · ○ COMMIT
 
 **Summary:** As a defender, I want an unexpected ADCS mode transition (a forced
@@ -147,6 +198,31 @@ the leaky-integrator dwell the other rules use.
 **Note:** closes a concrete, live-demonstrated gap; the mechanism (static-counter or
 baseline-deviation + leaky integrator) already exists, so most of the E is
 false-positive tuning (confirming modes truly don't self-transition in nominal ops).
+
+**Result:** ✅ DONE (2026-08-11) — **R14 built, deployed, live-verified.** The ticket's
+preferred design (a static-in-nominal ADCS command counter, R6–R13 sibling) is **not
+viable**: `ADCS_HK.CommandCount` is a **wrapping uint8 that increments on routine HK
+polling** — 264,019 changes across the AINOS3-81 soak — so it fails the static-in-nominal
+precondition. R14 therefore keys on `ADCS_GNC.Mode` (the R5-style baseline-deviation
+fallback), with two mechanisms R5/R13 don't have:
+
+- **Debounce.** OnAIR's double buffer oscillates old/new for several frames per switch.
+  Replayed over the soak, naive change-detection fires **22 times for 4 real transitions**;
+  requiring the new value to persist `ModeDebounceFrames=5` collapses that to exactly 4.
+- **Re-baseline after firing.** A mode force is one bounded event, not a persistent bad
+  state, so *entering* a mode fires and *being* in one does not — unlike R5/R13, which latch
+  until the field returns.
+
+**0-FP** `[live-soak]`: replaying the deployed rule over the full **267,260-frame** soak
+gives **4 rising edges and 4 `DE-0005` incidents — one per commanded transition, none during
+any mode hold.** **Live-verified**: a forced `SET_MODE` SUNSAFE→INERTIAL raised
+`[rule_gate][ALERT] R14:adcs-mode` and one bounded incident (13 frames, `cluster=DE-0005`,
+`sub=adcs-mode-force`), while the IF logged **0 anomalies / 0 alerts across the 81 frames
+spanning the transition** — the blind spot demonstrated and closed in the same run. A 2-min
+hold produced no further incidents. R14 yields to R5 when both fire, so a full DE-0005
+(LC disable *plus* mode force) still labels EX-0011 (family representative). **+10 unit
+tests** (rule-gate suite 51 pass; 507 pass across plugin + training suites). Plugin synced to
+the build tree; folded into `V5_DETECTOR_COVERAGE.md` (§F) and the coverage overlay.
 
 ### AINOS3-78 — Diagnose the hybrid's EX-0012.{03,04,05} regression · `Spike` · Medium · E 2 · T 0.5 (~4h) · ○ STRETCH
 
@@ -229,6 +305,38 @@ recompute it OOF or label it clearly.
 - Any metric found to be in-sample-optimistic is recomputed OOF or explicitly flagged.
 - A one-line convention added so future numbers state provenance by default.
 
+**Result:** ✅ DONE (2026-08-11) — **2 material findings, 1 minor.** Register of all 18
+headline metrics + the overlay in
+[`AINOS3_80_METRIC_PROVENANCE.md`](AINOS3_80_METRIC_PROVENANCE.md); tags `[OOF]` /
+`[live-soak]` / `[in-sample]` / `[design-target]` applied throughout
+`V5_DETECTOR_COVERAGE.md`, and the convention added at the top.
+
+- **F1 (material):** the doc claimed incident detection was honest because "the threshold is
+  calibrated on **held-out** nominal". **It is not** — the calibration row counts are
+  *identical* to the model's training row counts in all four modes (296 / 19,641 / 14,367 /
+  53,094), so the threshold is the 1 % quantile of the model's **own training scores** and
+  `actual_fp_rate ≈ 1.00 %` is true by construction. ⚠ Initially judged benign ("generalised
+  conservatively"); **AINOS3-81 refuted that** — see the amendment: conservative for
+  BDOT/PASSIVE/SUNSAFE, **optimistic by 7.5× for INERTIAL**.
+- **F2 (material):** the deployed IF pickle records **no training-corpus identity** (no
+  csv-dir, manifest list, or dates), and no doc records the `train.py` invocation. So
+  disjointness between IF training nominal and any evaluation corpus is **unverifiable** —
+  which reclassifies the catch rates, the ~61 % frame-level figure and the 92.8 %/67.8 %
+  incident recalls as `[unverifiable]`, *not wrong*. The classifier already does this right
+  (`training_dates`); the IF should match.
+- **F3 (minor):** headline hybrid LOIO is quoted **0.646**; the artifact says **0.6453** →
+  0.645. More useful: the fold spread is **±0.036**, *wider than most deltas quoted against
+  it* (including the hybrid's own +0.018 over the v3 global head). The doc now carries the
+  spread.
+- **F4 (new convention clause):** provenance applies to the **error bar**, not just the point
+  estimate. AINOS3-30 produced a correctly-out-of-fold metric whose bootstrap CI was ~3× too
+  narrow because it resampled test rows instead of the split. Intervals must now state what
+  was resampled.
+
+The overlay had the right source (hybrid OOF) but **displayed no provenance labels at all**;
+`gen_nos3_coverage.py` now emits a `provenance` block, regenerated and re-inlined into
+`sparta_coverage.html` via `build_overlay.py`.
+
 ### AINOS3-81 — Long soak: hybrid + calibration hold, no drift · `Task` · Medium · E 1 · T 0.25 (~2h attended) · ○ COMMIT
 
 **Summary:** As an operator, I want a multi-hour nominal soak confirming the live hybrid
@@ -246,6 +354,32 @@ on the new deployed model.
 - ≥6 h fresh-launch soak; per-mode FP + calibrated-confidence distributions reported.
 - No progressive drift (matches the v5 drift-soak result); if drift appears, ticket it.
 - Result folded into the coverage doc's soak numbers with provenance = live-soak.
+
+**Result:** ✅ DONE (2026-08-11) — **no drift, but an INERTIAL FP regression.** 7 h
+fresh-launch soak, four sequential mode legs (BDOT/INERTIAL/PASSIVE 60 min, **SUNSAFE 240
+min last** so its window covers uptime T+3h→T+7h, the band where v2 was suspected of
+drifting), all legs exit 0, 140,631 frames, deployed hybrid confirmed loaded.
+
+- **Drift: PASS.** SUNSAFE alert FP **0.0001**; the 1st-percentile score margin does not
+  merely plateau, it **widens** (0.052 → 0.086). BDOT/PASSIVE flat at 0.0000. Reproduces the
+  2026-06-09 v5 result and extends it to the hybrid.
+- ⚠ **INERTIAL FP does not reproduce: 0.54 % operational (raw 7.5 %)** vs the documented
+  0.00 % — 27× the stated 0.0–0.2 % band. **Not drift** (0.63 % → 0.44 % across the leg).
+  Root cause is AINOS3-80 **F1**: the in-sample threshold promised 1 % raw FP per mode and
+  delivers 0.0× / **7.5×** / 0.0× / 0.9×. Only SUNSAFE (53,094 training rows) lands where the
+  calibration said. Hysteresis has been silently absorbing the error.
+- **Operational impact:** **71 false incidents/hour in INERTIAL** (0 BDOT/PASSIVE, 2.5/h
+  SUNSAFE) against the doc's "under 1 alarm per ~5 hours". All labelled `cluster=nominal`, so
+  a consumer filtering on that sees none — **not verified** that the operator view does.
+- **Gates clean:** staleness **0**, consistency **0** over ~141 K frames; rule-gate **2
+  edges in 7 h** (fresh-launch discipline works). **Classifier: 0 false attack labels** on
+  2,203 IF-gated frames; calibrated confidences in range but **saturated at ~0.999**, so this
+  soak does not exercise the calibration's mid-range.
+- **Tooling defect:** `analyze_soak_drift.py` defaults to `--hz 4.2`; true rate measured
+  against known leg durations is **~5.6 Hz**, mislabelling uptime bins by ~33 %. All figures
+  above used `--hz 5.6`.
+
+Full detail: [`AINOS3_81_HYBRID_DRIFT_SOAK.md`](AINOS3_81_HYBRID_DRIFT_SOAK.md).
 
 ### AINOS3-82 — Compare against the Fayyaz CuCD-ID NOS3 dataset · `Spike` · Medium · E 3 · T 1.0 (~8h) · ○ COMMIT
 
@@ -284,6 +418,39 @@ Scan both, map their classes to our SPARTA taxonomy, and compare method + number
 
 **Note:** high learning value, low risk — nearest published NOS3/cFS IDS benchmark; a rare
 chance to sanity-check our numbers against an independent group on the same simulator.
+
+**Result:** ✅ DONE (2026-08-11) — writeup in
+[`BENCHMARK_FAYYAZ_CUCDID.md`](BENCHMARK_FAYYAZ_CUCDID.md), harness in
+`training/benchmark_fayyaz.py`. The **stretch was taken**: the Mendeley dataset was pulled
+(CC BY 4.0, both published SHA-256 hashes verify) and reproduced against our own model
+family.
+
+- **No head-to-head number is possible, and that is the finding.** Their 30 features (CCSDS
+  headers + 20 s arrival-window statistics + host cgroup memory) and our 894 (raw+delta over
+  359 telemetry columns incl. GNC dynamics) share **no overlapping column**, and they emit
+  one row per *packet* vs our 1 Hz *frame*. Their "normal" is a scripted 5,000-command NOOP
+  storm, not idle ops.
+- **Their released table is trivially separable by several independent routes.** All-features
+  accuracy **1.0000**; the flight-software **memory columns alone 1.0000**; `TimeRadians`
+  (a clock) **alone 0.8818** on a balanced 5-class task; **5 of 22 columns reach ≥0.95
+  alone**. Each class is **one contiguous 5,000-command run**, so class identity is perfectly
+  confounded with session identity, and three class pairs are separable by wall-clock alone.
+- **Their recommended split does not fix the leak it warns about** — accuracy is identical
+  (1.0000) under a random split and their per-class chronological split, because the cut
+  falls *inside* each single-run class. Their README Option 2 isn't a valid supervised
+  protocol; Option 3 needs a group column the release doesn't ship. **LOIO is structurally
+  impossible** on it (1 run/class vs our 3) — the strongest external endorsement of our LOIO
+  discipline.
+- **Their 4 attacks all map onto leaves we already detect**, three via a deployed rule firing
+  on the exact mechanism (flood→EX-0013; LC/CS disable→DE-0001/**R5**; FM file spam→
+  EX-0010/**R11**; MM_POKE GPS→EX-0014.03/EX-0012.03).
+- **Worth borrowing:** their command-**ingress** feature family (they classify GPS poke
+  injection easily from ingress while we score F1 = 0.000 on the same attack from egress —
+  the sharpest evidence yet for AINOS3-69's *observability, not capacity* conclusion), their
+  arrival-time window statistics, and their 9 documented augmentation noise categories.
+- The companion *Computers & Security* IDS paper is **paywalled**; a web summary attributing
+  F1 87.66–99.59 % to this group names classes (DoS/fuzzy/replay) that don't match CuCD-ID's
+  five, so it is **treated as unverified and not used**.
 
 ---
 
@@ -372,6 +539,134 @@ fires.
 - Any new observable it surfaces (e.g. a saturation flag) noted as a possible detector input.
 
 ---
+
+## Findings this sprint that had no ticket (2026-08-11)
+
+The hardening half produced more than it was scoped to. These are **unticketed** — they
+need keys before Sprint 28 planning. The first three are one causal chain and probably want
+a single ticket.
+
+| # | Finding | Source | Pri |
+|---|---|---|---|
+| 1 | **IF threshold calibrated in-sample** — calibration rows == training rows in all 4 modes; the doc claimed held-out. ⚠ **Scope enlarged 2026-08-14: all four thresholds are mis-set, in different directions** — see follow-on below | AINOS3-80 F1 | **High** |
+| 2 | **INERTIAL FP regression 0.54 %** (raw 7.5 %, 7.5× its calibration target) vs a documented 0.00 %; 71 false incidents/hour | AINOS3-81 | **High** |
+| 3 | **IF training corpus unrecorded** — no csv-dir/manifest/dates in the pickle, so 4 headline metrics are `[unverifiable]` | AINOS3-80 F2 | **High** |
+| 4 | `analyze_soak_drift.py --hz` defaults to 4.2; true rate ~5.6 Hz → uptime bins mislabelled ~33 % | AINOS3-81 | Low |
+| 5 | 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`) constant corpus-wide — an ADCS sensor reporting nothing | AINOS3-30 | Medium |
+| 6 | Operator-facing filtering of `cluster=nominal` incidents **unverified** — determines whether finding 2 is user-visible | AINOS3-81 | Medium |
+
+**Recommended fix for 1–3:** re-derive the IF threshold on a held-out split of the baseline
+corpus, and persist training inputs into the pickle (mirroring the classifier's
+`training_dates`). That closes the false "held-out" claim, likely fixes INERTIAL, and
+converts four `[unverifiable]` metrics into verifiable ones. Re-soak INERTIAL to confirm.
+
+**Also re-scoped by results:** `AINOS3-45` (2nd corpus instance) is promoted from stretch to
+**prerequisite** for any AINOS3-30 re-run — corpus size, not feature design, is the binding
+constraint. `AINOS3-83` has its first AC answered (**no** full-`ci` counter movement under
+`:5012` injection), pointing it at "document the bypass and close out-of-scope" unless
+genuine ground-link commanding is tested. `AINOS3-68` **stays gated**.
+
+---
+
+## Follow-on work agreed 2026-08-14
+
+### AINOS3-30 follow-on — two more collection rounds
+
+Round 1 could not resolve a 2-point effect because every technique executed **once**. Agreed:
+collect **two further rounds** (3 total) so leave-one-instance-out becomes possible and the
+noise band shrinks to something that can resolve a small effect. **Add `EXF-0003.02` to the
+attack list** — it is the only technique that commands the full `to`/`ci` apps, so it is the
+only way to test the command-ingress hypothesis borrowed from AINOS3-82, currently our most
+promising lead and completely untested. ~2.75 h unattended per round; re-invocation of the
+existing tooling, no new code.
+
+### AINOS3-80 / AINOS3-81 follow-on — threshold recalibration (STARTED, and it overturned the plan)
+
+`training/recalibrate_heldout.py` + `training/roc_threshold_sweep.py`. Thresholds re-derived
+on **held-out** nominal (soak part A picks, part B measures — part B chose nothing), then
+paired with attack detection measured on the AINOS3-30 corruption windows.
+
+**Result — the "cheap fix" was wrong, twice over.**
+
+1. **Recalibrating every mode to the 1 % design target makes three of four modes worse**
+   (PASSIVE 0.05 % → **16.98 %** held-out FP). The 1 % figure was a config default, never an
+   operational goal — the system had been beating it by accident of where the in-sample
+   thresholds landed.
+2. **Pairing with detection inverted the recommendation entirely.** A false-alarm sweep alone
+   only ever says which end of the dial is quieter:
+
+   | mode | deployed FP → detection | best alternative |
+   |---|---|---|
+   | **INERTIAL** | 6.88 % → **12.4 %** | tightening to 0.1 % target gives 0.00 % FP but **0.2 % detection** — a 60× collapse. **Do not tighten.** |
+   | **SUNSAFE** | 0.24 % → **52.2 %** | loosening to the 0.5 % target gives 0.83 % FP and **95.0 % detection** — **+43 pts for +0.6 pts**, inside the design target |
+   | PASSIVE | 0.05 % → **0.0 %** | loosening to 1 % target gives 0.17 % FP, 20.7 % detection |
+   | BDOT | 0.00 % → **0.0 %** | no threshold helps; 296 training rows is the real defect |
+
+**Corrected diagnosis.** The deployed thresholds all sit near **zero** because they are
+quantiles of *training* scores. Live, INERTIAL's scores run low and the other three run high,
+so a near-zero threshold is arbitrary relative to each mode's real distribution — **too loose
+where scores run low, too tight where they run high.** Finding 1 is therefore not "one bad
+mode": it is four mis-set thresholds, and the three quiet ones are quiet because they are
+**deaf**, which is the worse failure.
+
+**Biggest available win in the sprint:** loosening SUNSAFE — the spacecraft's resident mode,
+and where every published catch rate was measured — roughly **doubles detection** within the
+existing FP budget.
+
+**SUNSAFE candidate threshold pinned (2026-08-14): `+3.89e-02`** (part-A target 0.4 %).
+Chosen by a rule fixed *before* seeing the curve — smallest false-alarm rate reaching ≥ 90 %
+of achievable detection — so the pick is not fitted to the numbers. The knee agrees:
+detection climbs 45 % → 90 % up to this point, then flattens (→ 97.5 % costs 60 % more false
+alarms).
+
+| | deployed | candidate |
+|---|--:|--:|
+| threshold | −2.46e-05 | **+3.89e-02** |
+| held-out false alarms | 0.0024 % | **0.0067 %** |
+| frame-level detection | 52.2 % | **90.5 %** |
+| techniques individually ≥ 50 % | **5/13** | **12/13** |
+
+The breadth check is what makes this credible — the gain is not one long-dwell attack
+carrying the aggregate. IMP-0001 0.18→0.95, EX-0014.01 0.41→0.92, EX-0012.12 0.47→0.91,
+DE-0003.06 0.49→0.95, EX-0014.03 0.61→1.00; four techniques reach 1.000. `EX-0014.04`
+(0.07→0.45) is the only laggard.
+
+⚠ **Three caveats keep this a candidate, not a decision.** (1) The FP figure is *flattered by
+drift*: SUNSAFE's score margin RISES with uptime (p01 0.052→0.086), and part B is the later,
+quieter half — which is why measured FP lands ~60× below its own target. A fresh session's
+**early minutes** are the stress case. (2) Per-technique rates disagree sharply with the
+published catch rates in BOTH directions — `EX-0014.04` published **98 %** vs **7.4 %** here
+at the deployed threshold; `DE-0003.06` published **< 25 %** vs **48.7 %**. That needs its own
+investigation, and is further evidence for the single-instance variance problem AINOS3-30
+hit. (3) Frame-level, not incident-level.
+
+**Implication if it holds:** the detector has been running at roughly **half its available
+detection in the spacecraft's resident mode**, and every published SUNSAFE catch rate was
+measured at that handicapped setting.
+
+**Next steps, in order:**
+
+2. Re-check the candidate operating point at **incident** level, not frame level (the
+   operational metric, and more forgiving).
+3. **Measure operational FP with a fresh soak** at the candidate threshold. Hysteresis
+   suppresses raw FP ~10×, but that ratio depends on whether false positives cluster —
+   it must be measured, not extrapolated.
+4. Deploy (if it holds) through the AINOS3-37 discipline: one-line ini change, one-line
+   rollback, live-verify.
+5. **INERTIAL is a training-data problem, not a threshold problem** — 19,641 rows from a
+   single 116-minute session. Bolstering it is the real fix.
+6. Investigate **PASSIVE's within-hour score drift** (1st-percentile score 0.058 → 0.025
+   across one leg), which is why no quantile threshold transfers in that mode. Harmless
+   today only because the deployed threshold is conservative.
+7. Verify whether the operator view filters `cluster=nominal` incidents — decides whether
+   INERTIAL's 71 false incidents/hour are user-visible.
+8. **Investigate the published-vs-measured per-technique gap** (caveat 2 above). Either the
+   published catch rates or this corpus is unrepresentative; `EX-0014.04` at 98 % vs 7.4 %
+   is too large to be variance alone and may indicate the attack script behaves differently
+   between collections.
+
+⚠ **Nothing deployed.** New thresholds are in `data/onair/models/recalibrated_heldout.calibration.json`
+and the curve in `roc_threshold_sweep.json`; the live `CalibrationPath` is untouched.
 
 ## Capacity note
 

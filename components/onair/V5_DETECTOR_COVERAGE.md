@@ -3,7 +3,7 @@
 **Audience:** mission, security, and program stakeholders (no ML background assumed).
 
 **Scope:** the v5 anomaly detector + the v3-hybrid attack classifier (selective
-per-mode heads) + the four parallel detector gates (rule-gate R1–R13,
+per-mode heads) + the four parallel detector gates (rule-gate R1–R14,
 consistency-check, staleness-check) currently deployed in the OnAIR plugin against
 the NOS3 cFS flight software.
 
@@ -17,6 +17,13 @@ incident-label numbers to honest hybrid out-of-fold** — 42.3 % vs the v3 globa
 against live FSW and from calibrated nominal soaks — not from simulation
 assumptions.
 
+**Provenance convention (AINOS3-80).** Every metric here carries a tag: **`[OOF]`**
+out-of-fold · **`[live-soak]`** independent nominal flight · **`[in-sample]`** measured on
+fitted data · **`[design-target]`** a configured parameter, not a measurement. An untagged
+number is a bug. Intervals must state *what was resampled* — resampling test rows alone
+understates uncertainty on a single-instance corpus. Full register:
+[`AINOS3_80_METRIC_PROVENANCE.md`](AINOS3_80_METRIC_PROVENANCE.md).
+
 ---
 
 ## Bottom line
@@ -26,12 +33,15 @@ telemetry fields at ~5 Hz:
 
 1. **Stage 1 — "Is something wrong?"** A per-flight-mode anomaly detector
    (Isolation Forest) raises an alarm when telemetry leaves the envelope it
-   learned from nominal flight. **Tuned to ≤ 1 % false-alarm rate; measured
-   0.0–0.2 % in steady-state flight.**
+   learned from nominal flight. **Tuned to ≤ 1 % false-alarm rate**
+   `[design-target]`; **measured 0.0–0.2 % in steady-state flight**
+   `[live-soak]`.
 2. **Stage 2 — "What kind of attack?"** When Stage 1 alarms, an attack
    classifier (gradient-boosted trees) labels the event with a SPARTA
    technique (e.g. *EX-0012.07 propulsion command*). **~65 % correct
-   technique identification on novel runs.** The deployed classifier is the
+   technique identification on novel runs** `[OOF]` (0.645 ± 0.036 over three
+   instances — the spread is wider than most differences we quote against it).
+   The deployed classifier is the
    **selective per-mode hybrid** (AINOS3-37): the signal-rich INERTIAL/SUNSAFE
    modes route to their own per-mode heads (+0.06 each, ROBUST +0.10) while
    PASSIVE/BDOT keep the global head (no regression), with per-mode confidence
@@ -39,7 +49,7 @@ telemetry fields at ~5 Hz:
 3. **Parallel gate layer — "What the dynamics model can't see."** Four
    complementary gates run *beside* the IF for attacks whose footprint is a
    discrete flag/counter change, a transient spoof, or a frozen stream — none
-   of which perturb the physics Stage 1 watches: **rule-gate (R1–R13)**,
+   of which perturb the physics Stage 1 watches: **rule-gate (R1–R14)**,
    **consistency-check** (per-sample bus-spoof), and **staleness-check**
    (telemetry-freeze). The firing rule *is* the label, so no classifier is
    needed for this class. See *"Complementary detector gates"* below.
@@ -62,16 +72,35 @@ telemetry fields at ~5 Hz:
 Every alarm during a known-nominal soak is, by definition, a false positive.
 Measured steady-state false-positive rate (post warm-up + hysteresis):
 
-| ADCS mode | False-alarm rate | Evidence |
-|---|---|---|
-| SUNSAFE | **0.20 %** | 855 K frames / 44 h soak |
-| PASSIVE | **0.00 %** | 226 K frames / 8 h soak |
-| BDOT | **0.00 %** | 47 K frames / 157 min soak |
-| INERTIAL | **0.00 %** | 35 K frames / 116 min soak |
+All figures below are `[live-soak]` — independently collected nominal flight, never used
+in any fit.
 
-All four modes sit well under the 1 % design target. An earlier worry that
+| ADCS mode | False-alarm rate | Evidence | AINOS3-81 re-measure (2026-08-11) |
+|---|---|---|---|
+| SUNSAFE | **0.20 %** | 855 K frames / 44 h soak | **0.02 %** — better ✅ |
+| PASSIVE | **0.00 %** | 226 K frames / 8 h soak | **0.00 %** ✅ |
+| BDOT | **0.00 %** | 47 K frames / 157 min soak | **0.00 %** ✅ |
+| INERTIAL | ~~0.00 %~~ | 35 K frames / 116 min soak | ⚠ **0.54 %** (raw 7.5 %) — **does not reproduce** |
+
+All four modes sit under the 1 % design target. An earlier worry that
 two modes (INERTIAL, BDOT) were "too noisy to use" was **disproved** — the
 spikes were a ~2-minute transient right after a mode change, not steady drift.
+
+> ⚠ **INERTIAL regression (AINOS3-81, 2026-08-11).** A 7 h fresh-launch soak measures
+> INERTIAL operational FP at **0.54 %** (raw 7.5 %), against the 0.00 % documented above —
+> 27× the stated 0.0–0.2 % band. It is **not drift** (flat-to-declining across the leg) but
+> a steady-state level, traced to the in-sample threshold calibration (AINOS3-80 **F1**):
+> INERTIAL's threshold promised 1 % raw FP and delivers 7.5 %. Hysteresis absorbs most of
+> it, but 71 false incidents/hour are raised in INERTIAL nominal flight. Re-calibration on
+> held-out nominal is ticketed. Full detail:
+> [`AINOS3_81_HYBRID_DRIFT_SOAK.md`](AINOS3_81_HYBRID_DRIFT_SOAK.md).
+
+**Long-uptime stability re-confirmed on the deployed hybrid (7 h soak, 2026-08-11,
+AINOS3-81).** Across a 4 h SUNSAFE leg spanning uptime T+3h→T+7h — the band where v2 was
+suspected of drifting — operational FP held at **0.01 %** and the 1st-percentile score
+margin **widened** (0.052 → 0.086) rather than plateauing. Staleness and consistency gates
+logged 0 alerts over 141 K frames; the rule-gate logged 2 edges in 7 h; the classifier
+raised **0 false attack labels** on 2,203 IF-gated nominal frames. `[live-soak]`
 
 **Long-uptime stability (6.6 h SUNSAFE soak, 2026-06-09).** A predecessor
 detector (v2) was suspected of drifting to 50–97 % false alarms after 4–6 h of
@@ -87,7 +116,9 @@ SUNSAFE**.
 ### 2. Attack detection — strong in SUNSAFE
 
 In SUNSAFE mode, **15 of 23 state-changing techniques are caught ≥ 50 %** of
-their corruption window, many at or near 100 %:
+their corruption window, many at or near 100 %. Provenance: `[unverifiable]` per
+AINOS3-80 **F2** — the attack rows were never fitted (the IF trains on nominal only), but
+the IF's training-corpus identity is unrecorded, so disjointness cannot be proven:
 
 | Technique | Catch rate | Technique | Catch rate |
 |---|--:|---|--:|
@@ -109,11 +140,19 @@ hysteresis-confirmed run of flagged frames into one incident, and an attack
 counts as caught if it raises **at least one** incident. Re-scoring the labeled
 corpus at this granularity:
 
-| Metric | Value |
-|---|---|
-| Incident recall — genuinely detectable state-change attacks | **92.8 % (77/83)** |
-| Incident recall — all SPARTA techniques (incl. undetectable-by-design) | 67.8 % (78/115) |
-| Incident label accuracy (of detected; **out-of-fold**, deployed hybrid) | **42.3 %** (v3 global head 34.6 % OOF; the old 76.9 % was in-sample-optimistic) |
+| Metric | Value | Provenance |
+|---|---|---|
+| Incident recall — genuinely detectable state-change attacks | **92.8 % (77/83)** | `[unverifiable]` — see AINOS3-80 **F2** |
+| Incident recall — all SPARTA techniques (incl. undetectable-by-design) | 67.8 % (78/115) | `[unverifiable]` — see AINOS3-80 **F2** |
+| Incident label accuracy (of detected; deployed hybrid) | **42.3 %** (v3 global head 34.6 % on identical folds; the old 76.9 % was in-sample-optimistic) | `[OOF]` |
+
+> **Why "unverifiable" and not "wrong" (AINOS3-80 F2).** The IF trains on *nominal* frames
+> only, so the attack rows scored here were certainly never fitted. But the deployed IF
+> pickle records no training-corpus identity — no csv-dir, manifest list, or collection
+> dates — so we cannot *prove* its nominal training rows are disjoint from the corpus these
+> recalls are measured on. Circumstantial evidence favours disjointness (dedicated baseline
+> runs; 87,398 training rows vs the corpus's 206,373). Recording training inputs in the
+> artifact, as the classifier already does, would close this.
 
 **The jump from ~61 % (frame) to ~93 % (incident) is the whole point of the
 incident layer:** even a brief burst of flagged frames during an attack raises
@@ -159,10 +198,11 @@ stream. Four lightweight gates run in parallel with the IF to close that gap. Th
 rule that fires *is* the label (no classifier needed), and each was live-verified
 raising an incident:
 
-- **rule-gate (R1–R13):** R1 device-disable · R2 EVS-rate · R3 SB-errors · R4
+- **rule-gate (R1–R14):** R1 device-disable · R2 EVS-rate · R3 SB-errors · R4
   cmd-errors · R5 monitor-state (LC/HS; fault-management disable DE-0001/EX-0011/DE-0005)
   · R6/R7/R8/R9/R11/R12 static-in-nominal command counters (CFE_SB / CFE_EVS / CFE_ES /
-  CFE_TBL / FM / TO) · R10 bus-sweep meta-rule · R13 downlink route-mask change.
+  CFE_TBL / FM / TO) · R10 bus-sweep meta-rule · R13 downlink route-mask change ·
+  **R14 ADCS mode-force** (debounced `ADCS_GNC.Mode` transition = DE-0005).
 - **consistency-check:** per-sample counter-monotonicity — catches an injected
   spoof (a counter that jumps backwards) the IF and rule-gate both miss.
 - **staleness-check:** a wide monotonic counter's max stops advancing — catches
@@ -182,7 +222,7 @@ scores them is_anomaly≈0 unless noted):
 | EX-0013.02 | Flooding — erroneous input | rule-gate R4 (cmd-error family) |
 | EX-0014.02 | Bus traffic spoofing | consistency-check |
 | DE-0002.03 | Inhibit spacecraft functionality | staleness-check + rule-gate R7 |
-| DE-0005 | Subvert protections via safe-mode | rule-gate R5 + staleness-check |
+| DE-0005 | Subvert protections via safe-mode | rule-gate R5 + **R14 mode-force** + staleness-check |
 | DE-0010 | Overflow audit log | rule-gate R2 → DE-0010 incident |
 | PER-0001 | Memory compromise | rule-gate R9 → PER-0001 incident |
 | LM-0002 | Exploit lack of bus segregation | rule-gate R10 bus-sweep → LM-0002 incident |
@@ -301,9 +341,16 @@ duration, cluster, accumulated confidence — using the same hysteresis the IF
 plugin uses for alerts. This lifted effective detection from ~61 % (frame) to
 ~93 % (incident).
 
-Incident **detection** is IF-gate-driven and already honest (the threshold is
-calibrated on held-out nominal). Incident **labelling** had only ever been
-measured in-sample. Re-scoring the same `csv_corpus_v3stage` corpus with
+Incident **detection** is IF-gate-driven. ⚠ **Corrected 2026-08-11 (AINOS3-80 F1):** this
+section previously claimed the IF threshold is "calibrated on held-out nominal". **It is
+not** — the calibration row counts are identical to the model's training row counts in all
+four modes, so the threshold is the 1 % quantile of the model's *own training scores*
+`[in-sample]`, and the reported `actual_fp_rate ≈ 1.00 %` is true by construction rather
+than measured. The operational claim nonetheless stands: the false-alarm rates quoted in
+Section 1 come from independent soaks 4–16× larger than the training sets and land at
+**0.0–0.2 %**, *below* the 1 % target — i.e. the in-sample threshold generalised
+conservatively. Treat "1 % FP" as a `[design-target]` and the soak numbers as the
+measurement. Incident **labelling** had only ever been measured in-sample. Re-scoring the same `csv_corpus_v3stage` corpus with
 leave-one-instance-out, out-of-fold predictions (AINOS3-34) gives the honest
 figure. For the **deployed selective per-mode hybrid** (AINOS3-37): **42.3 % label
 accuracy of detected attacks** out-of-fold — up **+7.7 pts** from the v3 global
@@ -382,6 +429,29 @@ settles in **~36 s (~175 frames)**, so most of that blind window is avoidable;
 reducing the warmup to **~250 frames (~52 s)** cuts the blind window by ~58 %
 with margin over the transient.
 
+**Closed for the mode-force case by R14 (AINOS3-77, 2026-08-11).** The worst consequence
+of this window was that *forcing* a mode — the DE-0005 safe-mode-subversion step — re-arms
+the warmup and so evades Stage 1 by construction. Rule-gate **R14** now flags any confirmed
+`ADCS_GNC.Mode` transition and labels it DE-0005, independently of the IF.
+
+Three things are worth recording about how it was built:
+
+- **Not a command-counter rule.** `ADCS_HK.CommandCount` looks like an R6–R13 sibling but
+  is a wrapping uint8 that increments on routine HK polling — 264,019 changes across the
+  7 h soak — so it fails the static-in-nominal precondition those rules depend on.
+- **Debounced, unlike R5/R13.** OnAIR's double buffer oscillates old/new for several frames
+  at each switch. Replayed over the soak, naive change-detection fires **22 times for 4 real
+  transitions**; requiring the new value to persist 5 frames collapses that to exactly 4.
+- **0-FP evidence** `[live-soak]`: replaying the deployed rule over the full 267,260-frame
+  soak yields **4 rising edges and 4 DE-0005 incidents — one per commanded transition, none
+  during any mode hold.**
+
+Live-verified 2026-08-11: a forced `SET_MODE` SUNSAFE→INERTIAL raised
+`[rule_gate][ALERT] R14:adcs-mode` and one bounded incident (13 frames, `cluster=DE-0005`,
+`sub=adcs-mode-force`), while the IF logged **0 anomalies and 0 alerts** across the 81
+frames spanning the transition — the blind spot demonstrated and closed in the same run.
+A 2-minute hold in the new mode produced no further incidents (the rule re-baselines).
+
 ---
 
 ## Coverage matrix (SPARTA techniques)
@@ -424,15 +494,20 @@ telemetry detection.)*
 ## Provenance & caveats
 
 - **Detection / FP numbers:** per-mode Isolation Forest
-  `iforest_per_mode_v5_invariant_bolstered`, calibrated to 1 % FP; soak FP
-  rates measured on nominal-flight side-files.
+  `iforest_per_mode_v5_invariant_bolstered`, threshold calibrated to a 1 % FP
+  `[design-target]` — **in-sample**, on the model's own training scores (AINOS3-80 **F1**);
+  the quoted FP rates are `[live-soak]`, measured on independent nominal-flight side-files.
+  ⚠ The model artifact records **no training-corpus identity** (AINOS3-80 **F2**) — see the
+  caveat in Section 3.
 - **Classification numbers:** the deployed selective per-mode hybrid
   `xgb_attack_classifier_v3_hybrid` (v3 global head + INERTIAL/SUNSAFE per-mode
   heads + per-mode isotonic calibration), leave-one-instance-out over a
-  3-instance, mode-balanced corpus: overall **0.646** vs the v3 global head's
-  0.627 baseline on identical folds (INERTIAL +0.058, SUNSAFE +0.061,
-  ROBUST +0.099, BDOT/PASSIVE +0.000). Calibration validated out-of-fold
-  (per-mode ECE ~10× tighter). Live-verified on the running FSW 2026-07-30.
+  3-instance, mode-balanced corpus `[OOF]`: overall **0.645 ± 0.036** (folds 0.691 /
+  0.641 / 0.604) vs the v3 global head's 0.627 baseline on identical folds
+  (INERTIAL +0.058, SUNSAFE +0.061, ROBUST +0.099, BDOT/PASSIVE +0.000). The paired-fold
+  deltas are valid, but note the instance-to-instance spread (±0.036) exceeds most of them
+  — quote the absolute figure with its spread. Calibration validated out-of-fold
+  (per-mode ECE ~10× tighter, held-out half). Live-verified on the running FSW 2026-07-30.
 - **Attack realism:** all cited techniques were executed against live NOS3 FSW
   and confirmed to actually change spacecraft state; no number here derives
   from an unvalidated script.
