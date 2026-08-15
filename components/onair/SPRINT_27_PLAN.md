@@ -213,6 +213,13 @@ fallback), with two mechanisms R5/R13 don't have:
   state, so *entering* a mode fires and *being* in one does not — unlike R5/R13, which latch
   until the field returns.
 
+**Flap sub-rule LIVE + verified 2026-08-15.** Synced and OnAIR restarted; three forced
+transitions ~40 s apart produced `R14:adcs-mode-force` incidents on transitions 1 and 2, then
+on transition 3 **both** rules fired and the incident came out `cluster=DE-0005,
+sub=adcs-mode-flapping` at **37 frames** vs 13 for the singles — the priority ordering and 4x
+dwell correctly escalating the label rather than letting the weaker "one mode force" win the
+aggregator's frame-count vote.
+
 **0-FP** `[live-soak]`: replaying the deployed rule over the full **267,260-frame** soak
 gives **4 rising edges and 4 `DE-0005` incidents — one per commanded transition, none during
 any mode hold.** **Live-verified**: a forced `SET_MODE` SUNSAFE→INERTIAL raised
