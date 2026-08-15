@@ -96,7 +96,8 @@ def run_one(entry: dict, idx: int, total: int) -> dict:
     level = int(entry["level"])
     chain = bool(entry.get("chain", False))
     sample_log = Path(f"/tmp/batch_attack_{idx:02d}_{key}.log")
-    log(f"attack {idx}/{total}: {key} (level={level}, chain={chain}) → {sample_log}")
+    log(f"attack {idx}/{total}: {key} (level={level}, chain={chain}"
+        f"{', during=' + str(entry['during']) if entry.get('during') else ''}) → {sample_log}")
 
     pre_manifests = set(MANIFEST_DIR.glob("manifest_*.json"))
 
@@ -106,6 +107,18 @@ def run_one(entry: dict, idx: int, total: int) -> dict:
         "--attack", key,
         "--attack-level", str(level),
     ]
+    # Optional per-entry overrides. `during` selects the bracketing scenario —
+    # use single_mode_hold_<MODE> to keep one ADCS mode for the whole run, so
+    # frames land OUTSIDE the detector's 250-frame post-mode-switch blind
+    # window. With the default all_modes_dwell (60 s per mode) that window
+    # swallows 83 % of attack frames, which is why per-mode detection has never
+    # been measurable under deployed conditions.
+    if entry.get("during"):
+        args += ["--during", str(entry["during"])]
+    if entry.get("pre_seconds"):
+        args += ["--pre-seconds", str(entry["pre_seconds"])]
+    if entry.get("post_seconds"):
+        args += ["--post-seconds", str(entry["post_seconds"])]
     if chain:
         args.append("--chain")
 
@@ -119,6 +132,9 @@ def run_one(entry: dict, idx: int, total: int) -> dict:
         "key": key,
         "level": level,
         "chain": chain,
+        "during": entry.get("during"),
+        "pre_seconds": entry.get("pre_seconds"),
+        "post_seconds": entry.get("post_seconds"),
         "exit_code": ret.returncode,
         "wallclock_s": round(wallclock, 1),
         "manifest": manifest,

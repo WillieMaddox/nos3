@@ -112,12 +112,67 @@ def scenario_all_modes_dwell(c: Commander, duration_s: int) -> None:
             time.sleep(sleep_left if not c.dry_run else 0)
 
 
+def make_scenario_single_mode_hold(mode_label: str):
+    """Hold ONE ADCS mode for the whole bracket. Returns a scenario callable.
+
+    Why this exists (AINOS3-77 follow-on, 2026-08-15)
+    -------------------------------------------------
+    `all_modes_dwell` cycles all four modes every ``duration_s // 4`` seconds —
+    60 s at the default 240 s bracket. The deployed detector suppresses alerts
+    for **250 frames (~45 s) after every mode switch**
+    (`ModeSwitchWarmupFrames`), so the blind window eats roughly three quarters
+    of each dwell. Measured on the frozen corpus: **83.2 % of all attack frames
+    sit inside a post-switch suppression window**, and 100 % sit within 600
+    frames of a switch. The collection design and the detector design were set
+    independently and are close to incompatible, so per-mode detection was never
+    actually measurable under deployed conditions — in any mode.
+
+    This scenario holds a single mode for the entire pre/post bracket, so
+    everything after the first ~45 s is eligible to alert. Pair it with a
+    pre-window long enough to clear the warmup (>= 180 s recommended).
+
+    Also does NOT re-issue the mode command. The FSW has no autonomous mode
+    logic — `generic_adcs_app.c` writes `Payload.Mode` in exactly one place, the
+    SET_MODE handler — and this was demonstrated directly: one command, 17,670
+    consecutive frames, zero drift. Not re-commanding additionally keeps the run
+    from tripping the R14 flap rule, which 60 s cycling would fire continuously.
+    """
+    mode_const = {
+        "INERTIAL": ADCS_MODE_INERTIAL, "SUNSAFE": ADCS_MODE_SUNSAFE,
+        "BDOT": ADCS_MODE_BDOT, "PASSIVE": ADCS_MODE_PASSIVE,
+    }[mode_label]
+
+    def _scenario(c: Commander, duration_s: int) -> None:
+        hk_targets = [
+            (ADCS_HK_REQ_MID, "ADCS"), (IMU_HK_REQ_MID, "IMU"),
+            (CSS_HK_REQ_MID, "CSS"), (FSS_HK_REQ_MID, "FSS"),
+            (MAG_HK_REQ_MID, "MAG"), (ST_HK_REQ_MID, "ST"),
+            (TORQUER_HK_REQ_MID, "TORQUER"),
+        ]
+        print(f"  [single_mode_hold] holding {mode_label} for {duration_s}s "
+              f"(commanded once, no re-command)")
+        c.adcs_set_mode(mode_const)
+        t_end = time.monotonic() + duration_s
+        hk_idx = 0
+        while time.monotonic() < t_end:
+            mid, name = hk_targets[hk_idx % len(hk_targets)]
+            c.req_hk(mid, name)
+            hk_idx += 1
+            time.sleep(max(0.0, 8.0 - 0.2) if not c.dry_run else 0)
+
+    return _scenario
+
+
 # Local extension to run_baseline's SCENARIOS that includes the attack-
 # specific all_modes_dwell scenario. find_scenario uses this so the
 # --during arg can name it without polluting run_baseline.py's nominal
 # corpus definition.
 LOCAL_SCENARIOS = list(SCENARIOS) + [
     ("all_modes_dwell", 240, scenario_all_modes_dwell),
+] + [
+    # single_mode_hold_<MODE>: one mode, held throughout, commanded once.
+    (f"single_mode_hold_{m}", 300, make_scenario_single_mode_hold(m))
+    for m in ("INERTIAL", "SUNSAFE", "BDOT", "PASSIVE")
 ]
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))

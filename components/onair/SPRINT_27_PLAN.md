@@ -665,6 +665,55 @@ measured at that handicapped setting.
    is too large to be variance alone and may indicate the attack script behaves differently
    between collections.
 
+### Per-mode attack pilot (2026-08-15) — ⚠ the catch rates may measure transients
+
+**Collection fix works.** New `single_mode_hold_<MODE>` bracketing scenario (one mode, held
+throughout, commanded once — modes are sticky, demonstrated). 16 runs (4 techniques × 4
+modes), full stack relaunch per run, 16/16 exit 0, ~2.4 h. Alert-eligible attack frames go
+from **16.8 % → 84.4 %**: the blind-window problem is a collection problem and it is fixed.
+
+**But the first honest per-mode numbers are alarming.** Measuring attack detection against
+each run's OWN nominal frames (the control that matters — INERTIAL carries a large noise
+floor), **lift is zero or negative in 11 of 16 cells**:
+
+| LIFT (attack − nominal) | SUNSAFE | INERTIAL | BDOT | PASSIVE |
+|---|--:|--:|--:|--:|
+| DE-0003.06 | −1.1 | −18.7 | 0.0 | −0.4 |
+| EX-0012.09 | −1.4 | −9.0 | 0.0 | −0.4 |
+| EX-0014.03 | −4.6 | +9.8 | 0.0 | −1.0 |
+| IMP-0005 | 0.0 | +8.9 | 0.0 | +0.4 |
+
+INERTIAL's apparent 22–64 % "detection" is mostly its own noise floor (nominal 19.6–55.2 %).
+In most cells the IF flags *nominal* frames MORE than attack frames.
+
+**Reading, with its limits stated.** With transients excluded, the v5 dynamics IF does not
+discriminate these four techniques in any mode. That is consistent with the rest of the
+sprint: 83 % of the old corpus sat inside mode-switch transients and 67 % of SUNSAFE
+detections sat inside sun-acquisition transients — strip the transients and the signal goes
+too. The uncomfortable cell is **EX-0012.09**, dynamics-relevant and published at **99 %**
+SUNSAFE, measuring **−1.4** lift in steady SUNSAFE.
+
+⚠ **Do NOT treat this as established.** Four techniques, ONE run per cell. Two of the four
+(DE-0003.06, EX-0014.03) have discrete flag/counter footprints and are **rule-gate**
+catches — the IF was never the right detector for them, so their null is expected, and
+choosing techniques by classifier tier was the wrong axis for an IF-lift question. And
+INERTIAL's nominal FP here (19.6–55.2 %) is far above the 7.5 % measured over a 60-min soak,
+which says these ~8-min runs are dominated by a settling transient longer than the
+250-frame warmup — so the INERTIAL column is untrustworthy in either direction.
+
+**Scope: this does not touch the rule-gate.** R1–R14 are deterministic rules on counters,
+flags and state, separately validated and live-verified. The 13 Section-A techniques stand.
+This concerns the dynamics IF only.
+
+**Replication needed before any of this is published:** dynamics-relevant techniques only,
+much longer pre-holds (especially INERTIAL), several runs per cell, and **lift** as the
+metric rather than raw detection. ~1 night of collection. Until then the honest position is
+that the headline catch rates *may* reflect manoeuvre transients rather than steady flight,
+and we do not yet know.
+
+Artifacts: `scenarios/batch_permode_pilot.json`, `data/onair/models/permode_pilot.json`,
+`permode_pilot_control.json`.
+
 ⚠ **Nothing deployed.** New thresholds are in `data/onair/models/recalibrated_heldout.calibration.json`
 and the curve in `roc_threshold_sweep.json`; the live `CalibrationPath` is untouched.
 
