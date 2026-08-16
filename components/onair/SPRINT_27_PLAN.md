@@ -721,6 +721,42 @@ and we do not yet know.
 Artifacts: `scenarios/batch_permode_pilot.json`, `data/onair/models/permode_pilot.json`,
 `permode_pilot_control.json`.
 
+### Replication (2026-08-15) — the pilot alarm was a MEASUREMENT ERROR
+
+24 runs (4 techniques × 2 modes × 3 reps, 600 s pre-hold, lift vs own-run nominal), 24/24
+exit 0. **The alarm does not survive.** The system detects 3 of the 4 techniques; the pilot
+and the first reading of this replication both measured the **wrong detector**.
+
+| technique | actual mechanism | caught by | verdict |
+|---|---|---|---|
+| EX-0012.07 propulsion | sustained dynamics | **IF, +77.5 ± 3.6 lift** | ✅ IF is the right detector and works |
+| EX-0012.08 ADCS | `ADCS_SET_MODE` — a mode change | **R14** (2/3 reps) | ✅ caught by the rule built this sprint |
+| EX-0014.04 PNT | GPS receiver `FC_DISABLE` | **R1** (2/3), R3 (1/3) | ✅ caught |
+| EX-0012.09 EPS | `EPS_FC_SWITCH` toggle | **nothing** (0/3) | ❌ **genuine gap** |
+
+**Root cause of the false alarm: technique selection, twice.** Three of the four are
+*discrete state changes*, not dynamics attacks — the IF is documented as structurally blind
+to those, which is why the gate layer exists. Both experiments measured the IF's silence on
+attacks the rule-gate owns and read it as failure. Worse, for EX-0012.08 the analysis
+excluded frames within 250 of a mode change — and the attack *is* a mode change, so it was
+invalid by construction. **Lesson: read what an attack script commands before deciding which
+detector should see it.**
+
+**Two real findings survive:**
+
+1. **EX-0012.09 (EPS switch) is detected by NOTHING in steady flight** — 0/3 reps, no IF
+   lift, no rule fired — while published at **99 %** SUNSAFE catch. Genuine coverage gap.
+2. **INERTIAL nominal FP is 33.6 %** (range 21.1–48.5 %) at a 600 s hold. This **refutes the
+   settling explanation** and supersedes the 0.54 % from AINOS3-81. INERTIAL is unusable for
+   detection until understood — higher priority than previously assessed.
+
+Also: the earlier footprint check ("did the attack change anything?") was **worthless** —
+nominal-vs-nominal scored 61–68 changed columns against nominal-vs-attack's 61–72. It was
+measuring orbital drift. Kept here because it nearly became a sixth false conclusion.
+
+Artifacts: `scenarios/batch_steadyflight_replication.json`,
+`data/onair/models/steadyflight_replication.json`.
+
 ⚠ **Nothing deployed.** New thresholds are in `data/onair/models/recalibrated_heldout.calibration.json`
 and the curve in `roc_threshold_sweep.json`; the live `CalibrationPath` is untouched.
 
