@@ -711,36 +711,35 @@ mode": it is four mis-set thresholds, and the three quiet ones are quiet because
 and where every published catch rate was measured — roughly **doubles detection** within the
 existing FP budget.
 
-**SUNSAFE candidate threshold pinned (2026-08-14): `+3.89e-02`** (part-A target 0.4 %).
-Chosen by a rule fixed *before* seeing the curve — smallest false-alarm rate reaching ≥ 90 %
-of achievable detection — so the pick is not fitted to the numbers. The knee agrees:
-detection climbs 45 % → 90 % up to this point, then flattens (→ 97.5 % costs 60 % more false
-alarms).
+⚠ **SUNSAFE candidate threshold `+3.89e-02` — WITHDRAWN 2026-08-17. Do not deploy.**
 
-| | deployed | candidate |
-|---|--:|--:|
-| threshold | −2.46e-05 | **+3.89e-02** |
-| held-out false alarms | 0.0024 % | **0.0067 %** |
-| frame-level detection | 52.2 % | **90.5 %** |
-| techniques individually ≥ 50 % | **5/13** | **12/13** |
+It was pinned on 2026-08-14 with an apparent detection gain of **52.2 % → 90.5 %** for
++0.4 pts of false alarms, chosen by a rule fixed before seeing the curve and backed by a
+breadth check (techniques individually ≥ 50 % going 5/13 → 12/13). All of that was
+methodologically careful and all of it was measured on the **pre-fix corpus, where 83 % of
+attack frames sit inside post-mode-switch blind windows** — so the sweep was largely counting
+*transient* frames.
 
-The breadth check is what makes this credible — the gain is not one long-dwell attack
-carrying the aggregate. IMP-0001 0.18→0.95, EX-0014.01 0.41→0.92, EX-0012.12 0.47→0.91,
-DE-0003.06 0.49→0.95, EX-0014.03 0.61→1.00; four techniques reach 1.000. `EX-0014.04`
-(0.07→0.45) is the only laggard.
+Re-tested on the steady-flight replication (12 SUNSAFE runs, 3 reps per technique):
 
-⚠ **Three caveats keep this a candidate, not a decision.** (1) The FP figure is *flattered by
-drift*: SUNSAFE's score margin RISES with uptime (p01 0.052→0.086), and part B is the later,
-quieter half — which is why measured FP lands ~60× below its own target. A fresh session's
-**early minutes** are the stress case. (2) Per-technique rates disagree sharply with the
-published catch rates in BOTH directions — `EX-0014.04` published **98 %** vs **7.4 %** here
-at the deployed threshold; `DE-0003.06` published **< 25 %** vs **48.7 %**. That needs its own
-investigation, and is further evidence for the single-instance variance problem AINOS3-30
-hit. (3) Frame-level, not incident-level.
+| technique | det @ deployed | det @ candidate | Δ det | fp @ deployed | fp @ candidate | Δ fp |
+|---|--:|--:|--:|--:|--:|--:|
+| EX-0012.07 propulsion | 78.5 % | 78.5 % | **+0.0** | 1.00 % | 2.59 % | **+1.59** |
+| EX-0012.08 ADCS | 0.0 % | 2.9 % | +2.9 | 0.70 % | 4.53 % | +3.82 |
+| EX-0012.09 EPS | 0.0 % | 0.0 % | +0.0 | 0.35 % | 1.73 % | +1.38 |
+| EX-0014.04 PNT | 0.0 % | 0.0 % | +0.0 | 0.90 % | 3.59 % | +2.70 |
 
-**Implication if it holds:** the detector has been running at roughly **half its available
-detection in the spacecraft's resident mode**, and every published SUNSAFE catch rate was
-measured at that handicapped setting.
+**Zero detection gain and 2.6× the false alarms.** On the one attack the IF genuinely detects,
+detection is identical while false alarms rise from 1.00 % to 2.59 %. The discrete-state-change
+attacks are unreachable by *any* threshold — they need a rule, which is what `detect-eps-switch`
+covers. The deployed threshold is already at the right operating point for steady flight.
+
+**Method note.** This is the eighth measurement this sprint that could only return one answer.
+The ROC sweep had a pre-stated selection rule, a breadth check, and held-out false alarms —
+and still rested on a corpus that was 83 % transient. Careful method does not rescue a
+confounded dataset. The staged
+`data/onair/models/recalibrated_heldout.calibration.json` is retained as evidence, not as a
+deployment candidate; `CalibrationPath` stays empty.
 
 **Next steps, in order:**
 
