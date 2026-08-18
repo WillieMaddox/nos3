@@ -811,6 +811,36 @@ and we do not yet know.
 Artifacts: `scenarios/batch_permode_pilot.json`, `data/onair/models/permode_pilot.json`,
 `permode_pilot_control.json`.
 
+### Sun-acquisition false alarms — and a suppression rule that was nearly shipped
+
+The 7 h SUNSAFE soak showed the false alarms are not a steady background at all. **Zero** in
+eclipse (50,584 frames) and **zero** in cruise more than 2 min after sun acquisition (75,620
+frames); **14.8 %** in the first 2 min after acquisition, and **75.4 %** while the sun is
+visible but the fine sun sensor has not yet locked — i.e. while the spacecraft is slewing to
+acquire. Just 415 frames, 0.3 % of the soak, account for **52 %** of all false alarms.
+
+A **sun-acquisition suppression window** was proposed on the back of that: a clean
+correlation, a tidy physical explanation, and it would have removed essentially every
+observed false alarm.
+
+⚠ **It was nearly shipped, and it would have been a disaster.** Checked against the attack
+corpus before building it: the naive mask covered 57.5 % of frames and would have cost
+**87.7 %** of all detections; scoped correctly to SUNSAFE it still covered 17.3 % of attack
+frames and cost **66.8 %** of detections, with seven techniques losing 100 %. The reason is
+the inverse of the framing: the window holds 17 % of attack frames but **67 % of all
+detections** — the detector does most of its work exactly when there are dynamics to watch.
+Those bursts are not noise to remove, they are the cost of the detector working.
+
+**No suppression rule was built.** The right fix is to *train the acquisitions in* — the
+model flags them only because the training baselines are too short to contain one — which
+removes the false alarms without creating a blind window an attacker could predict from
+orbital mechanics. Same root cause as BDOT's 296 training rows.
+
+**Process lesson:** the suppression rule was validated on the data where it looked good
+(nominal) and not on the data where it had to be safe (attacks). Every suppression rule needs
+an attack-side check before deployment — including the mode-switch warmup that started this
+whole thread, which as far as we can tell never had one.
+
 ### Replication (2026-08-15) — the pilot alarm was a MEASUREMENT ERROR
 
 24 runs (4 techniques × 2 modes × 3 reps, 600 s pre-hold, lift vs own-run nominal), 24/24

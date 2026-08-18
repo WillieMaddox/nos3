@@ -37,7 +37,10 @@ ENRICH = {
     "EX-0012.05": ("SIBLING",    "ON_BOARD",     0.64, "Scheduling algorithm"),
     "EX-0012.07": ("HIGH-VAR",   "ON_BOARD",     1.00, "Propulsion subsystem"),
     "EX-0012.08": ("HIGH-VAR",   "ON_BOARD",     1.00, "ADCS subsystem"),
-    "EX-0012.09": ("HIGH-VAR",   "ON_BOARD",     0.99, "EPS subsystem"),
+    # ⚠ CONFIRMED GAP (2026-08-17): the 0.99 came from transient-dominated data. In
+    # steady flight the EPS switch toggle is detected by NOTHING — 0/3 replication reps,
+    # no IF lift, no rule fired. Ticketed `detect-eps-switch`. Rate set to 0.0.
+    "EX-0012.09": ("HIGH-VAR",   "ON_BOARD",     0.0,  "EPS subsystem — CONFIRMED GAP, see review"),
     "EX-0012.12": ("SIBLING",    "ON_BOARD",     0.57, "System clock"),
     "EX-0014.01": ("SIBLING",    "ON_BOARD",     0.26, "Time spoof"),
     "EX-0014.03": ("DEAD",       "ON_BOARD",     0.91, "Sensor data spoof"),
@@ -81,7 +84,7 @@ GATE_DETECTED = {
     "EX-0013.02": (None, "Flooding — erroneous input",      "rule-gate R4 (command-error family)"),
     "EX-0014.02": (None, "Bus traffic spoofing",            "consistency-check (per-sample counter monotonicity)"),
     "DE-0002.03": (None, "Inhibit spacecraft functionality", "staleness-check (EVS freeze) + rule-gate R7 (CFE_EVS cmd)"),
-    "DE-0005":    (None, "Subvert protections via safe-mode", "rule-gate R5 (LC) + R14 ADCS mode-force + staleness-check (AINOS3-77)"),
+    "DE-0005":    (None, "Subvert protections via safe-mode", "rule-gate R5 (LC) + R14 ADCS mode-force / mode-flap + staleness-check (AINOS3-77; flap rule live-verified 2026-08-15)"),
     "DE-0010":    (None, "Overflow audit log",              "rule-gate R2 (EVS send-rate) → DE-0010 incident"),
     "PER-0001":   (None, "Memory compromise",               "rule-gate R9 (CFE_TBL command) → PER-0001 incident"),
     "LM-0002":    (None, "Exploit lack of bus segregation", "rule-gate R10 bus-sweep meta (R6+R7+R8+R9) → LM-0002 incident"),
@@ -97,6 +100,14 @@ GATE_DETECTED = {
 # review" column so every out-of-scope cell shows it has been reviewed with a
 # concrete reason (not just "out of scope"). Keep each to ~1-2 sentences.
 REVIEW = {
+    # -- CONFIRMED GAP (not out-of-scope; nothing detects it) --
+    "EX-0012.09": "CONFIRMED GAP (2026-08-17). The published 99% came from transient-dominated data. "
+                  "In steady flight a 24-run replication found NOTHING detects it: IF lift -0.4 +/- 0.1 "
+                  "(0.00% of attack frames) and no rule-gate rule fired in 0/3 reps. The attack sends "
+                  "EPS_FC_SWITCH — a discrete state change the dynamics IF is blind to by design — but "
+                  "unlike its siblings (EX-0012.08 -> R14, EX-0014.04 -> R1) no rule covers it. Needs: "
+                  "establish whether the switch toggle appears in any recorded EPS field; if yes an "
+                  "R1/R6-style rule, if no reclassify as UNSUBSCRIBED. Ticketed `detect-eps-switch`.",
     # -- already in the scored corpus (ENRICH) as OUT-OF-SCOPE --
     "EX-0001.01": "Replayed valid commands are byte-identical to legitimate ones — no telemetry field separates them. Needs: command anti-replay (CryptoLib SDLS ARSN) surfaced as telemetry; not on the bus.",
     "EX-0009.01": "The exploit act itself emits no telemetry; only its downstream effect does (as a separate EX technique). Needs: in-FSW control-flow / memory-safety instrumentation — unmodeled.",
@@ -236,15 +247,21 @@ def main():
                                "IF trains on nominal only), but the deployed IF "
                                "artifact records no training-corpus identity, so "
                                "disjointness cannot be proven. See AINOS3-80 F2.",
-            "frame_rate": "unverifiable — same basis as incident_recall.",
-            "false_positive_rate": "live-soak — independent nominal soaks. SUNSAFE "
-                                   "0.02%, PASSIVE/BDOT 0.00% (AINOS3-81, 7h). "
-                                   "INERTIAL is a known regression at 0.54% (raw "
-                                   "7.5%) against a documented 0.00% — its threshold "
-                                   "is mis-calibrated, re-calibration ticketed. The "
-                                   "1% figure quoted elsewhere is a design-target "
-                                   "calibrated in-sample, not a measurement "
-                                   "(AINOS3-80 F1 / AINOS3-81).",
+            "frame_rate": "MIXED — a 24-run steady-flight replication showed this "
+                          "column credits the IF with detections the rule-gate makes "
+                          "(EX-0012.08 -> R14, EX-0014.04 -> R1; IF lift ~0 for both), "
+                          "and that EX-0012.09 is detected by nothing (0/3 reps). Where "
+                          "the IF IS the right detector it is vindicated: EX-0012.07 "
+                          "propulsion measures +77.5 +/- 3.6 lift in steady flight.",
+            "false_positive_rate": "live-soak — SUNSAFE 0.02-0.74%, PASSIVE/BDOT "
+                                   "0.00%. INERTIAL is a serious open defect: 33.6% "
+                                   "nominal (21.1-48.5%) across 12 runs at a 600s "
+                                   "hold, up from 0.00% published and 7.5% over a 7h "
+                                   "soak; the settling explanation is refuted and the "
+                                   "mode is currently unusable for detection "
+                                   "(ticketed inertial-false-alarms). The 1% figure "
+                                   "quoted elsewhere is a design-target calibrated "
+                                   "in-sample, not a measurement (AINOS3-80 F1).",
             "technique_top1": "OOF — 0.645 +/- 0.036 across three instances; the "
                               "spread exceeds most deltas quoted against it.",
             "audit": "components/onair/AINOS3_80_METRIC_PROVENANCE.md",

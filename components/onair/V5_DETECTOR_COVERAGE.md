@@ -82,24 +82,30 @@ Measured steady-state false-positive rate (post warm-up + hysteresis):
 All figures below are `[live-soak]` — independently collected nominal flight, never used
 in any fit.
 
-| ADCS mode | False-alarm rate | Evidence | AINOS3-81 re-measure (2026-08-11) |
+| ADCS mode | Originally published | AINOS3-81 soak (7 h) | Steady-flight replication (12 runs, 600 s hold) |
 |---|---|---|---|
-| SUNSAFE | **0.20 %** | 855 K frames / 44 h soak | **0.02 %** — better ✅ |
-| PASSIVE | **0.00 %** | 226 K frames / 8 h soak | **0.00 %** ✅ |
-| BDOT | **0.00 %** | 47 K frames / 157 min soak | **0.00 %** ✅ |
-| INERTIAL | ~~0.00 %~~ | 35 K frames / 116 min soak | ⚠ **0.54 %** (raw 7.5 %) — **does not reproduce** |
+| SUNSAFE | 0.20 % | **0.02 %** ✅ | **0.74 %** raw (0.35–1.00 % across runs) |
+| PASSIVE | 0.00 % | **0.00 %** ✅ | not re-measured |
+| BDOT | 0.00 % | **0.00 %** ✅ | not re-measured |
+| **INERTIAL** | ~~0.00 %~~ | 0.54 % op / 7.5 % raw | ⚠ **33.6 %** (21.1–48.5 %) |
 
-All four modes sit under the 1 % design target. An earlier worry that
-two modes (INERTIAL, BDOT) were "too noisy to use" was **disproved** — the
-spikes were a ~2-minute transient right after a mode change, not steady drift.
+**Three of four modes are well inside the 1 % design target. INERTIAL is not**, and the
+figure has grown with every measurement (0.00 % → 7.5 % → 33.6 %). An earlier worry that
+INERTIAL and BDOT were "too noisy to use" was previously recorded as *disproved*; for BDOT
+that still holds, **for INERTIAL it does not**.
 
-> ⚠ **INERTIAL regression (AINOS3-81, 2026-08-11).** A 7 h fresh-launch soak measures
-> INERTIAL operational FP at **0.54 %** (raw 7.5 %), against the 0.00 % documented above —
-> 27× the stated 0.0–0.2 % band. It is **not drift** (flat-to-declining across the leg) but
-> a steady-state level, traced to the in-sample threshold calibration (AINOS3-80 **F1**):
-> INERTIAL's threshold promised 1 % raw FP and delivers 7.5 %. Hysteresis absorbs most of
-> it, but 71 false incidents/hour are raised in INERTIAL nominal flight. Re-calibration on
-> held-out nominal is ticketed. Full detail:
+> ⚠ **INERTIAL is currently unusable for detection (updated 2026-08-17).** The nominal
+> false-alarm rate has grown with every measurement: 0.00 % published (116 min) → 7.5 % raw
+> over a 7 h soak → **33.6 % across 12 runs at a 600 s hold**. The "short-run settling
+> transient" explanation offered for the middle figure is **refuted** — 10 minutes is not
+> enough for it to subside. Every INERTIAL attack-detection measurement sits on this noise
+> floor and is uninterpretable, so the mode cannot presently be evaluated for coverage at
+> all. In-sample threshold calibration (AINOS3-80 **F1**) contributes but does not explain
+> 33.6 %; candidate second factors are a training gap (19,641 rows from a single 116-min
+> session), a missing commanded target quaternion that our tooling never sends, or genuinely
+> long settling. Ticketed as `inertial-false-alarms` (High).
+> ⚠ **Do not fix by tightening the threshold** — that drives INERTIAL's false alarms to 0.00 %
+> but collapses its attack detection 60×. Earlier AINOS3-81 detail:
 > [`AINOS3_81_HYBRID_DRIFT_SOAK.md`](AINOS3_81_HYBRID_DRIFT_SOAK.md).
 
 **Long-uptime stability re-confirmed on the deployed hybrid (7 h soak, 2026-08-11,
@@ -162,7 +168,7 @@ the IF's training-corpus identity is unrecorded, so disjointness cannot be prove
 | EX-0012.07 propulsion | **100 %** | EX-0008.02 RTS | 91 % |
 | EX-0012.08 ADCS | **100 %** | IMP-0005 destruction | 75 % |
 | IMP-0003 denial | **100 %** | EX-0012.05 scheduler | 64 % |
-| EX-0012.09 EPS | 99 % | EX-0012.04 app tables | 63 % |
+| EX-0012.09 EPS | ⚠ **0 %** (see note) | EX-0012.04 app tables | 63 % |
 | EX-0014.04 PNT spoof | 98 % | IMP-0006 theft | 62 % |
 | EX-0014.03 sensor spoof | 91 % | IMP-0001 deception | 61 % |
 | EX-0008.01 ATS | 91 % | IMP-0002 disruption | 58 % |
@@ -239,7 +245,9 @@ raising an incident:
   cmd-errors · R5 monitor-state (LC/HS; fault-management disable DE-0001/EX-0011/DE-0005)
   · R6/R7/R8/R9/R11/R12 static-in-nominal command counters (CFE_SB / CFE_EVS / CFE_ES /
   CFE_TBL / FM / TO) · R10 bus-sweep meta-rule · R13 downlink route-mask change ·
-  **R14 ADCS mode-force** (debounced `ADCS_GNC.Mode` transition = DE-0005).
+  **R14 ADCS mode-force** (debounced `ADCS_GNC.Mode` transition = DE-0005) · **R14 mode-flap**
+  (3 confirmed transitions in ~5 min = deliberate farming of the post-switch blind window;
+  caught a simulated attacker at 121 s, live-verified 2026-08-15).
 - **consistency-check:** per-sample counter-monotonicity — catches an injected
   spoof (a counter that jumps backwards) the IF and rule-gate both miss.
 - **staleness-check:** a wide monotonic counter's max stops advancing — catches
@@ -510,7 +518,7 @@ steady flight.
 | EX-0012.05 scheduler | 64 % | sibling | ON_BOARD | ≡ .03/.04 family |
 | EX-0012.07 propulsion | 100 % | HIGH-VAR | ON_BOARD | always detected |
 | EX-0012.08 ADCS | 100 % | HIGH-VAR | ON_BOARD | always detected; label unstable across runs |
-| EX-0012.09 EPS | 99 % | HIGH-VAR | ON_BOARD | |
+| EX-0012.09 EPS | ⚠ **0 %** | HIGH-VAR | ON_BOARD | **CONFIRMED GAP** — detected by nothing in steady flight (0/3 reps); the 99 % came from transient-dominated data. Ticketed `detect-eps-switch` |
 | EX-0012.12 system clock | 57 % | sibling | ON_BOARD | ≡ EX-0014.01 |
 | EX-0014.01 time spoof | 26 % | DEAD→sibling | ON_BOARD | ≡ EX-0012.12 |
 | EX-0014.03 sensor spoof | 91 % | nominal-amb. | ON_BOARD | detected, not labelable |

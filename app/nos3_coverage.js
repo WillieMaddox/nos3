@@ -12,8 +12,8 @@ window.NOS3_COVERAGE_META = {
   "provenance": {
     "label_ok": "OOF \u2014 leave-one-instance-out over the 3-instance frozen corpus, rescored through the deployed hybrid's routing (export_hybrid_oof.py). Replaced an in-sample figure that was >2x optimistic (76.9% -> 42.3%).",
     "incident_recall": "unverifiable \u2014 the attack rows were never fitted (the IF trains on nominal only), but the deployed IF artifact records no training-corpus identity, so disjointness cannot be proven. See AINOS3-80 F2.",
-    "frame_rate": "unverifiable \u2014 same basis as incident_recall.",
-    "false_positive_rate": "live-soak \u2014 independent nominal soaks. SUNSAFE 0.02%, PASSIVE/BDOT 0.00% (AINOS3-81, 7h). INERTIAL is a known regression at 0.54% (raw 7.5%) against a documented 0.00% \u2014 its threshold is mis-calibrated, re-calibration ticketed. The 1% figure quoted elsewhere is a design-target calibrated in-sample, not a measurement (AINOS3-80 F1 / AINOS3-81).",
+    "frame_rate": "MIXED \u2014 a 24-run steady-flight replication showed this column credits the IF with detections the rule-gate makes (EX-0012.08 -> R14, EX-0014.04 -> R1; IF lift ~0 for both), and that EX-0012.09 is detected by nothing (0/3 reps). Where the IF IS the right detector it is vindicated: EX-0012.07 propulsion measures +77.5 +/- 3.6 lift in steady flight.",
+    "false_positive_rate": "live-soak \u2014 SUNSAFE 0.02-0.74%, PASSIVE/BDOT 0.00%. INERTIAL is a serious open defect: 33.6% nominal (21.1-48.5%) across 12 runs at a 600s hold, up from 0.00% published and 7.5% over a 7h soak; the settling explanation is refuted and the mode is currently unusable for detection (ticketed inertial-false-alarms). The 1% figure quoted elsewhere is a design-target calibrated in-sample, not a measurement (AINOS3-80 F1).",
     "technique_top1": "OOF \u2014 0.645 +/- 0.036 across three instances; the spread exceeds most deltas quoted against it.",
     "audit": "components/onair/AINOS3_80_METRIC_PROVENANCE.md"
   }
@@ -111,17 +111,17 @@ window.NOS3_COVERAGE = {
     "review": ""
   },
   "EX-0012.09": {
-    "name": "EPS subsystem",
+    "name": "EPS subsystem \u2014 CONFIRMED GAP, see review",
     "tier": "HIGH-VAR",
     "signal": "ON_BOARD",
-    "frame_rate": 0.99,
+    "frame_rate": 0.0,
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
     "label_ok": 0,
     "cluster": "EX-0012.09",
     "explanation": "CFE_EVS_HK.MessageSendCounter:57%|EPS.DeviceCount:42%|SCH.UnexpectedMajorFrameCount:1%|ADCS_GNC.bvb:0%|RW.data.momentum:0%|ADCS_DI.Payload.Rw.HwhlB:0%",
-    "review": ""
+    "review": "CONFIRMED GAP (2026-08-17). The published 99% came from transient-dominated data. In steady flight a 24-run replication found NOTHING detects it: IF lift -0.4 +/- 0.1 (0.00% of attack frames) and no rule-gate rule fired in 0/3 reps. The attack sends EPS_FC_SWITCH \u2014 a discrete state change the dynamics IF is blind to by design \u2014 but unlike its siblings (EX-0012.08 -> R14, EX-0014.04 -> R1) no rule covers it. Needs: establish whether the switch toggle appears in any recorded EPS field; if yes an R1/R6-style rule, if no reclassify as UNSUBSCRIBED. Ticketed `detect-eps-switch`."
   },
   "EX-0012.12": {
     "name": "System clock",
@@ -559,8 +559,8 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Caught by rule-gate R5 (LC) + R14 ADCS mode-force + staleness-check (AINOS3-77) (dynamics-IF blind by design).",
-    "gate": "rule-gate R5 (LC) + R14 ADCS mode-force + staleness-check (AINOS3-77)"
+    "review": "Caught by rule-gate R5 (LC) + R14 ADCS mode-force / mode-flap + staleness-check (AINOS3-77; flap rule live-verified 2026-08-15) (dynamics-IF blind by design).",
+    "gate": "rule-gate R5 (LC) + R14 ADCS mode-force / mode-flap + staleness-check (AINOS3-77; flap rule live-verified 2026-08-15)"
   },
   "DE-0010": {
     "name": "Overflow audit log",
