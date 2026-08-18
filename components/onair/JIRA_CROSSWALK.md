@@ -83,6 +83,8 @@ Jira 2026-07-15 and entered below.
 | AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Sprint 27 |
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | AINOS3-39 follow-up: retrain dropping harmful bus-activity features | Backlog |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Injection that reaches actuator saturation (recovery-boundary test) | Backlog |
+| — | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle: detected by nothing in steady flight | Backlog |
+| — | inertial-false-alarms | Story | detector-rigor | INERTIAL nominal FP 33.6% — mode unusable for detection | Backlog |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
 

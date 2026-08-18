@@ -492,6 +492,8 @@ tickets.
 | AINOS3-47 | foundation-baseline | Story | 8 | 2.5 | Foundation-model (MOMENT/THEMIS) zero-shot baseline |
 | AINOS3-84 | drop-bus-activity-retrain | Task | 3 | 0.75 | AINOS3-39 follow-up: retrain dropping the harmful pure bus-activity features (`CFE_SB.MemInUse`, global EVS rate) — small PNT/theft/denial upside |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | 2 | 0.5 | The EX-0005.02 RW-torque path didn't build a real body tumble; find an injection that reaches actuator saturation (tests the within-mode-recovery vs no-FDIR boundary) |
+| — | inertial-false-alarms | Story | 5 | 1.5 | **HIGH** — INERTIAL nominal FP measured **33.6 %**; mode currently unusable for detection. Settling hypothesis refuted |
+| — | detect-eps-switch | Story | 3 | 1.0 | EX-0012.09 EPS switch toggle is detected by **nothing** in steady flight (0/3 reps) despite a published 99 % catch rate |
 
 `AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility` (AINOS3-30)
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
@@ -520,6 +522,95 @@ to avoid a redundant retrain/deploy cycle.
 - LOIO shows the PNT/theft/denial gain retained with no regression on other clusters or modes.
 - Deploy only through the AINOS3-37 live-verify + one-line-rollback discipline; ini + build
   tree synced.
+
+### inertial-false-alarms — Bring INERTIAL's false-alarm rate into the design band · `Story` · **High** · E 5 · T 1.5 (~12h)
+
+**Summary:** As an operator, I want INERTIAL's nominal false-alarm rate brought under the
+1 % design target, because it currently measures **33.6 %** and that makes the mode unusable
+for detection and un-evaluatable for coverage.
+
+**Description:** An escalating history, each measurement larger than the last:
+
+| measurement | conditions | nominal FP |
+|---|---|--:|
+| published | 35 K frames / 116 min | **0.00 %** |
+| AINOS3-81 soak | 60 min hold | 0.54 % operational / **7.5 % raw** |
+| steady-flight replication | 12 runs, 600 s hold | **33.6 %** (range 21.1–48.5 %) |
+
+The settling-transient explanation offered for the 8-minute pilot runs is **refuted**: 10
+minutes is not enough for the rate to subside, and it lands far above the 60-minute soak.
+Every INERTIAL lift measurement sits on this noise floor, so the mode cannot currently be
+evaluated for attack detection at all — which is why the replication's INERTIAL column was
+discarded.
+
+One contributing cause is known: the threshold is calibrated **in-sample** (AINOS3-80 **F1**)
+— INERTIAL's threshold promised 1 % raw FP and the soak delivered 7.5 %. But that does not
+explain 33.6 %, so there is a second factor. Candidates, in rough order of suspicion:
+
+1. **Training gap.** INERTIAL has 19,641 training rows from a *single* 116-minute session.
+   That may not cover the mode's normal operating range — the same root cause as BDOT's 296
+   rows and the missing sun-acquisition examples.
+2. **Missing target quaternion.** INERTIAL pointing takes a commanded attitude
+   (`GENERIC_ADCS_INERTIAL_QUATERNION_CC`). Absent one, the controller may drive toward a
+   default attitude with sustained large control effort — dynamics that legitimately look
+   anomalous. None of our scenario tooling ever sends that command.
+3. **Genuinely long settling.** The mode may need far more than 10 min, in which case the
+   250-frame (~45 s) warmup is wrong for INERTIAL specifically.
+
+**Acceptance Criteria:**
+
+- Root cause identified and (1)/(2)/(3) distinguished — e.g. a ≥ 2 h INERTIAL soak run twice,
+  with and without a commanded target quaternion, reporting nominal FP against uptime.
+- Fix applied to the cause, not the symptom: retrain/recalibrate on a proper INERTIAL
+  baseline; or command a quaternion and fix the scenario tooling; or set an INERTIAL-specific
+  warmup from the measured settling time.
+- INERTIAL nominal FP under the 1 % design target, measured on **held-out** nominal.
+- Re-soak to confirm; coverage doc updated with the measured value and its provenance tag.
+
+⚠ **Do not fix by tightening the threshold alone.** The ROC sweep showed tightening INERTIAL
+to a 0.1 % target drives its false alarms to 0.00 % but **collapses its attack detection 60×**
+(12.4 % → 0.2 %). Any threshold change must be paired with an attack-detection measurement —
+see the held-out-recalibration follow-on above.
+
+### detect-eps-switch — EX-0012.09 EPS switch toggle is undetected · `Story` · Medium · E 3 · T 1.0 (~8h)
+
+**Summary:** As a defender, I want an EPS power-switch toggle detected, because the
+steady-flight replication found **nothing** detects `EX-0012.09` — not the anomaly detector,
+not any rule — while it is published at a **99 %** catch rate.
+
+**Description:** Measured across 3 independent runs in held SUNSAFE: IF lift **−0.4 ± 0.1**
+(0.00 % of attack frames flagged) and **no rule-gate rule fired in any run**. The attack
+sends `EPS_FC_SWITCH` with a `(switch_num, state)` payload — a **discrete state change**, so
+the dynamics IF is structurally blind to it *by design*. That is expected and fine; what is
+not fine is that its two siblings are covered and this one is not:
+
+| technique | mechanism | caught by |
+|---|---|---|
+| EX-0012.08 | `ADCS_SET_MODE` | R14 (2/3 reps) |
+| EX-0014.04 | GPS `FC_DISABLE` | R1 (2/3), R3 (1/3) |
+| **EX-0012.09** | **`EPS_FC_SWITCH`** | **nothing (0/3)** |
+
+The published 99 % comes from the pre-fix corpus, where 83 % of attack frames sat inside a
+post-mode-switch blind window — it does not describe steady-flight behaviour.
+
+First establish the on-board footprint, because the outcome forks:
+
+- **If a recorded field moves** (an `EPS.DeviceHK.*` switch state, an EPS command counter),
+  this is a cheap R1/R5/R6-style rule — baseline deviation or static-in-nominal new-high.
+- **If nothing moves**, the technique is **UNSUBSCRIBED** and should be *reclassified* rather
+  than detected. That is still a valuable outcome: it corrects a 99 % claim to an honest
+  "structurally invisible", and tells us whether subscribing an EPS MID would close it.
+
+**Acceptance Criteria:**
+
+- Footprint confirmed live: run EX-0012.09 in held SUNSAFE (`single_mode_hold_SUNSAFE`) and
+  identify which recorded field, if any, changes. Parse with `csv.DictReader`, never
+  `awk -F','`.
+- **If an observable moves:** rule built as a sibling of R1/R5/R6–R13, labeled to EX-0012.09;
+  0-FP over a nominal soak; unit tests; plugin synced to the build tree; live-verified.
+- **If nothing moves:** reclassified UNSUBSCRIBED in `V5_DETECTOR_COVERAGE.md` and the SPARTA
+  matrix, with the evidence and a note on which MID would be needed.
+- Either way, the published 99 % catch rate is corrected to what is actually measured.
 
 ### AINOS3-85 — Reach actuator saturation for the recovery-boundary test · `Spike` · Backlog · E 2 · T 0.5 (~4h)
 
