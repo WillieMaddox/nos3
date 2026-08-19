@@ -88,8 +88,8 @@ Jira 2026-07-15 and entered below.
 | AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Backlog (was S27 stretch) |
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | AINOS3-39 follow-up: retrain dropping harmful bus-activity features | Backlog |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Injection that reaches actuator saturation (recovery-boundary test) | Backlog |
-| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | INERTIAL nominal FP 33.6% — mode unusable for detection | Backlog |
-| AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle: detected by nothing in steady flight | Backlog |
+| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band (measured 33.6%) | Backlog |
+| AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected (nothing catches it in steady flight) | Backlog |
 | — | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) — uptime bins off ~33% | Backlog |
 | — | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide — ADCS sensor reporting nothing | Backlog |
 | — | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? Decides if INERTIAL's 71 false incidents/hr are visible | Backlog |

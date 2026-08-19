@@ -72,8 +72,28 @@ def main():
         print(f"      plan:      {title}")
         print(f"      crosswalk: {canon}")
         bad += 1
+    # A slug that HAS a key in the crosswalk must not still be referred to
+    # keylessly in the plan. This is how AINOS3-88 slipped: the key was assigned,
+    # the crosswalk updated, and the plan left saying "needs its own Jira key" —
+    # invisible to the heading check above, which only matches "### AINOS3-NNN".
+    keyed = {slug: k for k, (slug, _t) in cw.items() if slug}
+    text = open(plan_path, encoding="utf-8").read()
+    for slug, k in sorted(keyed.items()):
+        stale = []
+        if re.search(r"^### " + re.escape(slug) + r" +—", text, re.M):
+            stale.append(f"heading '### {slug} —'")
+        if re.search(r"^\|\s*—\s*\|\s*" + re.escape(slug) + r"\s*\|", text, re.M):
+            stale.append("table row with an em-dash key")
+        if re.search(r"`?" + re.escape(slug) + r"`?[^\n]{0,80}needs its own Jira key", text):
+            stale.append("'needs its own Jira key'")
+        if stale:
+            print(f"  {slug} has key {k} in the crosswalk but the plan still uses it "
+                  f"keylessly: {', '.join(stale)}")
+            bad += 1
+
     if bad:
-        print(f"\n{bad} UNACKNOWLEDGED heading divergence(s).")
+        print(f"\n{bad} problem(s) found.")
+        print("Keyless slug with an assigned key? Propagate the key into the plan.")
         print("Same work, reworded? Add it to ticket_title_ack.json WITH A REASON.")
         print("Different work? The key has been REUSED — split the new work under "
               "its own slug. A key binds to one scope, permanently.")

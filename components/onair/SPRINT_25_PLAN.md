@@ -630,7 +630,7 @@ incident; **0 FP** (CommandCounter static at its boot value across the run).
 | AINOS3-45 | corpus-instance-4 | Task | 3 | 0.75 | 4th corpus instance (LOIO variance already ±3.6%; ~5h wall-clock) |
 | AINOS3-46 | demo-tier-bc | Story | 3 | 1.0 | Demo app Tier B/C (live execution / agent) |
 | AINOS3-47 | foundation-baseline | Story | 8 | 2.5 | Optional: foundation-model (MOMENT/THEMIS) zero-shot baseline |
-| — | deepsad-revisit | Spike | 3 | 0.75 | Reopen Phase 5 DeepSAD **only after** AINOS3-30 broadens signal (`AINOS3-69` gate) |
+| AINOS3-68 | deepsad-revisit | Spike | 3 | 0.75 | Reopen Phase 5 DeepSAD **only after** AINOS3-30 broadens signal (`AINOS3-69` gate) |
 
 ---
 

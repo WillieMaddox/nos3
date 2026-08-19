@@ -49,13 +49,13 @@ mapping is maintained in **[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md)** (cross-spr
 append-only). The `Jira` column below is a read-only mirror of that file — all Sprint-27
 keys are now assigned (`AINOS3-77`–`AINOS3-85`). Carryover keys (`AINOS3-45`, `AINOS3-68`,
 `AINOS3-76`) are immutable. ⚠ `AINOS3-30` was **wrongly reused** for this sprint's
-signal-feasibility work and has been split out under the slug `signal-feasibility`
-(2026-08-19); `AINOS3-30` itself remains **open** against its original scope.
+signal-feasibility work, which is now split out as **`AINOS3-88`** (2026-08-19);
+`AINOS3-30` itself remains **open** against its original scope.
 
 | Jira | Slug | Type | Pri | E | T | Summary |
 |---|---|---|---|--:|--:|---|
 | AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion (signal lever) |
-| — | signal-feasibility | Story | High | 5 | 1.5 | ✅ DONE — 17-attack 359-col corpus + 7-arm ablation → **NO-GO (documented NULL)**; no block beats split noise. ⚠ **split out of AINOS3-30 on 2026-08-19** — needs its own Jira key |
+| AINOS3-88 | signal-feasibility | Story | High | 5 | 1.5 | ✅ DONE — 17-attack 359-col corpus + 7-arm ablation → **NO-GO (documented NULL)**; no block beats split noise. Split out of AINOS3-30 on 2026-08-19 |
 | AINOS3-77 | mode-transition-rule | Task | High | 3 | 1.0 | ✅ DONE — **R14 live** (debounced `ADCS_GNC.Mode` → DE-0005); IF verified blind across the transition |
 | AINOS3-78 | cluster-345-regression | Spike | Medium | 2 | 0.5 | ✅ DONE — regression is **entirely INERTIAL** (−20.9); not data thinning (5,564 rows) but lost cross-mode transfer. **Routing SUNSAFE only recovers it for −0.23 pts overall** |
 | AINOS3-45 | corpus-instance-4 | Task | Medium | 3 | 0.75 | ○ STRETCH — 4th corpus instance, collected at the 382-col schema (feeds signal-feasibility) |
@@ -97,13 +97,14 @@ PASSIVE classes, which the evidence (AINOS3-33/39, NOS3-302, the honest-OOF over
 is information-limited. This slice tests, for real, whether the recorded Section-B MIDs
 carry the missing signal — and closes the two gaps this sprint's live work surfaced.
 
-### signal-feasibility — Signal-adding feasibility (recorded MIDs → weak-class discrimination) · `Story` · High · E 5 · T 1.5 (~12h)
+### AINOS3-88 — Ablate recorded Section-B MIDs for weak-class discrimination · `Story` · High · E 5 · T 1.5 (~12h)
 
 > ⚠ **Key split 2026-08-19.** This section was written under `AINOS3-30`, but that key belongs
 > to `extra-mids` — *"Subscribe extra MIDs to recover DEAD classes"* (E 8 / T 2.5) — which is
 > **still OPEN in Jira** and describes different work. Reusing it here broke the crosswalk's
-> immutability rule. This work is now the slug **`signal-feasibility`** and needs its own Jira
-> key. **Do not close AINOS3-30 against the result below.** See the note at the foot of
+> immutability rule. This work is now the slug **`signal-feasibility`** under its own key
+> **`AINOS3-88`**. **Do not close AINOS3-30 against the result below** — it remains open
+> against its original scope. See the note at the foot of
 > [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
 **Summary:** As an ML engineer, I want to know — before a full retrain — whether any
@@ -555,8 +556,8 @@ tickets.
 | AINOS3-47 | foundation-baseline | Story | 8 | 2.5 | Foundation-model (MOMENT/THEMIS) zero-shot baseline |
 | AINOS3-84 | drop-bus-activity-retrain | Task | 3 | 0.75 | AINOS3-39 follow-up: retrain dropping the harmful pure bus-activity features (`CFE_SB.MemInUse`, global EVS rate) — small PNT/theft/denial upside |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | 2 | 0.5 | The EX-0005.02 RW-torque path didn't build a real body tumble; find an injection that reaches actuator saturation (tests the within-mode-recovery vs no-FDIR boundary) |
-| — | inertial-false-alarms | Story | 5 | 1.5 | **HIGH** — INERTIAL nominal FP measured **33.6 %**; mode currently unusable for detection. Settling hypothesis refuted |
-| — | detect-eps-switch | Story | 3 | 1.0 | EX-0012.09 EPS switch toggle is detected by **nothing** in steady flight (0/3 reps) despite a published 99 % catch rate |
+| AINOS3-86 | inertial-false-alarms | Story | 5 | 1.5 | **HIGH** — INERTIAL nominal FP measured **33.6 %**; mode currently unusable for detection. Settling hypothesis refuted |
+| AINOS3-87 | detect-eps-switch | Story | 3 | 1.0 | EX-0012.09 EPS switch toggle is detected by **nothing** in steady flight (0/3 reps) despite a published 99 % catch rate |
 | — | catch-rate-provenance-gap | Spike | 3 | 0.75 | Published per-technique catch rates disagree with measurement in **both** directions — `EX-0014.04` 98 % vs 7.4 % |
 | — | verify-nominal-incident-filter | Task | 1 | 0.25 | Does the operator view filter `cluster=nominal`? Decides whether INERTIAL's 71 false incidents/hr are user-visible |
 | — | startracker-inert-fields | Spike | 2 | 0.5 | 5 `ST_DEV` fields constant corpus-wide — an ADCS sensor reporting nothing |
@@ -590,7 +591,7 @@ to avoid a redundant retrain/deploy cycle.
 - Deploy only through the AINOS3-37 live-verify + one-line-rollback discipline; ini + build
   tree synced.
 
-### inertial-false-alarms — Bring INERTIAL's false-alarm rate into the design band · `Story` · **High** · E 5 · T 1.5 (~12h)
+### AINOS3-86 — Bring INERTIAL's false-alarm rate into the design band · `Story` · **High** · E 5 · T 1.5 (~12h)
 
 **Summary:** As an operator, I want INERTIAL's nominal false-alarm rate brought under the
 1 % design target, because it currently measures **33.6 %** and that makes the mode unusable
@@ -639,7 +640,7 @@ to a 0.1 % target drives its false alarms to 0.00 % but **collapses its attack d
 (12.4 % → 0.2 %). Any threshold change must be paired with an attack-detection measurement —
 see the held-out-recalibration follow-on above.
 
-### detect-eps-switch — EX-0012.09 EPS switch toggle is undetected · `Story` · Medium · E 3 · T 1.0 (~8h)
+### AINOS3-87 — EX-0012.09 EPS switch toggle is undetected · `Story` · Medium · E 3 · T 1.0 (~8h)
 
 **Summary:** As a defender, I want an EPS power-switch toggle detected, because the
 steady-flight replication found **nothing** detects `EX-0012.09` — not the anomaly detector,

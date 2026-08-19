@@ -53,7 +53,7 @@ with the Jira sprint number (`rollout-s24`, next `rollout-s25`).
 | AINOS3-32 | explainability | Epic | — | — | — | Explainability (Phase 7 start) |
 | AINOS3-38 | shap-attribution | Story | High | 8 | 2.25 | ✅ DONE — per-incident SHAP attribution (offline) + incident wiring |
 | AINOS3-40 | surface-explanations | Story | Medium | 3 | 0.5 | ✅ DONE — surface explanations (catalog) in incident side-file + demo |
-| — | appdata-slot-map | Task | Medium | 3 | 0.75 | Backlog — EVS AppData slot→app reference map; unblocks counter-reliance-audit + targeted event-suppression features |
+| AINOS3-48 | appdata-slot-map | Task | Medium | 3 | 0.75 | Backlog — EVS AppData slot→app reference map; unblocks counter-reliance-audit + targeted event-suppression features |
 | AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion |
 | AINOS3-30 | extra-mids | Story | Medium | 8 | 2.5 | Subscribe extra MIDs to recover nominal-ambiguous DEAD classes |
 | AINOS3-69 | next-ml-bet | Spike | Medium | 3 | 0.75 | ✅ DONE — verdict: Phase 5 NO-GO, Phase 6 DEFER, CONSOLIDATE (add signal, not model) |
@@ -395,7 +395,7 @@ the diff vs source was exactly this change.)
 
 **Depends on:** AINOS3-38.
 
-### appdata-slot-map — EVS AppData slot→app reference map · `Task` · Medium · E 3 · T 0.75 (~6h) · `Backlog`
+### AINOS3-48 — EVS AppData slot→app reference map · `Task` · Medium · E 3 · T 0.75 (~6h) · `Backlog`
 
 **Summary:** As a developer/analyst, I want a reference map from each
 `CFE_EVS_HK.AppData` slot to the human-readable app it represents, so the
