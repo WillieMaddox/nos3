@@ -7403,6 +7403,14 @@ window.NOS3_COVERAGE_META = {
   "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3_hybrid (AINOS3-37 selective per-mode)",
   "incident_recall_headline": 0.6783,
   "n_techniques": 68,
+  "updated_sprint": "Sprint 27",
+  "updated_techniques": [
+    "DE-0005",
+    "EX-0012.07",
+    "EX-0012.08",
+    "EX-0012.09",
+    "EX-0014.04"
+  ],
   "provenance": {
     "label_ok": "OOF \u2014 leave-one-instance-out over the 3-instance frozen corpus, rescored through the deployed hybrid's routing (export_hybrid_oof.py). Replaced an in-sample figure that was >2x optimistic (76.9% -> 42.3%).",
     "incident_recall": "unverifiable \u2014 the attack rows were never fitted (the IF trains on nominal only), but the deployed IF artifact records no training-corpus identity, so disjointness cannot be proven. See AINOS3-80 F2.",
@@ -7421,6 +7429,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 2,
     "cluster": "EX-0008.01",
     "explanation": "CFE_EVS_HK.AppData[SC].AppMessageSentCounter:60%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:15%|CFE_TBL.CommandErrorCounter:10%|CFE_EVS_HK.AppData[SBN].AppMessageSquelchedCounter:5%|CFE_TBL.CommandCounter\u0394:2%|CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:2%",
@@ -7434,6 +7444,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 3,
     "cluster": "EX-0008.02",
     "explanation": "CFE_EVS_HK.AppData[SC].AppMessageSentCounter:86%|CFE_TBL.CommandErrorCounter:8%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:3%|SC.CmdCtr:1%|ADCS_GNC.bvb:1%|ADCS_DI.Payload.Imu.acc:0%",
@@ -7447,6 +7459,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 2,
     "cluster": "EX-0012.{03,04,05}",
     "explanation": "CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:22%|CFE_SB.UnmarkedMem:22%|SCH.UnexpectedMajorFrameCount:6%|SCH.SameSlotCount:6%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:5%|ADCS_GNC.bvb:4%",
@@ -7460,6 +7474,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 5,
     "incident_total": 6,
     "incident_recall": 0.8333,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 1,
     "cluster": "EX-0012.{03,04,05}",
     "explanation": "CFE_SB.UnmarkedMem:41%|SCH.MultipleSlotsCount:11%|SCH.SameSlotCount:9%|ADCS_GNC.svb:8%|RW.DeviceCount_RW2:5%|RW.DeviceCount_RW0:5%",
@@ -7473,6 +7489,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 1,
     "cluster": "EX-0012.{03,04,05}",
     "explanation": "CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:34%|SCH.SameSlotCount:20%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:10%|ADCS_GNC.bvb:5%|CFE_SB.MemInUse:5%|SCH.UnexpectedMajorFrameCount:3%",
@@ -7486,6 +7504,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 4,
     "incident_total": 4,
     "incident_recall": 1.0,
+    "updated": "IF vindicated in steady flight: +77.5 +/- 3.6 lift across 3 runs (~80% of attack frames vs ~1% nominal).",
+    "updated_sprint": "Sprint 27",
     "label_ok": 2,
     "cluster": "EX-0012.07",
     "explanation": "SCH.SameSlotCount:28%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:17%|ADCS_DI.Payload.Imu.wbn:17%|ADCS_GNC.wbn:6%|EPS.DeviceCount:5%|CFE_EVS_HK.MessageSendCounter:4%",
@@ -7499,6 +7519,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 2,
     "incident_total": 3,
     "incident_recall": 0.6667,
+    "updated": "Detector attribution corrected: caught by rule-gate R14 (mode-force), not the anomaly detector \u2014 IF lift ~0 in steady flight.",
+    "updated_sprint": "Sprint 27",
     "label_ok": 1,
     "cluster": "EX-0012.08",
     "explanation": "ADCS_GNC.Tcmd:46%|ADCS_GNC.bvb:22%|CFE_EVS_HK.MessageSendCounter:13%|ADCS_DI.Payload.Css.Sensor:8%|ADCS_GNC.wbn:4%|CFE_SB.NoSubscribersCounter\u0394:2%",
@@ -7512,6 +7534,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": "CONFIRMED GAP: catch rate 99% -> 0%. Detected by nothing in steady flight (0/3 reps, no IF lift, no rule fired). Ticketed AINOS3-87.",
+    "updated_sprint": "Sprint 27",
     "label_ok": 0,
     "cluster": "EX-0012.09",
     "explanation": "CFE_EVS_HK.MessageSendCounter:57%|EPS.DeviceCount:42%|SCH.UnexpectedMajorFrameCount:1%|ADCS_GNC.bvb:0%|RW.data.momentum:0%|ADCS_DI.Payload.Rw.HwhlB:0%",
@@ -7525,6 +7549,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 1,
     "cluster": "EX-0012.12/EX-0014.01",
     "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:44%|CFE_SB.MsgSendErrorCounter:14%|SCH.SameSlotCount:13%|SCH.UnexpectedMajorFrameCount:6%|RW.DeviceCount_RW1:5%|ADCS_DI.Payload.Mag.bvb:3%",
@@ -7538,6 +7564,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 2,
     "cluster": "EX-0012.12/EX-0014.01",
     "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:31%|CFE_SB.MsgSendErrorCounter:15%|SCH.SameSlotCount:8%|RADIO_HK.DeviceErrorCount:5%|SCH.UnexpectedMajorFrameCount:4%|CFE_EVS_HK.MessageSendCounter:3%",
@@ -7551,6 +7579,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": "EX-0014.03",
     "explanation": "ADCS_GNC.bvb:13%|SCH.SameSlotCount:13%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:9%|CFE_EVS_HK.MessageSendCounter:8%|EPS.DeviceCount:6%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:6%",
@@ -7564,6 +7594,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": "Detector attribution corrected: caught by rule-gate R1 (GPS disable), not the anomaly detector \u2014 IF lift ~0 in steady flight.",
+    "updated_sprint": "Sprint 27",
     "label_ok": 0,
     "cluster": "EX-0014.04",
     "explanation": "CFE_SB.MemInUse:46%|CFE_EVS_HK.MessageSendCounter:9%|CFE_SB.MsgSendErrorCounter:6%|EPS.DeviceCount:6%|SCH.SameSlotCount:5%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:5%",
@@ -7577,6 +7609,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 2,
     "cluster": "IMP-0001",
     "explanation": "CFE_EVS_HK.MessageSendCounter:34%|CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:27%|EPS.CommandErrorCount:10%|ADCS_GNC.HwhlB:9%|ADCS_GNC.svb:4%|ADCS_GNC.wbn:3%",
@@ -7590,6 +7624,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 3,
     "cluster": "IMP-0002",
     "explanation": "CFE_EVS_HK.CommandCounter:46%|CFE_EVS_HK.MessageSendCounter:23%|RW.DeviceCount_RW0:18%|CFE_EVS_HK.AppData[TO_LAB_APP].AppMessageSentCounter:10%|ADCS_DI.Payload.Imu.wbn\u0394:1%|ADCS_GNC.svb:1%",
@@ -7603,6 +7639,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 2,
     "cluster": "IMP-0003",
     "explanation": "CFE_EVS_HK.CommandCounter:32%|RW.CommandCounter:12%|CFE_SB.MsgSendErrorCounter:10%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:10%|RW.DeviceCount_RW1:10%|CFE_SB.UnmarkedMem:5%",
@@ -7616,6 +7654,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 3,
     "cluster": "IMP-0005",
     "explanation": "CFE_ES.CommandCounter:72%|THRUSTER.CommandCount:18%|CFE_TBL.CommandCounter:7%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:1%|ADCS_DI.Payload.Rw.HwhlB:0%|ADCS_GNC.bvb:0%",
@@ -7629,6 +7669,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 3,
     "cluster": "IMP-0006",
     "explanation": "CFE_EVS_HK.AppData[TO_LAB_APP].AppMessageSentCounter:75%|RW.DeviceCount_RW0:12%|ADCS_GNC.HwhlB:2%|ADCS_DI.Payload.Mag.bvb:2%|ADCS_GNC.svb:2%|NOVATEL.Novatel_oem615.ECEFZ\u0394:2%",
@@ -7642,6 +7684,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.01",
     "explanation": "CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:46%|EPS.DeviceCount:14%|CFE_EVS_HK.MessageSendCounter:9%|SCH.ScheduleActivitySuccessCount:8%|ADCS_GNC.wbn:7%|ADCS_DI.Payload.Imu.wbn:5%",
@@ -7655,6 +7699,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.02",
     "explanation": "ADCS_DI.Payload.Css.Sensor:78%|EPS.DeviceCount\u0394:7%|ADCS_GNC.wbn:7%|CFE_EVS_HK.AppData[SBN].AppMessageSquelchedCounter:4%|CFE_EVS.PacketID.EventID:2%|SCH.UnexpectedMajorFrame\u0394:0%",
@@ -7668,6 +7714,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 1,
     "incident_total": 3,
     "incident_recall": 0.3333,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.03",
     "explanation": "ADCS_DI.Payload.Imu.wbn:22%|CFE_EVS_HK.AppData[CI_LAB_APP].AppMessageSentCounter:17%|ADCS_DI.Payload.Fss.svb:9%|ADCS_DI.Payload.Css.Sensor\u0394:8%|ADCS_GNC.bvb\u0394:6%|CFE_SB.NoSubscribersCounter:6%",
@@ -7681,6 +7729,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.06",
     "explanation": "RADIO_HK.DeviceErrorCount\u0394:30%|ADCS_GNC.wbn:22%|ADCS_DI.Payload.Imu.acc:12%|ADCS_GNC.Mode\u0394:8%|CFE_SB.NoSubscribersCounter\u0394:8%|ADCS_GNC.bvb\u0394:5%",
@@ -7694,6 +7744,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.08",
     "explanation": "CFE_EVS_HK.MessageSendCounter:42%|ADCS_DI.Payload.Fss.svb:23%|ADCS_GNC.bvb:9%|SCH.MultipleSlotsCount:8%|CFE_EVS_HK.LogOverflowCounter:5%|ADCS_GNC.svb:3%",
@@ -7707,6 +7759,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 4,
     "incident_recall": 0.75,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 1,
     "cluster": "DE-0003.09",
     "explanation": "CFE_TIME.CommandCounter:58%|SCH.MultipleSlotsCount:35%|SCH.UnexpectedMajorFrameCount:1%|ADCS_DI.Payload.Imu.wbn:1%|SCH.UnexpectedMajorFrame:1%|ADCS_DI.Payload.Css.svb:1%",
@@ -7720,6 +7774,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 3,
     "incident_total": 3,
     "incident_recall": 1.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 3,
     "cluster": "DE-0003.10",
     "explanation": "NOVATEL_HK.CommandCount:86%|CFE_SB.MsgSendErrorCounter:11%|SCH.MultipleSlotsCount:1%|SCH.UnexpectedMajorFrameCount:0%|NOVATEL.Novatel_oem615.ECEFX\u0394:0%|CFE_SB.MemInUse:0%",
@@ -7733,6 +7789,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
@@ -7746,6 +7804,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
@@ -7759,6 +7819,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
@@ -7772,6 +7834,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": null,
     "incident_total": null,
     "incident_recall": null,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": null,
     "cluster": null,
     "explanation": "",
@@ -7785,6 +7849,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 1,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
@@ -7798,6 +7864,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
@@ -7811,6 +7879,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 1,
     "incident_recall": 0.0,
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
@@ -7825,6 +7895,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R1 (NOVATEL disable) \u2192 EX-0002 incident (dynamics-IF blind by design).",
@@ -7839,6 +7911,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R1 (TORQUER) + dynamics-IF (78%) (dynamics-IF blind by design).",
@@ -7853,6 +7927,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R5 (LC) / R1 (CSS) + dynamics-IF (52%) (dynamics-IF blind by design).",
@@ -7867,6 +7943,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by staleness-check (freeze) + rule-gate R6 (CFE_SB cmd) (dynamics-IF blind by design).",
@@ -7881,6 +7959,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R8 (CFE_ES command) \u2192 EX-0012.10 incident (dynamics-IF blind by design).",
@@ -7895,6 +7975,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R2 (EVS flood; labeled DE-0010) (dynamics-IF blind by design).",
@@ -7909,6 +7991,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R4 (command-error family) (dynamics-IF blind by design).",
@@ -7923,6 +8007,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by consistency-check (per-sample counter monotonicity) (dynamics-IF blind by design).",
@@ -7937,6 +8023,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by staleness-check (EVS freeze) + rule-gate R7 (CFE_EVS cmd) (dynamics-IF blind by design).",
@@ -7951,6 +8039,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": "New detection: rule-gate R14 mode-force, plus the R14 mode-flap sub-rule for repeated forced transitions (AINOS3-77).",
+    "updated_sprint": "Sprint 27",
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R5 (LC) + R14 ADCS mode-force / mode-flap + staleness-check (AINOS3-77; flap rule live-verified 2026-08-15) (dynamics-IF blind by design).",
@@ -7965,6 +8055,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R2 (EVS send-rate) \u2192 DE-0010 incident (dynamics-IF blind by design).",
@@ -7979,6 +8071,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R9 (CFE_TBL command) \u2192 PER-0001 incident (dynamics-IF blind by design).",
@@ -7993,6 +8087,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R10 bus-sweep meta (R6+R7+R8+R9) \u2192 LM-0002 incident (dynamics-IF blind by design).",
@@ -8007,6 +8103,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
@@ -8021,6 +8119,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
@@ -8035,6 +8135,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R12 (TO command) + R13 (downlink route-mask change) \u2192 EXF-0003.02 incident (dynamics-IF blind by design).",
@@ -8049,6 +8151,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R5 (LC state \u2192 DISABLED) \u2014 shared LC-disable footprint with EX-0011/DE-0005 (AINOS3-73) (dynamics-IF blind by design).",
@@ -8063,6 +8167,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R8 (CFE_ES cmd) + R9 (CFE_TBL cmd) \u2014 presents as command activity; NOOP-only script activates no table (AINOS3-75) (dynamics-IF blind by design).",
@@ -8079,7 +8185,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Authentication runs inside CryptoLib (CFE_LIB, no SB telemetry); auth-process changes leave no HK footprint. Needs: a CryptoLib auth/SA-state HK packet."
+    "review": "Authentication runs inside CryptoLib (CFE_LIB, no SB telemetry); auth-process changes leave no HK footprint. Needs: a CryptoLib auth/SA-state HK packet.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0006": {
     "name": "Disable/Bypass Encryption",
@@ -8092,7 +8200,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Encryption enable state (SA est flag) is internal to CryptoLib; no SB packet carries it. Needs: CryptoLib SA-state HK, or a weak RADIO frame-error proxy when bad frames are rejected downstream."
+    "review": "Encryption enable state (SA est flag) is internal to CryptoLib; no SB packet carries it. Needs: CryptoLib SA-state HK, or a weak RADIO frame-error proxy when bad frames are rejected downstream.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0009.02": {
     "name": "Operating System",
@@ -8105,7 +8215,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Exploiting the host Linux OS operates below the cFS application layer OnAIR observes. Needs: host-OS security monitoring (auditd/EDR) \u2014 a separate sensor from cFS telemetry."
+    "review": "Exploiting the host Linux OS operates below the cFS application layer OnAIR observes. Needs: host-OS security monitoring (auditd/EDR) \u2014 a separate sensor from cFS telemetry.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0009.03": {
     "name": "Known Vulnerability (COTS/FOSS)",
@@ -8118,7 +8230,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "A library-CVE exploit has no cFS-telemetry signature until it causes a downstream effect (a separate technique). Needs: SBOM/vulnerability scanning, off-board."
+    "review": "A library-CVE exploit has no cFS-telemetry signature until it causes a downstream effect (a separate technique). Needs: SBOM/vulnerability scanning, off-board.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0010.03": {
     "name": "Rootkit",
@@ -8131,7 +8245,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "A rootkit's purpose is to hide from the host it infects, suppressing its own footprint; NOS3 models no kernel/rootkit layer. Needs: host-level file/memory integrity attestation, off the cFS bus."
+    "review": "A rootkit's purpose is to hide from the host it infects, suppressing its own footprint; NOS3 models no kernel/rootkit layer. Needs: host-level file/memory integrity attestation, off the cFS bus.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0010.04": {
     "name": "Bootkit",
@@ -8144,7 +8260,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "A bootkit runs before the FSW/OS boots and persists beneath it \u2014 no running-FSW telemetry at that layer. Needs: measured-boot / TPM attestation, unmodeled."
+    "review": "A bootkit runs before the FSW/OS boots and persists beneath it \u2014 no running-FSW telemetry at that layer. Needs: measured-boot / TPM attestation, unmodeled.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0012.01": {
     "name": "Registers",
@@ -8157,7 +8275,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "CPU/peripheral register writes are not exposed in any cFS HK packet. Needs: a low-level register-monitoring agent \u2014 not present."
+    "review": "CPU/peripheral register writes are not exposed in any cFS HK packet. Needs: a low-level register-monitoring agent \u2014 not present.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0012.13": {
     "name": "Poison AI/ML Training Data",
@@ -8170,7 +8290,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Corrupts an offline training dataset rather than emitting a live telemetry event. Needs: ML-pipeline training-data integrity/provenance."
+    "review": "Corrupts an offline training dataset rather than emitting a live telemetry event. Needs: ML-pipeline training-data integrity/provenance.",
+    "updated": null,
+    "updated_sprint": null
   },
   "PER-0002.01": {
     "name": "Hardware Backdoor",
@@ -8183,7 +8305,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "A covert hardware path has no software telemetry and is invisible from the FSW. Needs: supply-chain hardware assurance / side-channel analysis, off-board."
+    "review": "A covert hardware path has no software telemetry and is invisible from the FSW. Needs: supply-chain hardware assurance / side-channel analysis, off-board.",
+    "updated": null,
+    "updated_sprint": null
   },
   "PER-0002.02": {
     "name": "Software Backdoor",
@@ -8196,7 +8320,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "A dormant software backdoor emits no distinguishing telemetry until triggered (then it acts as another EX technique). Needs: static/binary analysis of the FSW image, off-board."
+    "review": "A dormant software backdoor emits no distinguishing telemetry until triggered (then it acts as another EX technique). Needs: static/binary analysis of the FSW image, off-board.",
+    "updated": null,
+    "updated_sprint": null
   },
   "PER-0004": {
     "name": "Replace Cryptographic Keys",
@@ -8209,7 +8335,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Key material (ekid/akid) is internal to CryptoLib's SADB; a key swap is invisible on the SB. Needs: CryptoLib key-index HK, or ground-side downlink-auth-failure detection."
+    "review": "Key material (ekid/akid) is internal to CryptoLib's SADB; a key swap is invisible on the SB. Needs: CryptoLib key-index HK, or ground-side downlink-auth-failure detection.",
+    "updated": null,
+    "updated_sprint": null
   },
   "PER-0005": {
     "name": "Credentialed Persistence",
@@ -8222,7 +8350,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Persists using valid (stolen) credentials, so the actions look authorized on the bus \u2014 telemetry can't tell a credentialed attacker from an operator (sibling of DE-0011). Needs: an identity/session layer NOS3 doesn't model."
+    "review": "Persists using valid (stolen) credentials, so the actions look authorized on the bus \u2014 telemetry can't tell a credentialed attacker from an operator (sibling of DE-0011). Needs: an identity/session layer NOS3 doesn't model.",
+    "updated": null,
+    "updated_sprint": null
   },
   "DE-0004": {
     "name": "Masquerading",
@@ -8235,7 +8365,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "By design the malicious action mimics legitimate telemetry. Needs: cryptographic command provenance (CryptoLib, un-telemetered) or finer behavioral baselining than current features."
+    "review": "By design the malicious action mimics legitimate telemetry. Needs: cryptographic command provenance (CryptoLib, un-telemetered) or finer behavioral baselining than current features.",
+    "updated": null,
+    "updated_sprint": null
   },
   "DE-0007": {
     "name": "Evasion via Rootkit",
@@ -8248,7 +8380,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Same as the rootkit case (EX-0010.03): the rootkit hides the evasion and NOS3 has no host-integrity sensor. Needs: file/memory attestation off the cFS bus."
+    "review": "Same as the rootkit case (EX-0010.03): the rootkit hides the evasion and NOS3 has no host-integrity sensor. Needs: file/memory attestation off the cFS bus.",
+    "updated": null,
+    "updated_sprint": null
   },
   "DE-0008": {
     "name": "Evasion via Bootkit",
@@ -8261,7 +8395,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Same as the bootkit case (EX-0010.04): sub-OS persistence with no running-FSW telemetry. Needs: measured-boot attestation."
+    "review": "Same as the bootkit case (EX-0010.04): sub-OS persistence with no running-FSW telemetry. Needs: measured-boot attestation.",
+    "updated": null,
+    "updated_sprint": null
   },
   "DE-0011": {
     "name": "Credentialed Evasion",
@@ -8274,7 +8410,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Uses valid (stolen) credentials, so actions appear authorized on the bus. Needs: an identity/session layer NOS3 doesn't model; telemetry can't tell a thief from an operator."
+    "review": "Uses valid (stolen) credentials, so actions appear authorized on the bus. Needs: an identity/session layer NOS3 doesn't model; telemetry can't tell a thief from an operator.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0012.11": {
     "name": "Modify Watchdog / Health Monitor",
@@ -8287,7 +8425,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Modifying the watchdog timer has no telemetry footprint for the same reason as DE-0003.11 (AINOS3-74): the pc-linux PSP watchdog is a no-op stub with no MID, no HS app, and LC's 'WDT' is a config table, not a timer. Needs a watchdog/health telemetry packet that does not exist in this build."
+    "review": "Modifying the watchdog timer has no telemetry footprint for the same reason as DE-0003.11 (AINOS3-74): the pc-linux PSP watchdog is a no-op stub with no MID, no HS app, and LC's 'WDT' is a config table, not a timer. Needs a watchdog/health telemetry packet that does not exist in this build.",
+    "updated": null,
+    "updated_sprint": null
   },
   "DE-0003.11": {
     "name": "Watchdog State for Evasion",
@@ -8300,7 +8440,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "No subscribable watchdog/health telemetry packet exists in this build (AINOS3-74): the pc-linux PSP watchdog is a stub (a single in-memory global, all Service/Enable/Disable calls are no-ops), there is no HS (Health & Safety) app, and LC's 'WDT' is the Watchpoint Definition Table, not a timer. Structurally unobservable \u2014 not recoverable by subscribing a MID."
+    "review": "No subscribable watchdog/health telemetry packet exists in this build (AINOS3-74): the pc-linux PSP watchdog is a stub (a single in-memory global, all Service/Enable/Disable calls are no-ops), there is no HS (Health & Safety) app, and LC's 'WDT' is the Watchpoint Definition Table, not a timer. Structurally unobservable \u2014 not recoverable by subscribing a MID.",
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0001.02": {
     "name": "Bus Traffic Replay",
@@ -8313,7 +8455,9 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "Internal SBN bus replay has no external injection path in stock NOS3 (AINOS3-75): SBN over UDP is telemetry-OUT only, and the :5012 bridge injects CCSDS commands (EX-0001.01 / EX-0014.02), not raw bus messages. The foothold prerequisite is a malicious in-partition app (EX-0010). Structurally unexercisable from outside the container."
+    "review": "Internal SBN bus replay has no external injection path in stock NOS3 (AINOS3-75): SBN over UDP is telemetry-OUT only, and the :5012 bridge injects CCSDS commands (EX-0001.01 / EX-0014.02), not raw bus messages. The foothold prerequisite is a malicious in-partition app (EX-0010). Structurally unexercisable from outside the container.",
+    "updated": null,
+    "updated_sprint": null
   }
 };
 
@@ -8457,6 +8601,27 @@ window.NOS3_COVERAGE = {
     // Place the pills inline next to the technique ID (not on their own line):
     // wrap the id + pills together so the header's space-between keeps them left
     // and the base sub-technique-count indicator right.
+    // "Updated this sprint" marker. A parent card gets a dot when ANY leaf under
+    // it changed, so the matrix can be scanned for what moved without diffing.
+    // Deliberately a separate visual channel from the status pills: violet is not
+    // used by any verdict colour, so it reads as "changed", not as good or bad.
+    const upd = leavesFor(id)
+      .map((lid) => COV[lid])
+      .filter((c) => c && c.updated);
+    if (upd.length) {
+      const sprint = (upd[0].updated_sprint) || "this sprint";
+      const tip = upd.length + " sub-technique" + (upd.length > 1 ? "s" : "") +
+        " updated in " + sprint + ":\n\n" +
+        leavesFor(id).filter((lid) => COV[lid] && COV[lid].updated)
+          .map((lid) => "• " + lid + " — " + COV[lid].updated).join("\n\n");
+      const dot = document.createElement("span");
+      dot.className = "nos3-upd";
+      dot.title = tip;
+      dot.textContent = "●";
+      el.appendChild(dot);
+      card.classList.add("nos3-updated");
+    }
+
     const header = card.querySelector(".technique-header");
     const idEl = header && header.querySelector(".technique-id");
     if (header && idEl) {
@@ -8569,7 +8734,11 @@ window.NOS3_COVERAGE = {
       "<span class='nos3-pill miss'>not detected</span>" +
       "<span class='nos3-pill none'>not evaluated</span>" +
       "<span class='nos3-pill oos'>out of scope</span>" +
-      "<span class='nos3-pill na'>not applicable</span>";
+      "<span class='nos3-pill na'>not applicable</span>" +
+      "<span class='nos3-legend-sep'></span>" +
+      "<span class='nos3-pill upd' title='A violet dot on a technique card means at " +
+      "least one sub-technique under it changed this sprint. Hover the dot for what " +
+      "changed.'>● updated this sprint</span>";
     const slot = document.getElementById("nos3-embed") || document.body;
     slot.appendChild(L);
   }
@@ -8597,6 +8766,17 @@ window.NOS3_COVERAGE = {
     ".nos3-pill{font-family:var(--font-mono,monospace);font-size:.64rem;font-weight:600;padding:.1rem .4rem;" +
     "border-radius:4px;border:1px solid transparent;white-space:nowrap;display:inline-block;" +
     "min-width:1.1em;text-align:center}" +
+    // updated-this-sprint marker: a small violet dot beside the count pills plus a
+    // quiet inset edge on the card. Violet is unused by any status colour, so the
+    // two channels never collide. Kept low-contrast on purpose — visible when
+    // scanning the matrix, not shouting over the verdict pills.
+    ".nos3-legend-sep{display:inline-block;width:1px;height:.9rem;vertical-align:middle;" +
+    "background:var(--border-color,#2a3344);margin:0 .35rem}" +
+    ".nos3-upd{color:#8b5cf6;font-size:.7rem;line-height:1;cursor:help;" +
+    "align-self:center;text-shadow:0 0 6px rgba(139,92,246,.55)}" +
+    ".technique-card.nos3-updated{box-shadow:inset 3px 0 0 rgba(139,92,246,.75)}" +
+    ".nos3-pill.upd{background:rgba(139,92,246,.16);color:#7c3aed;" +
+    "border-color:rgba(139,92,246,.45)}" +
     ".nos3-pill.na{background:transparent;color:#64748b;border:1px dashed rgba(148,163,184,.6)}" +
     ".nos3-pill.none{background:rgba(59,130,246,.15);color:#2563eb;border-color:rgba(59,130,246,.45)}" +
     pillCss +

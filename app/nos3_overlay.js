@@ -136,6 +136,27 @@
     // Place the pills inline next to the technique ID (not on their own line):
     // wrap the id + pills together so the header's space-between keeps them left
     // and the base sub-technique-count indicator right.
+    // "Updated this sprint" marker. A parent card gets a dot when ANY leaf under
+    // it changed, so the matrix can be scanned for what moved without diffing.
+    // Deliberately a separate visual channel from the status pills: violet is not
+    // used by any verdict colour, so it reads as "changed", not as good or bad.
+    const upd = leavesFor(id)
+      .map((lid) => COV[lid])
+      .filter((c) => c && c.updated);
+    if (upd.length) {
+      const sprint = (upd[0].updated_sprint) || "this sprint";
+      const tip = upd.length + " sub-technique" + (upd.length > 1 ? "s" : "") +
+        " updated in " + sprint + ":\n\n" +
+        leavesFor(id).filter((lid) => COV[lid] && COV[lid].updated)
+          .map((lid) => "• " + lid + " — " + COV[lid].updated).join("\n\n");
+      const dot = document.createElement("span");
+      dot.className = "nos3-upd";
+      dot.title = tip;
+      dot.textContent = "●";
+      el.appendChild(dot);
+      card.classList.add("nos3-updated");
+    }
+
     const header = card.querySelector(".technique-header");
     const idEl = header && header.querySelector(".technique-id");
     if (header && idEl) {
@@ -248,7 +269,11 @@
       "<span class='nos3-pill miss'>not detected</span>" +
       "<span class='nos3-pill none'>not evaluated</span>" +
       "<span class='nos3-pill oos'>out of scope</span>" +
-      "<span class='nos3-pill na'>not applicable</span>";
+      "<span class='nos3-pill na'>not applicable</span>" +
+      "<span class='nos3-legend-sep'></span>" +
+      "<span class='nos3-pill upd' title='A violet dot on a technique card means at " +
+      "least one sub-technique under it changed this sprint. Hover the dot for what " +
+      "changed.'>● updated this sprint</span>";
     const slot = document.getElementById("nos3-embed") || document.body;
     slot.appendChild(L);
   }
@@ -276,6 +301,17 @@
     ".nos3-pill{font-family:var(--font-mono,monospace);font-size:.64rem;font-weight:600;padding:.1rem .4rem;" +
     "border-radius:4px;border:1px solid transparent;white-space:nowrap;display:inline-block;" +
     "min-width:1.1em;text-align:center}" +
+    // updated-this-sprint marker: a small violet dot beside the count pills plus a
+    // quiet inset edge on the card. Violet is unused by any status colour, so the
+    // two channels never collide. Kept low-contrast on purpose — visible when
+    // scanning the matrix, not shouting over the verdict pills.
+    ".nos3-legend-sep{display:inline-block;width:1px;height:.9rem;vertical-align:middle;" +
+    "background:var(--border-color,#2a3344);margin:0 .35rem}" +
+    ".nos3-upd{color:#8b5cf6;font-size:.7rem;line-height:1;cursor:help;" +
+    "align-self:center;text-shadow:0 0 6px rgba(139,92,246,.55)}" +
+    ".technique-card.nos3-updated{box-shadow:inset 3px 0 0 rgba(139,92,246,.75)}" +
+    ".nos3-pill.upd{background:rgba(139,92,246,.16);color:#7c3aed;" +
+    "border-color:rgba(139,92,246,.45)}" +
     ".nos3-pill.na{background:transparent;color:#64748b;border:1px dashed rgba(148,163,184,.6)}" +
     ".nos3-pill.none{background:rgba(59,130,246,.15);color:#2563eb;border-color:rgba(59,130,246,.45)}" +
     pillCss +

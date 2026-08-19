@@ -67,6 +67,25 @@ ENRICH = {
     "DE-0003.12": ("OUT-OF-SCOPE", "CONCEPTUAL",   None, "Poison AI/ML training"),
 }
 
+# ── Techniques whose coverage assessment CHANGED this sprint ────────────────
+# Drives the "updated" marker on the main matrix: a parent technique card shows a
+# dot when any sub-technique under it changed, so a reader scanning the matrix can
+# see where to look without diffing. Reason strings surface in the tooltip.
+# Clear this dict at the start of each sprint.
+UPDATED_SPRINT = "Sprint 27"
+UPDATED = {
+    "EX-0012.07": "IF vindicated in steady flight: +77.5 +/- 3.6 lift across 3 runs "
+                  "(~80% of attack frames vs ~1% nominal).",
+    "EX-0012.08": "Detector attribution corrected: caught by rule-gate R14 (mode-force), "
+                  "not the anomaly detector — IF lift ~0 in steady flight.",
+    "EX-0012.09": "CONFIRMED GAP: catch rate 99% -> 0%. Detected by nothing in steady "
+                  "flight (0/3 reps, no IF lift, no rule fired). Ticketed AINOS3-87.",
+    "EX-0014.04": "Detector attribution corrected: caught by rule-gate R1 (GPS disable), "
+                  "not the anomaly detector — IF lift ~0 in steady flight.",
+    "DE-0005":    "New detection: rule-gate R14 mode-force, plus the R14 mode-flap "
+                  "sub-rule for repeated forced transitions (AINOS3-77).",
+}
+
 # ── Section-A gate-detected techniques (coverage-validation campaign, AINOS3-50…62,
 # live-verified through 2026-07-17). The deployed per-mode IF MISSES these by design —
 # their footprint is a discrete flag/counter/freeze/spoof the dynamics model doesn't
@@ -194,6 +213,7 @@ def main():
             "incident_detected": det,
             "incident_total": n,
             "incident_recall": pa.get("recall"),
+            "updated": UPDATED.get(tid), "updated_sprint": UPDATED_SPRINT if tid in UPDATED else None,
             "label_ok": pa.get("label_ok"),
             "cluster": cluster_of.get(tid),
             "explanation": explain_of.get(tid, ""),  # NOS3-312
@@ -211,6 +231,7 @@ def main():
             "name": label, "tier": "RULE-GATE", "signal": "ON_BOARD",
             "frame_rate": frame_rate, "incident_detected": None, "incident_total": None,
             "incident_recall": None, "label_ok": None,
+            "updated": UPDATED.get(tid), "updated_sprint": UPDATED_SPRINT if tid in UPDATED else None,
             "cluster": cluster_of.get(tid), "explanation": "",
             "review": "Caught by " + detector + " (dynamics-IF blind by design).",
             "gate": detector,
@@ -226,6 +247,7 @@ def main():
             "frame_rate": None, "incident_detected": None, "incident_total": None,
             "incident_recall": None, "label_ok": None, "cluster": None,
             "explanation": "", "review": REVIEW.get(tid, ""),
+            "updated": UPDATED.get(tid), "updated_sprint": UPDATED_SPRINT if tid in UPDATED else None,
         }
 
     meta = {
@@ -234,6 +256,8 @@ def main():
         "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3_hybrid (AINOS3-37 selective per-mode)",
         "incident_recall_headline": rescore.get("incident_detection_recall"),
         "n_techniques": len(coverage),
+        "updated_sprint": UPDATED_SPRINT,
+        "updated_techniques": sorted(UPDATED),
         # AINOS3-80: every displayed number states how it was measured. Tags:
         # OOF = out-of-fold · live-soak = independent nominal flight ·
         # in-sample = measured on fitted data · design-target = a configured
