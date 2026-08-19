@@ -74,6 +74,18 @@ ENRICH = {
 # Clear this dict at the start of each sprint.
 UPDATED_SPRINT = "Sprint 27"
 UPDATED = {
+    # AINOS3-78 — the .03/.04/.05 sibling cluster's *labeling* regressed under the
+    # deployed hybrid. Detection (frame_rate) is unchanged; this is a classifier
+    # finding only, and the mitigation is recommended but NOT deployed.
+    "EX-0012.03": "Cluster labeling regressed under the deployed hybrid (AINOS3-78). "
+                  "Detection unchanged; naming is the affected half. Loss is entirely "
+                  "INERTIAL (-20.9 pts frame-level); mitigation recommended, not deployed.",
+    "EX-0012.04": "Cluster labeling regressed under the deployed hybrid (AINOS3-78). "
+                  "Detection unchanged; naming is the affected half. Loss is entirely "
+                  "INERTIAL (-20.9 pts frame-level); mitigation recommended, not deployed.",
+    "EX-0012.05": "Cluster labeling regressed under the deployed hybrid (AINOS3-78). "
+                  "Detection unchanged; naming is the affected half. Loss is entirely "
+                  "INERTIAL (-20.9 pts frame-level); mitigation recommended, not deployed.",
     "EX-0012.07": "IF vindicated in steady flight: +77.5 +/- 3.6 lift across 3 runs "
                   "(~80% of attack frames vs ~1% nominal).",
     "EX-0012.08": "Detector attribution corrected: caught by rule-gate R14 (mode-force), "

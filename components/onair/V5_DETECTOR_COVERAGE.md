@@ -7,7 +7,11 @@ per-mode heads) + the four parallel detector gates (rule-gate R1–R14,
 consistency-check, staleness-check) currently deployed in the OnAIR plugin against
 the NOS3 cFS flight software.
 
-**Last updated:** 2026-08-15 — a 24-run replication **resolved** the question of whether the
+**Last updated:** 2026-08-19 — folded in AINOS3-78: the `EX-0012.{03,04,05}` sibling
+cluster's *labeling* regressed under the deployed hybrid, the loss is **entirely INERTIAL**,
+and the mitigation is recommended but **not deployed** (Section B.1). Detection is unaffected.
+
+**Previously:** 2026-08-15 — a 24-run replication **resolved** the question of whether the
 catch rates only measure manoeuvre transients (they do not; boxed note in Section 2), but
 found that the Catch column **credits the IF with rule-gate detections** and that
 **`EX-0012.09` is detected by nothing** in steady flight. Added R14 mode-force + flapping
@@ -103,7 +107,7 @@ that still holds, **for INERTIAL it does not**.
 > all. In-sample threshold calibration (AINOS3-80 **F1**) contributes but does not explain
 > 33.6 %; candidate second factors are a training gap (19,641 rows from a single 116-min
 > session), a missing commanded target quaternion that our tooling never sends, or genuinely
-> long settling. Ticketed as `inertial-false-alarms` (High).
+> long settling. Ticketed as AINOS3-86 (High).
 > ⚠ **Do not fix by tightening the threshold** — that drives INERTIAL's false alarms to 0.00 %
 > but collapses its attack detection 60×. Earlier AINOS3-81 detail:
 > [`AINOS3_81_HYBRID_DRIFT_SOAK.md`](AINOS3_81_HYBRID_DRIFT_SOAK.md).
@@ -358,6 +362,19 @@ matter differently:
    indistinguishable — so the real value is **correct expectation-setting**
    (don't promise ".03 vs .04" resolution that the telemetry can't support),
    not a large metric bump.
+
+   ⚠ **The deployed hybrid made this cluster worse, and that is now diagnosed
+   (AINOS3-78, 2026-08-19).** The AINOS3-37 per-mode hybrid nets +1.0 pt overall
+   but *loses* 6.0 pts on this cluster (45.5 % → 39.5 % frame-level). The loss is
+   **entirely INERTIAL** (44.0 % → 23.1 %, −20.9); SUNSAFE is flat and the two
+   globally-routed modes are unchanged by construction. It is **not** row
+   starvation — INERTIAL holds 5,564 cluster rows, more than SUNSAFE. The cause
+   is loss of **cross-mode transfer**: a cluster this telemetry-ambiguous leans on
+   pooled signal, and specialising to one mode removes what was carrying it (same
+   mechanism AINOS3-33 found for PASSIVE). Routing **SUNSAFE only** recovers
+   essentially the whole cluster loss for −0.23 pts overall — recommended, **not
+   deployed**, and gated on reconciling the frame-level vs LOIO metrics first.
+   **Detection is unaffected** — this is the naming half only.
 2. **Nominal-ambiguous — no distinct on-board signal at all.** Techniques like
    `DE-0003.03/.08/.09`, `EX-0014.03`, `EX-0012.08` produce telemetry that
    looks like *nominal* flight. Clustering cannot help these — only better
@@ -513,12 +530,12 @@ steady flight.
 |---|--:|---|---|---|
 | EX-0008.01 ATS | 91 % | HIGH-VAR | ON_BOARD | |
 | EX-0008.02 RTS | 91 % | **ROBUST** | ON_BOARD | reliably caught & labeled |
-| EX-0012.03 prop cmd | < 25 % | sibling | ON_BOARD | ≡ .04/.05 cluster |
-| EX-0012.04 app tables | 63 % | DEAD→sibling | ON_BOARD | ≡ .03/.05 family |
-| EX-0012.05 scheduler | 64 % | sibling | ON_BOARD | ≡ .03/.04 family |
+| EX-0012.03 prop cmd | < 25 % | sibling | ON_BOARD | ≡ .04/.05 cluster; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
+| EX-0012.04 app tables | 63 % | DEAD→sibling | ON_BOARD | ≡ .03/.05 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
+| EX-0012.05 scheduler | 64 % | sibling | ON_BOARD | ≡ .03/.04 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
 | EX-0012.07 propulsion | 100 % | HIGH-VAR | ON_BOARD | always detected |
 | EX-0012.08 ADCS | 100 % | HIGH-VAR | ON_BOARD | always detected; label unstable across runs |
-| EX-0012.09 EPS | ⚠ **0 %** | HIGH-VAR | ON_BOARD | **CONFIRMED GAP** — detected by nothing in steady flight (0/3 reps); the 99 % came from transient-dominated data. Ticketed `detect-eps-switch` |
+| EX-0012.09 EPS | ⚠ **0 %** | HIGH-VAR | ON_BOARD | **CONFIRMED GAP** — detected by nothing in steady flight (0/3 reps); the 99 % came from transient-dominated data. Ticketed AINOS3-87 |
 | EX-0012.12 system clock | 57 % | sibling | ON_BOARD | ≡ EX-0014.01 |
 | EX-0014.01 time spoof | 26 % | DEAD→sibling | ON_BOARD | ≡ EX-0012.12 |
 | EX-0014.03 sensor spoof | 91 % | nominal-amb. | ON_BOARD | detected, not labelable |
