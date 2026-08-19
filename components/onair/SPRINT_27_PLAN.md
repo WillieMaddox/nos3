@@ -57,7 +57,7 @@ signal-feasibility work and has been split out under the slug `signal-feasibilit
 | AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion (signal lever) |
 | — | signal-feasibility | Story | High | 5 | 1.5 | ✅ DONE — 17-attack 359-col corpus + 7-arm ablation → **NO-GO (documented NULL)**; no block beats split noise. ⚠ **split out of AINOS3-30 on 2026-08-19** — needs its own Jira key |
 | AINOS3-77 | mode-transition-rule | Task | High | 3 | 1.0 | ✅ DONE — **R14 live** (debounced `ADCS_GNC.Mode` → DE-0005); IF verified blind across the transition |
-| AINOS3-78 | cluster-345-regression | Spike | Medium | 2 | 0.5 | ○ STRETCH — why the hybrid regressed `EX-0012.{03,04,05}` (label_ok −3); recover or accept |
+| AINOS3-78 | cluster-345-regression | Spike | Medium | 2 | 0.5 | ✅ DONE — regression is **entirely INERTIAL** (−20.9); not data thinning (5,564 rows) but lost cross-mode transfer. **Routing SUNSAFE only recovers it for −0.23 pts overall** |
 | AINOS3-45 | corpus-instance-4 | Task | Medium | 3 | 0.75 | ○ STRETCH — 4th corpus instance, collected at the 382-col schema (feeds signal-feasibility) |
 | AINOS3-68 | deepsad-revisit | Spike | Low | 3 | 0.75 | ○ STRETCH — reopen Phase-5 DeepSAD **only if** signal-feasibility clears the gate |
 | AINOS3-83 | ci-command-feature | Task | Low | 2 | 0.5 | → **BACKLOG** (2026-08-19) — first AC already answered by `signal-feasibility`: no full-`ci` counter moves under `:5012` injection (17 attacks / 41,434 frames), so this points at "document the bypass, close out-of-scope" rather than build |
@@ -265,6 +265,56 @@ recoverable, document it as an accepted trade (net +6 stands).
   net OOF label-accuracy re-measured — or a documented "accept the trade" with rationale.
 - No BDOT/PASSIVE regression re-introduced; if a change deploys, it goes through the same
   live-verify + rollback discipline as the AINOS3-37 cutover.
+
+**Result:** ✅ DONE (2026-08-19). **Root cause found, ticket hypothesis refuted, cheap
+mitigation identified.**
+
+**It is not data thinning.** The ticket proposed "per-mode head starvation — the routing may
+split their already-thin training rows across heads". The rows are not thin: INERTIAL holds
+**5,564** cluster rows (11.86 % of the mode) versus BDOT's 5,849 (11.46 %) — more than
+SUNSAFE — and still performs worst.
+
+**The whole regression is one mode.** Frame-level cluster accuracy, global vs hybrid:
+
+| mode | rows | global | hybrid | Δ | head |
+|---|--:|--:|--:|--:|---|
+| SUNSAFE | 5,195 | 50.3 % | 49.5 % | −0.8 | per-mode |
+| **INERTIAL** | 5,564 | 44.0 % | **23.1 %** | **−20.9** | per-mode |
+| PASSIVE | 3,371 | 29.3 % | 29.3 % | **+0.0** | global (unchanged) |
+| BDOT | 5,849 | 52.0 % | 52.0 % | **+0.0** | global (unchanged) |
+
+PASSIVE and BDOT at exactly +0.0 are the control — they run identical code.
+
+**Mechanism: loss of cross-mode transfer**, with precedent. AINOS3-33 found a PASSIVE-only
+specialist scoring *below* the global model and concluded the global was "propped up by
+cross-mode transfer". `EX-0012.{03,04,05}` is internally telemetry-indistinguishable, so it
+leans on pooled signal more than most classes; specialising to one mode removes exactly what
+was carrying it.
+
+**Mitigation — route SUNSAFE only** (drop INERTIAL from per-mode routing):
+
+| variant | overall | cluster |
+|---|--:|--:|
+| global head only | 61.14 % | 45.49 % |
+| deployed hybrid | **62.15 %** | 39.45 % |
+| hybrid, INERTIAL → global | 61.92 % | **45.27 %** |
+
+Recovers essentially the whole cluster regression for **−0.23 pts overall**. The reason the
+trade is so lopsided: INERTIAL's per-mode head is worth **+0.86** pts overall while costing
+20.9 on this cluster; SUNSAFE's is worth **+3.00** and costs ~nothing. The hybrid's value was
+almost entirely SUNSAFE.
+
+⚠ **Two caveats before anyone deploys this.** (1) These are *frame-level* figures; the
+ticket's metric is *incident-level* `label_ok` on a **6-incident** sample per technique, where
+one flip is a 17 % swing — a 0.23-pt frame change may or may not move it. (2) AINOS3-37
+recorded INERTIAL's gain as **+0.058** (LOIO technique-level) against the **+0.86 pts**
+measured here frame-level; different metrics and not directly comparable, but the gap is
+large enough to reconcile before acting. If the reconciliation holds, dropping INERTIAL from
+routing is nearly free and also simplifies the model to a single per-mode head.
+
+**Not deployed.** Rebuilding the hybrid with `route_modes=['MODE_SUNSAFE']` and live-verifying
+it is beyond this spike's scope; it needs the AINOS3-37 discipline (one-line rollback,
+live-verify). Recommended as a follow-up, not a sprint-27 change.
 
 ### AINOS3-83 — Full-`ci` HK command-ingest detector · `Task` · Low · E 2 · T 0.5 (~4h) · ○ STRETCH
 
