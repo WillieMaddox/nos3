@@ -13,7 +13,7 @@ unusable — for months — and fixing that changed several things we thought we
 
 ---
 
-## 1. `signal-feasibility` — "Would extra data help the AI name attacks better?"
+## 1. AINOS3-88 — "Would extra data help the AI name attacks better?"
 
 **Why we did it.** Our system does two jobs: spot that *something* is wrong, then say *what
 kind* of attack it is. It's good at spotting and weaker at naming. We'd been recording 109
@@ -32,9 +32,9 @@ couldn't tell*: we only ran each attack once, and single measurements wobble too
 detect a small improvement. **The obstacle isn't the AI, it's not having enough data to
 measure with.**
 
-*Housekeeping note: this work was originally logged against a ticket that already belonged to
-different work. It has been split onto its own ticket so the results can't be confused with
-the older ones.*
+*Housekeeping note: this work was originally logged against AINOS3-30, a ticket that already
+belonged to different work and is still open. It was split onto its own ticket (AINOS3-88) so
+the results can't be confused with the older ones.*
 
 ---
 

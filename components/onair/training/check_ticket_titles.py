@@ -77,7 +77,18 @@ def main():
     # the crosswalk updated, and the plan left saying "needs its own Jira key" —
     # invisible to the heading check above, which only matches "### AINOS3-NNN".
     keyed = {slug: k for k, (slug, _t) in cw.items() if slug}
+    # Check the plain-English companion too. It carries the same ticket references
+    # for a non-technical audience, and it drifts the same way — AINOS3-88 was
+    # propagated into the plan but left as a slug there.
+    companion = os.path.join(ROOT, f"SPRINT_{a.sprint}_PLAIN_ENGLISH.md")
     text = open(plan_path, encoding="utf-8").read()
+    if os.path.exists(companion):
+        ctext = open(companion, encoding="utf-8").read()
+        for slug, k in sorted(keyed.items()):
+            if re.search(r"^#+ .*`?" + re.escape(slug) + r"`? +—", ctext, re.M):
+                print(f"  {slug} has key {k} but SPRINT_{a.sprint}_PLAIN_ENGLISH.md "
+                      f"still heads a section with the slug")
+                bad += 1
     for slug, k in sorted(keyed.items()):
         stale = []
         if re.search(r"^### " + re.escape(slug) + r" +—", text, re.M):
