@@ -507,6 +507,10 @@ tickets.
 | AINOS3-85 | actuator-saturation-fidelity | Spike | 2 | 0.5 | The EX-0005.02 RW-torque path didn't build a real body tumble; find an injection that reaches actuator saturation (tests the within-mode-recovery vs no-FDIR boundary) |
 | — | inertial-false-alarms | Story | 5 | 1.5 | **HIGH** — INERTIAL nominal FP measured **33.6 %**; mode currently unusable for detection. Settling hypothesis refuted |
 | — | detect-eps-switch | Story | 3 | 1.0 | EX-0012.09 EPS switch toggle is detected by **nothing** in steady flight (0/3 reps) despite a published 99 % catch rate |
+| — | catch-rate-provenance-gap | Spike | 3 | 0.75 | Published per-technique catch rates disagree with measurement in **both** directions — `EX-0014.04` 98 % vs 7.4 % |
+| — | verify-nominal-incident-filter | Task | 1 | 0.25 | Does the operator view filter `cluster=nominal`? Decides whether INERTIAL's 71 false incidents/hr are user-visible |
+| — | startracker-inert-fields | Spike | 2 | 0.5 | 5 `ST_DEV` fields constant corpus-wide — an ADCS sensor reporting nothing |
+| — | soak-drift-hz | Task | 1 | 0.25 | `analyze_soak_drift.py --hz` default 4.2 vs true ~5.6 — every uptime bin mislabelled ~33 % |
 
 `AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility`
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
@@ -625,6 +629,97 @@ First establish the on-board footprint, because the outcome forks:
   matrix, with the evidence and a note on which MID would be needed.
 - Either way, the published 99 % catch rate is corrected to what is actually measured.
 
+### catch-rate-provenance-gap — Published catch rates disagree with measurement · `Spike` · Medium · E 3 · T 0.75 (~6h)
+
+**Summary:** As an analyst, I want to know why published per-technique catch rates disagree
+with fresh measurement **in both directions**, because until that is explained no
+per-technique number in the coverage doc can be quoted with confidence.
+
+**Description:** Measuring the same techniques on the 2026-08-11 corpus at the deployed
+threshold gave results that diverge sharply from the published table, and not consistently:
+
+| technique | published | measured | direction |
+|---|--:|--:|---|
+| EX-0014.04 PNT | 98 % | **7.4 %** | far worse |
+| DE-0003.06 | < 25 % | **48.7 %** | far better |
+
+A 90-point gap is too large for instance variance. Candidate causes: the attack script
+behaves differently between collections (the Section-A campaign vs the weak-class corpus);
+the published numbers came from a different corpus or a different threshold; or the
+corruption-window labelling differs. This is distinct from the transient confound already
+resolved by the steady-flight replication — these are same-corpus, same-threshold
+comparisons.
+
+**Acceptance Criteria:**
+
+- Cause identified for at least the `EX-0014.04` case, the largest gap.
+- Determine whether the published table, the recent corpus, or both are unrepresentative.
+- Every per-technique catch rate in `V5_DETECTOR_COVERAGE.md` either re-derived from a named
+  corpus with a provenance tag, or explicitly marked as unverified.
+- Note recorded in `AINOS3_80_METRIC_PROVENANCE.md`, which owns the provenance register.
+
+### verify-nominal-incident-filter — Is `cluster=nominal` filtered from the operator view? · `Task` · Medium · E 1 · T 0.25 (~2h)
+
+**Summary:** As an operator, I want to know whether incidents labelled `cluster=nominal`
+reach the operator display, because that single fact decides whether INERTIAL's **71 false
+incidents per hour** are an invisible annoyance or a credibility problem.
+
+**Description:** The AINOS3-81 soak raised 81 false incidents in 7 h of nominal flight — 71 of
+them in a single hour of INERTIAL — all labelled `cluster=nominal`. If the overlay / operator
+view filters those out, the impact is confined to log volume. If it does not, the monitor
+cries wolf roughly once a minute in that mode, which would dominate any stakeholder
+impression of reliability. **We have not checked.** Cheap to answer and it re-prioritises
+`inertial-false-alarms` (AINOS3-86) either way.
+
+**Acceptance Criteria:**
+
+- Determine, from the deployed overlay/reporter path, whether `cluster=nominal` incidents are
+  surfaced or suppressed. Evidence, not inference.
+- If surfaced: raise the priority of AINOS3-86 and note the operator impact in
+  `V5_DETECTOR_COVERAGE.md`.
+- If suppressed: record where the filter lives, so it is not removed by accident later.
+
+### startracker-inert-fields — 5 `ST_DEV` star-tracker fields are constant · `Spike` · Medium · E 2 · T 0.5 (~4h)
+
+**Summary:** As a defender, I want to know why five star-tracker fields never change, because
+an ADCS-relevant sensor reporting nothing is either a dead subscription or a blind spot, and
+both matter.
+
+**Description:** In the 41,434-row weak-class corpus, `ST_DEV.Generic_star_tracker.IsValid`
+and `.Q0`–`.Q3` are **constant across every frame**. Found incidentally during the
+signal-feasibility ablation, where 15 of 109 added columns were inert — the other ten are
+explained (6 `CFE_TBL` known-dormant, 4 `TORQUER`), these five are not. A star tracker
+supplies attitude quaternions; if it genuinely produces nothing, any attack on it is
+invisible, and the fused `ADCS_DI` view may be carrying the whole attitude signal alone.
+
+**Acceptance Criteria:**
+
+- Determine whether the star tracker is emitting and OnAIR is mis-parsing, or the sim never
+  populates the fields (compare against the FSW struct as done for `TO_HkTlm_t` in
+  AINOS3-30/88).
+- If mis-parsed: fix the schema and confirm the fields move.
+- If never populated: record it, and reclassify any star-tracker technique that depends on
+  them as UNSUBSCRIBED rather than covered.
+
+### soak-drift-hz — `analyze_soak_drift.py` uses the wrong sample rate · `Task` · Low · E 1 · T 0.25 (~2h)
+
+**Summary:** As an analyst, I want the drift tool to derive the frame rate from the data,
+because its hardcoded 4.2 Hz default mislabels every uptime bin by about a third.
+
+**Description:** Measured against legs of known wall-clock duration, the true rate is
+**~5.6 Hz** (5.36–5.79 across modes), not the 4.2 Hz default. At 4.2 a bin labelled
+"T+30–60 min" actually covers roughly T+22–45 min. It does not change any pass/fail verdict —
+drift is judged on the trend, not the bin labels — but every published drift table has
+mislabelled time axes, and the AINOS3-81 figures were only correct because `--hz 5.6` was
+passed explicitly.
+
+**Acceptance Criteria:**
+
+- Rate derived from the side file (frame count ÷ elapsed wall-clock) rather than assumed;
+  `--hz` retained as an override.
+- Warn when the derived rate differs from any supplied `--hz` by more than ~10 %.
+- Any drift table already published with the 4.2 default is re-checked or annotated.
+
 ### AINOS3-85 — Reach actuator saturation for the recovery-boundary test · `Spike` · Backlog · E 2 · T 0.5 (~4h)
 
 **Summary:** As a security researcher, I want an injection that drives the ADCS into genuine
@@ -653,7 +748,8 @@ fires.
 
 ## Findings this sprint that had no ticket (2026-08-11)
 
-The hardening half produced more than it was scoped to. These are **unticketed** — they
+The hardening half produced more than it was scoped to. Ticketing status is in the right-hand column; the three-item chain (1–3) is covered by
+`AINOS3-86` plus the follow-on above. They
 need keys before Sprint 28 planning. The first three are one causal chain and probably want
 a single ticket.
 
@@ -662,9 +758,9 @@ a single ticket.
 | 1 | **IF threshold calibrated in-sample** — calibration rows == training rows in all 4 modes; the doc claimed held-out. ⚠ **Scope enlarged 2026-08-14: all four thresholds are mis-set, in different directions** — see follow-on below | AINOS3-80 F1 | **High** |
 | 2 | **INERTIAL FP regression 0.54 %** (raw 7.5 %, 7.5× its calibration target) vs a documented 0.00 %; 71 false incidents/hour | AINOS3-81 | **High** |
 | 3 | **IF training corpus unrecorded** — no csv-dir/manifest/dates in the pickle, so 4 headline metrics are `[unverifiable]` | AINOS3-80 F2 | **High** |
-| 4 | `analyze_soak_drift.py --hz` defaults to 4.2; true rate ~5.6 Hz → uptime bins mislabelled ~33 % | AINOS3-81 | Low |
-| 5 | 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`) constant corpus-wide — an ADCS sensor reporting nothing | signal-feasibility | Medium |
-| 6 | Operator-facing filtering of `cluster=nominal` incidents **unverified** — determines whether finding 2 is user-visible | AINOS3-81 | Medium |
+| 4 | `analyze_soak_drift.py --hz` defaults to 4.2; true rate ~5.6 Hz → uptime bins mislabelled ~33 % | AINOS3-81 | Low → **`soak-drift-hz`** |
+| 5 | 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`) constant corpus-wide — an ADCS sensor reporting nothing | signal-feasibility | Medium → **`startracker-inert-fields`** |
+| 6 | Operator-facing filtering of `cluster=nominal` incidents **unverified** — determines whether finding 2 is user-visible | AINOS3-81 | Medium → **`verify-nominal-incident-filter`** |
 
 **Recommended fix for 1–3:** re-derive the IF threshold on a held-out split of the baseline
 corpus, and persist training inputs into the pickle (mirroring the classifier's

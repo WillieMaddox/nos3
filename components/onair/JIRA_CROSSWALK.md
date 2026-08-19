@@ -90,6 +90,10 @@ Jira 2026-07-15 and entered below.
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Injection that reaches actuator saturation (recovery-boundary test) | Backlog |
 | AINOS3-86 | inertial-false-alarms | Story | detector-rigor | INERTIAL nominal FP 33.6% — mode unusable for detection | Backlog |
 | AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle: detected by nothing in steady flight | Backlog |
+| — | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) — uptime bins off ~33% | Backlog |
+| — | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide — ADCS sensor reporting nothing | Backlog |
+| — | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? Decides if INERTIAL's 71 false incidents/hr are visible | Backlog |
+| — | catch-rate-provenance-gap | Spike | detector-rigor | Published per-technique catch rates disagree with measurement in both directions (EX-0014.04 98% vs 7.4%) | Backlog |
 | AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
