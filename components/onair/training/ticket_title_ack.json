@@ -27,5 +27,6 @@
   "26:AINOS3-70": "Same work. Crosswalk appends the specifics (16 MIDs, pipe cap 32->48, 383 cols).",
   "26:AINOS3-71": "SCOPE CORRECTED, same ticket. Plan says 'DS/FM'; the sprint found the DS premise wrong (DS.FileWriteCounter climbs in nominal and would false-positive) and shipped FM-only. Crosswalk records the corrected scope. Not a reuse - the ticket delivered what it set out to, by a different field.",
   "26:AINOS3-72": "Same work. Crosswalk appends the outcome (R12+R13, re-pointed to full to/ci HK).",
-  "26:AINOS3-75": "Same work. Crosswalk names the three held-outs the plan refers to collectively."
+  "26:AINOS3-75": "Same work. Crosswalk names the three held-outs the plan refers to collectively.",
+  "27:AINOS3-87": "Same work. Crosswalk appends the finding ('nothing catches it in steady flight') to the plan's shorter title; the plan title is the Jira summary."
 }
