@@ -37,7 +37,11 @@ structurally misses.
 
 **Committed items — status:**
 
-- **AINOS3-30 (extra-mids) — ✅ CLOSED, NULL result, DORMANT** (details below). The
+- **AINOS3-30 (extra-mids) — investigation wound up, NULL result, DORMANT.** ⚠ **Corrected
+  2026-08-19: the Jira issue was NEVER closed and remains OPEN.** The original wording here
+  ("✅ CLOSED") meant the Sprint-25 *investigation* was finished, and it was read later as the
+  ticket being closed — which contributed to the key being wrongly reused in Sprint 27. State
+  ticket status only from Jira, never from a plan doc. (details below). The
   16 extra MIDs are subscribed + RECORDING (pipe cap 32→48); the CFE_TBL
   change-detection features read constant-0 (premise disproven — these aren't
   table-load attacks). Not deployed, not reverted.

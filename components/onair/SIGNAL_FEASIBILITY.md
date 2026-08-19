@@ -1,6 +1,6 @@
-# AINOS3-30 — Signal-adding feasibility: **NO-GO (documented NULL)** 📉
+# Signal-adding feasibility: **NO-GO (documented NULL)** 📉
 
-**Ticket:** AINOS3-30 · **Sprint:** 27 · **Date:** 2026-08-11 · **Type:** Story (spike-shaped)
+**Ticket:** slug `signal-feasibility` — ⚠ **split out of `AINOS3-30` on 2026-08-19**; that key belongs to `extra-mids` (still open) and this work needs its own Jira key · **Sprint:** 27 · **Date:** 2026-08-11 · **Type:** Story (spike-shaped)
 
 **Question:** before committing to a retrain, does any recorded-but-unused Section-B MID
 add discrimination for the weak-label classes?

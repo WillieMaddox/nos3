@@ -47,13 +47,15 @@ Read the gap: **T < E** ⇒ sized up for *risk*; **T ≈ E** ⇒ big-but-known.
 **IDs are slugs; Jira keys are the real ticket keys.** The durable slug ↔ Jira-key
 mapping is maintained in **[`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md)** (cross-sprint,
 append-only). The `Jira` column below is a read-only mirror of that file — all Sprint-27
-keys are now assigned (`AINOS3-77`–`AINOS3-85`). Carryover keys (`AINOS3-30`, `AINOS3-45`,
-`AINOS3-68`, `AINOS3-76`) are immutable.
+keys are now assigned (`AINOS3-77`–`AINOS3-85`). Carryover keys (`AINOS3-45`, `AINOS3-68`,
+`AINOS3-76`) are immutable. ⚠ `AINOS3-30` was **wrongly reused** for this sprint's
+signal-feasibility work and has been split out under the slug `signal-feasibility`
+(2026-08-19); `AINOS3-30` itself remains **open** against its original scope.
 
 | Jira | Slug | Type | Pri | E | T | Summary |
 |---|---|---|---|--:|--:|---|
 | AINOS3-41 | coverage-expansion | Epic | — | — | — | Detection coverage expansion (signal lever) |
-| AINOS3-30 | extra-mids | Story | High | 5 | 1.5 | ✅ DONE — signal-feasibility: 17-attack 359-col corpus + 7-arm ablation → **NO-GO (documented NULL)**; no block beats split noise |
+| — | signal-feasibility | Story | High | 5 | 1.5 | ✅ DONE — 17-attack 359-col corpus + 7-arm ablation → **NO-GO (documented NULL)**; no block beats split noise. ⚠ **split out of AINOS3-30 on 2026-08-19** — needs its own Jira key |
 | AINOS3-77 | mode-transition-rule | Task | High | 3 | 1.0 | ✅ DONE — **R14 live** (debounced `ADCS_GNC.Mode` → DE-0005); IF verified blind across the transition |
 | AINOS3-78 | cluster-345-regression | Spike | Medium | 2 | 0.5 | ○ STRETCH — why the hybrid regressed `EX-0012.{03,04,05}` (label_ok −3); recover or accept |
 | AINOS3-45 | corpus-instance-4 | Task | Medium | 3 | 0.75 | ○ STRETCH — 4th corpus instance, collected at the 382-col schema (feeds signal-feasibility) |
@@ -91,7 +93,14 @@ PASSIVE classes, which the evidence (AINOS3-33/39, NOS3-302, the honest-OOF over
 is information-limited. This slice tests, for real, whether the recorded Section-B MIDs
 carry the missing signal — and closes the two gaps this sprint's live work surfaced.
 
-### AINOS3-30 — Signal-adding feasibility (recorded MIDs → weak-class discrimination) · `Story` · High · E 5 · T 1.5 (~12h) · ○ COMMIT
+### signal-feasibility — Signal-adding feasibility (recorded MIDs → weak-class discrimination) · `Story` · High · E 5 · T 1.5 (~12h)
+
+> ⚠ **Key split 2026-08-19.** This section was written under `AINOS3-30`, but that key belongs
+> to `extra-mids` — *"Subscribe extra MIDs to recover DEAD classes"* (E 8 / T 2.5) — which is
+> **still OPEN in Jira** and describes different work. Reusing it here broke the crosswalk's
+> immutability rule. This work is now the slug **`signal-feasibility`** and needs its own Jira
+> key. **Do not close AINOS3-30 against the result below.** See the note at the foot of
+> [`JIRA_CROSSWALK.md`](JIRA_CROSSWALK.md).
 
 **Summary:** As an ML engineer, I want to know — before a full retrain — whether any
 recorded-but-unused Section-B MID adds discrimination for the weak-label classes, so the
@@ -162,7 +171,7 @@ deltas were ever the deliverable, and even those don't resolve. **The binding co
 corpus size, not feature design** — `AINOS3-45` (2nd instance) is now the prerequisite for
 any re-run, and the tooling makes it a re-invocation. `AINOS3-68` (DeepSAD) **stays gated**:
 this spike was its trigger and it did not fire. Full detail:
-[`AINOS3_30_SIGNAL_FEASIBILITY.md`](AINOS3_30_SIGNAL_FEASIBILITY.md).
+[`SIGNAL_FEASIBILITY.md`](SIGNAL_FEASIBILITY.md).
 
 **Incidental:** 15 of 109 added columns are constant corpus-wide — all 6 `CFE_TBL` (known),
 4 `TORQUER`, and 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`). An ADCS-relevant
@@ -170,7 +179,7 @@ sensor reporting nothing is worth its own look. Also **answers AINOS3-83's first
 full-`ci` ingest counter moves under `:5012`-injected commands, across 17 attacks / 41,434
 frames.
 
-### AINOS3-77 — Flag ADCS mode-force (R14) · `Task` · High · E 3 · T 1.0 (~8h) · ○ COMMIT
+### AINOS3-77 — R14: flag ADCS mode-force (SET_MODE) IF blind spot · `Task` · High · E 3 · T 1.0 (~8h) · ○ COMMIT
 
 **Summary:** As a defender, I want an unexpected ADCS mode transition (a forced
 `GENERIC_ADCS SET_MODE`) raised as an alert, because Sprint-26's live work showed a
@@ -336,7 +345,7 @@ headline metrics + the overlay in
   it* (including the hybrid's own +0.018 over the v3 global head). The doc now carries the
   spread.
 - **F4 (new convention clause):** provenance applies to the **error bar**, not just the point
-  estimate. AINOS3-30 produced a correctly-out-of-fold metric whose bootstrap CI was ~3× too
+  estimate. `signal-feasibility` produced a correctly-out-of-fold metric whose bootstrap CI was ~3× too
   narrow because it resampled test rows instead of the split. Intervals must now state what
   was resampled.
 
@@ -388,7 +397,7 @@ drifting), all legs exit 0, 140,631 frames, deployed hybrid confirmed loaded.
 
 Full detail: [`AINOS3_81_HYBRID_DRIFT_SOAK.md`](AINOS3_81_HYBRID_DRIFT_SOAK.md).
 
-### AINOS3-82 — Compare against the Fayyaz CuCD-ID NOS3 dataset · `Spike` · Medium · E 3 · T 1.0 (~8h) · ○ COMMIT
+### AINOS3-82 — Compare vs Fayyaz CuCD-ID NOS3/cFS dataset (Data in Brief 2026) · `Spike` · Medium · E 3 · T 1.0 (~8h) · ○ COMMIT
 
 **Summary:** As an ML engineer, I want a structured comparison of our detector against the
 Fayyaz et al. (2026) CuCD-ID NOS3/cFS dataset + method — the closest published benchmark on
@@ -463,7 +472,7 @@ family.
 
 ## 🟪 EPIC AINOS3-42 — Stakeholder rollout & feedback (recurring)
 
-### AINOS3-76 — Stakeholder rollout (carryover) · `Task` · Medium · E 2 · T 0.5 (~4h) · ○ COMMIT
+### AINOS3-76 — Stakeholder rollout — Sprint 26 · `Task` · Medium · E 2 · T 0.5 (~4h) · ○ COMMIT
 
 **Summary:** Present the Sprint-26 result — Section-B detections, the live hybrid, and the
 honest-OOF overlay correction — and capture feedback as backlog.
@@ -495,7 +504,7 @@ tickets.
 | — | inertial-false-alarms | Story | 5 | 1.5 | **HIGH** — INERTIAL nominal FP measured **33.6 %**; mode currently unusable for detection. Settling hypothesis refuted |
 | — | detect-eps-switch | Story | 3 | 1.0 | EX-0012.09 EPS switch toggle is detected by **nothing** in steady flight (0/3 reps) despite a published 99 % catch rate |
 
-`AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility` (AINOS3-30)
+`AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility`
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
 CFE_TBL table (reviving the dormant change-detect feature).
 
@@ -512,7 +521,7 @@ overall, but a few *pure bus-activity* features MASK real signal — dropping `C
 and the global EVS rate raised EX-0014.04 (PNT) F1 and helped IMP-0003 (denial) / IMP-0006
 (theft). This is a scoped, low-risk retrain: remove only the demonstrably-harmful pure
 bus-activity features (not the genuine per-app streams), retrain, and confirm LOIO shows no
-regression elsewhere before any deploy. Best folded into the AINOS3-30 retrain if that clears,
+regression elsewhere before any deploy. Best folded into a `signal-feasibility` retrain if that clears,
 to avoid a redundant retrain/deploy cycle.
 
 **Acceptance Criteria:**
@@ -650,7 +659,7 @@ a single ticket.
 | 2 | **INERTIAL FP regression 0.54 %** (raw 7.5 %, 7.5× its calibration target) vs a documented 0.00 %; 71 false incidents/hour | AINOS3-81 | **High** |
 | 3 | **IF training corpus unrecorded** — no csv-dir/manifest/dates in the pickle, so 4 headline metrics are `[unverifiable]` | AINOS3-80 F2 | **High** |
 | 4 | `analyze_soak_drift.py --hz` defaults to 4.2; true rate ~5.6 Hz → uptime bins mislabelled ~33 % | AINOS3-81 | Low |
-| 5 | 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`) constant corpus-wide — an ADCS sensor reporting nothing | AINOS3-30 | Medium |
+| 5 | 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`) constant corpus-wide — an ADCS sensor reporting nothing | signal-feasibility | Medium |
 | 6 | Operator-facing filtering of `cluster=nominal` incidents **unverified** — determines whether finding 2 is user-visible | AINOS3-81 | Medium |
 
 **Recommended fix for 1–3:** re-derive the IF threshold on a held-out split of the baseline
@@ -659,7 +668,7 @@ corpus, and persist training inputs into the pickle (mirroring the classifier's
 converts four `[unverifiable]` metrics into verifiable ones. Re-soak INERTIAL to confirm.
 
 **Also re-scoped by results:** `AINOS3-45` (2nd corpus instance) is promoted from stretch to
-**prerequisite** for any AINOS3-30 re-run — corpus size, not feature design, is the binding
+**prerequisite** for any `signal-feasibility` re-run — corpus size, not feature design, is the binding
 constraint. `AINOS3-83` has its first AC answered (**no** full-`ci` counter movement under
 `:5012` injection), pointing it at "document the bypass and close out-of-scope" unless
 genuine ground-link commanding is tested. `AINOS3-68` **stays gated**.
@@ -668,7 +677,7 @@ genuine ground-link commanding is tested. `AINOS3-68` **stays gated**.
 
 ## Follow-on work agreed 2026-08-14
 
-### AINOS3-30 follow-on — two more collection rounds
+### signal-feasibility follow-on — two more collection rounds
 
 Round 1 could not resolve a 2-point effect because every technique executed **once**. Agreed:
 collect **two further rounds** (3 total) so leave-one-instance-out becomes possible and the
@@ -682,7 +691,7 @@ existing tooling, no new code.
 
 `training/recalibrate_heldout.py` + `training/roc_threshold_sweep.py`. Thresholds re-derived
 on **held-out** nominal (soak part A picks, part B measures — part B chose nothing), then
-paired with attack detection measured on the AINOS3-30 corruption windows.
+paired with attack detection measured on the `signal-feasibility` corpus corruption windows.
 
 **Result — the "cheap fix" was wrong, twice over.**
 

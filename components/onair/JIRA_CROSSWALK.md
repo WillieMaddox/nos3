@@ -56,7 +56,7 @@ Jira 2026-07-15 and entered below.
 | Jira | Slug | Type | Epic (parent) | Title | Status |
 |---|---|---|---|---|---|
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
-| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | ◑ Committed |
+| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | **OPEN** (see note) |
 | AINOS3-32 | explainability | Epic | — | Explainability (Phase 7) | — |
 | AINOS3-48 | appdata-slot-map | Task | explainability | EVS AppData slot→app reference map | ✅ Done |
 | AINOS3-31 | classification-trust | Epic | — | Classification trust (close the mode gap) | — |
@@ -83,6 +83,7 @@ Jira 2026-07-15 and entered below.
 | AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Sprint 27 |
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | AINOS3-39 follow-up: retrain dropping harmful bus-activity features | Backlog |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Injection that reaches actuator saturation (recovery-boundary test) | Backlog |
+| — | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 ✅ Done |
 | — | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle: detected by nothing in steady flight | Backlog |
 | — | inertial-false-alarms | Story | detector-rigor | INERTIAL nominal FP 33.6% — mode unusable for detection | Backlog |
 
@@ -138,7 +139,7 @@ detailed ticket writeups (Summary/Description/AC + actuals) are in
 | AINOS3-38 | shap-attribution | Story | explainability | Per-incident SHAP attribution (offline) | ✅ Done |
 | AINOS3-40 | surface-explanations | Story | explainability | Surface explanations in incident + demo | ✅ Done |
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
-| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | Backlog |
+| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | **OPEN** (see note) |
 | AINOS3-69 | next-ml-bet | Spike | — | Next big-ML bet (Phase 5/6 vs consolidate) | ✅ Done |
 | AINOS3-42 | stakeholder-rollout | Epic | — | Stakeholder rollout & feedback (recurring) | — |
 | AINOS3-43 | rollout-s24 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 24 | Ready |
@@ -169,3 +170,23 @@ Sprint 24 and are listed above.
 | AINOS3-28 | sparta-demo-app | Epic | — | SPARTA demo app | — |
 | AINOS3-29 | demo-tier-a | Story | sparta-demo-app | Demo app Tier A with real results | ✅ Done |
 | — | sunsafe-pivot | Spike | — | SUNSAFE-only pivot decision | ✅ Resolved |
+
+---
+
+## ⚠ AINOS3-30 — key reuse, split 2026-08-19
+
+`AINOS3-30` (`extra-mids`, *"Subscribe extra MIDs to recover DEAD classes"*) **is OPEN in
+Jira and has never been closed.** `SPRINT_25_PLAN.md` describes it as "✅ CLOSED, NULL result,
+DORMANT" — that refers to the Sprint-25 *investigation* being wound up, **not** to the Jira
+issue, and it is misleading. Corrected there too.
+
+Sprint 27 then reused the key for materially different work — collect a 359-column
+weak-class corpus and ablate five candidate feature blocks (E 5 / T 1.5, vs the original
+E 8 / T 2.5). That violated this file's immutability rule: a key is bound to one slug and one
+scope, permanently.
+
+**Resolution:** the Sprint-27 work is split out under the new slug **`signal-feasibility`**
+and needs its own Jira key. `AINOS3-30` reverts to its original scope and stays **open**;
+nothing done in Sprint 27 should be used to close it.
+
+**Do not close AINOS3-30 against the Sprint-27 results.** They answer a different question.
