@@ -60,7 +60,7 @@ signal-feasibility work and has been split out under the slug `signal-feasibilit
 | AINOS3-78 | cluster-345-regression | Spike | Medium | 2 | 0.5 | ○ STRETCH — why the hybrid regressed `EX-0012.{03,04,05}` (label_ok −3); recover or accept |
 | AINOS3-45 | corpus-instance-4 | Task | Medium | 3 | 0.75 | ○ STRETCH — 4th corpus instance, collected at the 382-col schema (feeds signal-feasibility) |
 | AINOS3-68 | deepsad-revisit | Spike | Low | 3 | 0.75 | ○ STRETCH — reopen Phase-5 DeepSAD **only if** signal-feasibility clears the gate |
-| AINOS3-83 | ci-command-feature | Task | Low | 2 | 0.5 | ○ STRETCH — turn the full-`ci` HK (0x0884, now on-pipe) into a command-ingest detector |
+| AINOS3-83 | ci-command-feature | Task | Low | 2 | 0.5 | → **BACKLOG** (2026-08-19) — first AC already answered by `signal-feasibility`: no full-`ci` counter moves under `:5012` injection (17 attacks / 41,434 frames), so this points at "document the bypass, close out-of-scope" rather than build |
 | AINOS3-79 | detector-rigor | Epic | — | — | — | Detector hardening & measurement honesty |
 | AINOS3-80 | metric-provenance-audit | Spike | Medium | 2 | 0.5 | ✅ DONE — 2 material findings: IF threshold calibrated **in-sample** (doc claimed held-out); IF training corpus **unrecorded** |
 | AINOS3-81 | hybrid-drift-soak | Task | Medium | 1 | 0.25 | ✅ DONE — 7 h soak: **no drift** (margin widens); ⚠ **INERTIAL FP regression 0.54 %** vs documented 0.00 % |
@@ -73,11 +73,15 @@ metric-provenance-audit 2 · hybrid-drift-soak 1 · benchmark-fayyaz 3 · AINOS3
 T ≈ **4.75** — right at the ~16 E / ~7–8 T capacity, leaving headroom for the
 signal-feasibility corpus run's unattended wall-clock.
 
-**Status (2026-08-11): 5 of 6 committed items ✅ DONE** (E = 14 of 16). Only **AINOS3-76**
-(stakeholder rollout) remains — owner action, slipped a second sprint. No stretch items
-attempted. The sprint's headline outcome is not the one planned: the signal lever returned
-a **NULL**, while the *hardening* half surfaced four defects nobody had tickets for — see
-below.
+**Status (2026-08-19, reconciled against Jira): 5 of 6 committed items ✅ DONE.**
+`AINOS3-77` · `AINOS3-80` · `AINOS3-81` · `AINOS3-82` · `AINOS3-88` (signal-feasibility, split
+out of AINOS3-30) are **Done**. **`AINOS3-76`** (stakeholder rollout, owner action) and
+**`AINOS3-78`** (cluster-345 regression, stretch) are **To Do**. Everything else —
+`AINOS3-30`, `-45`, `-68`, `-83`, `-84`, `-85`, and the two new findings `-86`/`-87` — is in
+the **backlog**. No stretch item was attempted.
+
+The sprint's headline outcome is not the one planned: the signal lever returned a **NULL**,
+while the *hardening* half surfaced defects nobody had tickets for — see below.
 
 **Stretch set:** E = **10** (AINOS3-45 3 · AINOS3-68 3 · ci-command-feature 2 ·
 cluster-345-regression 2) — pulled in only if the committed chain lands with headroom.

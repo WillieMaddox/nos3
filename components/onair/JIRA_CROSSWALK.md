@@ -14,6 +14,11 @@ How to use it:
 - **Append-only + immutable.** Add a row when a ticket is created. Once the
   `slug → Jira key` binding is set it never changes — safe to reference from any
   doc, any sprint, at any future point, even after the ticket is Done/Closed.
+- **The `Status` column mirrors Jira, and Jira is the authority.** Format:
+  `<Sprint N | Backlog> · <status>`. It drifts easily — nine rows were stale on
+  2026-08-19 — so re-sync it whenever tickets move columns, and never infer a
+  ticket's status from a sprint-plan document (that misreading is what let
+  `AINOS3-30` be reused; see the note at the foot of this file).
 - **Slugs go in planning docs; Jira keys go in Jira.** Never paste a slug or an
   old `NOS3-###` draft ID into a Jira summary/description/attachment — use the
   real Jira key there.
@@ -43,7 +48,7 @@ documents already-done work (create + close it).
 | AINOS3-39 | counter-reliance-audit | Spike | classification-trust | Activity-counter reliance audit — rec: keep v3 | ✅ Done (2026-07-29) |
 | AINOS3-37 | selective-mode-hybrid | Story | classification-trust | Selective per-mode hybrid | ○ Stretch |
 | AINOS3-42 | stakeholder-rollout | Epic | — | Stakeholder rollout & feedback (recurring) | — |
-| AINOS3-76 | rollout-s26 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 26 | ◑ Committed |
+| AINOS3-76 | rollout-s26 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 26 | Sprint 27 · To Do |
 
 ## Sprint 25 (prior)
 
@@ -56,7 +61,7 @@ Jira 2026-07-15 and entered below.
 | Jira | Slug | Type | Epic (parent) | Title | Status |
 |---|---|---|---|---|---|
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
-| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | **OPEN** (see note) |
+| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | Backlog (see note) |
 | AINOS3-32 | explainability | Epic | — | Explainability (Phase 7) | — |
 | AINOS3-48 | appdata-slot-map | Task | explainability | EVS AppData slot→app reference map | ✅ Done |
 | AINOS3-31 | classification-trust | Epic | — | Classification trust (close the mode gap) | — |
@@ -75,17 +80,17 @@ Jira 2026-07-15 and entered below.
 | AINOS3-47 | foundation-baseline | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
 | AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
 | AINOS3-79 | detector-rigor | Epic | — | Detector hardening & measurement honesty | Sprint 27 |
-| AINOS3-77 | mode-transition-rule | Task | coverage-expansion | R14: flag ADCS mode-force (SET_MODE) IF blind spot | Sprint 27 |
-| AINOS3-78 | cluster-345-regression | Spike | coverage-expansion | Diagnose hybrid EX-0012.{03,04,05} label regression | Sprint 27 |
-| AINOS3-80 | metric-provenance-audit | Spike | detector-rigor | Sweep reported metrics for in-sample optimism | Sprint 27 |
-| AINOS3-81 | hybrid-drift-soak | Task | detector-rigor | Long soak: live hybrid + calibration hold, no drift | Sprint 27 |
-| AINOS3-82 | benchmark-fayyaz | Spike | detector-rigor | Compare vs Fayyaz CuCD-ID NOS3/cFS dataset (Data in Brief 2026) | Sprint 27 |
-| AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Sprint 27 |
+| AINOS3-77 | mode-transition-rule | Task | coverage-expansion | R14: flag ADCS mode-force (SET_MODE) IF blind spot | Sprint 27 · ✅ Done |
+| AINOS3-78 | cluster-345-regression | Spike | coverage-expansion | Diagnose hybrid EX-0012.{03,04,05} label regression | Sprint 27 · To Do |
+| AINOS3-80 | metric-provenance-audit | Spike | detector-rigor | Sweep reported metrics for in-sample optimism | Sprint 27 · ✅ Done |
+| AINOS3-81 | hybrid-drift-soak | Task | detector-rigor | Long soak: live hybrid + calibration hold, no drift | Sprint 27 · ✅ Done |
+| AINOS3-82 | benchmark-fayyaz | Spike | detector-rigor | Compare vs Fayyaz CuCD-ID NOS3/cFS dataset (Data in Brief 2026) | Sprint 27 · ✅ Done |
+| AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Backlog (was S27 stretch) |
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | AINOS3-39 follow-up: retrain dropping harmful bus-activity features | Backlog |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Injection that reaches actuator saturation (recovery-boundary test) | Backlog |
-| — | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 ✅ Done |
-| — | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle: detected by nothing in steady flight | Backlog |
-| — | inertial-false-alarms | Story | detector-rigor | INERTIAL nominal FP 33.6% — mode unusable for detection | Backlog |
+| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | INERTIAL nominal FP 33.6% — mode unusable for detection | Backlog |
+| AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle: detected by nothing in steady flight | Backlog |
+| AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
 
@@ -139,7 +144,7 @@ detailed ticket writeups (Summary/Description/AC + actuals) are in
 | AINOS3-38 | shap-attribution | Story | explainability | Per-incident SHAP attribution (offline) | ✅ Done |
 | AINOS3-40 | surface-explanations | Story | explainability | Surface explanations in incident + demo | ✅ Done |
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
-| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | **OPEN** (see note) |
+| AINOS3-30 | extra-mids | Story | coverage-expansion | Subscribe extra MIDs to recover DEAD classes | Backlog (see note) |
 | AINOS3-69 | next-ml-bet | Spike | — | Next big-ML bet (Phase 5/6 vs consolidate) | ✅ Done |
 | AINOS3-42 | stakeholder-rollout | Epic | — | Stakeholder rollout & feedback (recurring) | — |
 | AINOS3-43 | rollout-s24 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 24 | Ready |
