@@ -1,0 +1,31 @@
+{
+  "_README": [
+    "Triaged, benign title divergences between a sprint-plan heading and the",
+    "canonical title in JIRA_CROSSWALK.md. Keyed '<sprint>:<AINOS3-key>'.",
+    "",
+    "Why this file exists: the crosswalk accumulates outcomes over time (a title",
+    "grows '- rec: keep v3' once the work lands) while plan headings stay as",
+    "written at sprint start. That benign drift produced enough noise to hide a",
+    "REAL key reuse (AINOS3-30, Sprint 27) for ten days. Acknowledging the benign",
+    "cases keeps the noise floor at zero so a real one is visible immediately.",
+    "",
+    "Add an entry ONLY after confirming the plan and the crosswalk describe the",
+    "SAME work. If they describe different work the key has been reused - split",
+    "the new work under its own slug instead of acknowledging it here."
+  ],
+  "23:AINOS3-30": "Same work. Plan names the goal ('recover DEAD classes'), crosswalk names the mechanism ('subscribe extra MIDs'). Legitimate carryover of one scope; only Sprint 27 changed it, which is now split to AINOS3-88.",
+  "23:AINOS3-44": "Same work. Crosswalk specifies the mechanism (reconstruction-error) the plan leaves implicit.",
+  "23:AINOS3-46": "Same work. Crosswalk appends the tier detail (live execution / agent).",
+  "24:AINOS3-30": "Same as 23:AINOS3-30 - carryover.",
+  "24:AINOS3-39": "Same work. Crosswalk appends the OUTCOME ('rec: keep v3'), which the plan heading predates.",
+  "24:AINOS3-40": "Same work. Crosswalk appends where the explanations surface (incident + demo).",
+  "24:AINOS3-69": "Same work. Crosswalk appends the decision framing (Phase 5/6 vs consolidate).",
+  "25:AINOS3-30": "Same as 23:AINOS3-30 - carryover.",
+  "25:AINOS3-39": "Same as 24:AINOS3-39.",
+  "26:AINOS3-39": "Same as 24:AINOS3-39.",
+  "26:AINOS3-68": "Same work. Crosswalk appends the gating condition (after AINOS3-30 broadens signal).",
+  "26:AINOS3-70": "Same work. Crosswalk appends the specifics (16 MIDs, pipe cap 32->48, 383 cols).",
+  "26:AINOS3-71": "SCOPE CORRECTED, same ticket. Plan says 'DS/FM'; the sprint found the DS premise wrong (DS.FileWriteCounter climbs in nominal and would false-positive) and shipped FM-only. Crosswalk records the corrected scope. Not a reuse - the ticket delivered what it set out to, by a different field.",
+  "26:AINOS3-72": "Same work. Crosswalk appends the outcome (R12+R13, re-pointed to full to/ci HK).",
+  "26:AINOS3-75": "Same work. Crosswalk names the three held-outs the plan refers to collectively."
+}
