@@ -9,23 +9,50 @@ A presenter's guide for walking stakeholders through **what the detector catches
 backlog tickets. The two artifacts to present are already prepared:
 
 - **The doc:** `components/onair/V5_DETECTOR_COVERAGE.md` — the honest
-  "catches / doesn't" reference (per-mode FP, SUNSAFE detection list, classifier
-  tiers, the two DEAD-class failure modes, drift result, blind-window limit).
+  "catches / doesn't" reference (per-mode FP, detection list, classifier tiers,
+  the two DEAD-class failure modes, drift result, blind-window limit).
 - **The demo:** `app/sparta_coverage.html` — open in any browser (offline,
   `file://` friendly). The NOS3 overlay badges each SPARTA technique with real
   detection status and, in the coverage panel, a **"Top fields (why)"** column
-  (the SHAP-derived telemetry drivers, AINOS3-38/AINOS3-40). Rebuilt 2026-07-29 so it
-  reflects the Sprint-26 Section-B detections + the resolved coverage verdicts.
-  > The HTML is a **local build artifact** (git-ignored; regenerated from the
-  > tracked `nos3_coverage.js` + `nos3_overlay.js`). If it's missing or stale,
-  > rebuild: `python3 app/gen_nos3_coverage.py && python3 app/build_overlay.py`.
+  (the SHAP-derived telemetry drivers, AINOS3-38/AINOS3-40). Techniques whose
+  assessment changed in the current sprint carry a **violet dot + left bar**; hover
+  the dot for what changed. Rebuilt 2026-08-19 for the Sprint-27 corrections.
+  > The HTML is a **version-controlled deliverable**, not a build artifact — the file is
+  > hand-authored and only the inlined NOS3 overlay block inside it is generated. After
+  > changing coverage data, rebuild and commit it:
+  > `python3 app/gen_nos3_coverage.py && python3 app/build_overlay.py`.
 
-## What changed since Sprint 25 (Sprint-26 readout)
+## ⚠ Read this before presenting
+
+**This readout covers two sprints, not one.** AINOS3-76 (the Sprint-26 readout) slipped
+twice and was never delivered, and **Sprint 27 corrected several Sprint-26 numbers
+downward.** Presenting the Sprint-26 section alone would state things we now know to be
+wrong. Give both sections, in order, and lead with the correction — the story is *"we
+audited our own results and several did not survive"*, which is a stronger position than
+pretending the first set held.
+
+The specific claims Sprint 27 overturned:
+
+| Sprint-26 claim | Sprint-27 finding |
+|---|---|
+| `EX-0012.09` (EPS switch) caught at **99 %** | **0 %** — detected by nothing in steady flight (0/3 reps). Confirmed gap, AINOS3-87 |
+| INERTIAL nominal false alarms **0.00 %** | **33.6 %** — mode currently unusable for detection, AINOS3-86 |
+| `EX-0012.08`, `EX-0014.04` caught by the anomaly detector | Caught by the **rule layer** (R14, R1); IF lift ≈ 0. Attribution corrected, not detection lost |
+| Hybrid classifier gains INERTIAL **+0.058** | Contested — the same routing *costs* 20.9 pts on the `EX-0012.{03,04,05}` cluster (AINOS3-78). Net still positive; the INERTIAL half is what's in question |
+| "Next bet: extra MIDs revive the DEAD classes" | **NULL result** (AINOS3-88). More recorded telemetry did **not** improve attack naming |
+| One-line briefing summary (15/23 techniques ≥ 50 %) | **Withdrawn 2026-08-14.** Use the replacement in `V5_DETECTOR_COVERAGE.md` § "One-line summary" |
+
+**One inconsistency is visible on screen.** The `EX-0012.09` panel shows the CONFIRMED-GAP
+note next to an incident recall of **3/3 (100 %)** — a stale figure from the pre-correction
+corpus that has not been re-derived. If someone spots it, the honest answer is "that number
+predates the correction and is queued for re-measurement (AINOS3-89)", not a defence of it.
+
+## What changed in Sprint 26 (never presented)
 
 Sprint 26 turned the newly-*recorded* Section-B MIDs into **validated detections** and
 closed out the last unresolved coverage verdicts. The per-leaf SPARTA split moved to
 **42 detected · 26 out-of-scope · 0 not-evaluated · 109 not-applicable = 177** — every
-applicable leaf now carries a verdict.
+applicable leaf carries a verdict.
 
 - **5 new Section-B detections** (all live-validated, folded into the overlay):
   - **EX-0010.01 / EX-0010.02** ransomware / wiper → rule-gate **R11** (`FM.CommandCounter`
@@ -45,43 +72,88 @@ applicable leaf now carries a verdict.
 - **rule-gate grew R1–R10 → R1–R13.**
 - **Classifier trust (epic closed):** the AINOS3-39 counter-reliance audit (keep v3) and
   the AINOS3-37 **selective per-mode hybrid** close the classification-trust epic. LOIO
-  (frozen `csv_corpus_v3stage`, max_iter=300) shows the hybrid banks the dynamic-mode
-  gains with **zero** quiescent-mode regression: INERTIAL **+0.058**, SUNSAFE **+0.061**,
-  ROBUST **+0.099**, BDOT/PASSIVE **+0.000** (identical to v3 by construction — those modes
-  keep the global head), overall **0.646 vs 0.627**. **Cut over live and verified 2026-07-30**
-  (OnAIR loads the hybrid; SUNSAFE frames route through the SUNSAFE per-mode head → IMP-0005,
-  INERTIAL → EX-0014.04; survives a fresh launch; one-line ini rollback).
+  shows overall **0.646 vs 0.627** with zero BDOT/PASSIVE regression (those modes keep the
+  global head, identical by construction). ⚠ see the correction table — the INERTIAL
+  component of that gain is now contested.
 - **Coverage-overlay honesty fix:** the overlay's incident-label number was in-sample
   (76.9 %, ~2× optimistic per NOS3-302). Re-scored **out-of-fold for the deployed hybrid**:
-  **42.3 %** label accuracy of detected attacks (vs the v3 global head's 34.6 % OOF, +7.7 pts).
-  Detection recall is unchanged (67.8 %, 78/115 — IF-driven, not classifier-driven). ⚠ when
-  presenting: the displayed label number went **down** (76.9 → 42.3) only because the
-  methodology was corrected to honest OOF — 42.3 % honest beats the old 76.9 % fiction *and*
-  beats honest v3.
+  **42.3 %** label accuracy of detected attacks (vs the v3 global head's 34.6 % OOF). ⚠ when
+  presenting: the displayed number went **down** (76.9 → 42.3) only because the methodology
+  was corrected — 42.3 % honest beats the old 76.9 % fiction *and* beats honest v3.
+
+## What changed in Sprint 27
+
+Sprint 27's planned headline — *would more recorded telemetry improve attack naming?* —
+returned a **documented NULL**. The value came from the other half of the sprint: auditing
+our own measurements. Several did not survive.
+
+- **The signal bet failed, and failed informatively (AINOS3-88).** A 17-attack, 359-column
+  corpus plus a 7-arm ablation found **no block of added telemetry beats split noise**. One
+  arm looked promising until the data was sliced differently, at which point the gain
+  **flipped to a loss**. The conclusion is not "the model is too weak" — it is that we have
+  **too few independent runs to measure a small effect**. Corpus size, not feature design,
+  is the binding constraint.
+- **A collection defect invalidated much of the attack corpus.** The detector goes quiet for
+  ~45 s after each mode switch; our collection scenario switched modes every 60 s. **83 % of
+  attack frames sat inside the detector's own blind window.** The reason we cycled modes so
+  fast was a belief the spacecraft wouldn't hold a mode — tested and **false** (17,670
+  readings, zero drift over an hour). Fixing collection took usable data from **17 % → 84 %**.
+- **Honest re-measurement, mixed results.** With the corrected method: `EX-0012.07`
+  (propulsion) is caught superbly — **~80 % of attack frames vs ~1 % nominal, three
+  independent runs**. `EX-0012.09` (EPS switch) is caught by **nothing**. Two techniques
+  credited to the anomaly detector are actually caught by the rule layer.
+- **A blind spot closed (AINOS3-77).** Forcing an ADCS mode change re-arms the detector's
+  warmup, so a mode-force attack evaded Stage 1 *by construction*. Rule-gate **R14** now
+  flags any confirmed mode transition, plus a **mode-flap** sub-rule for an attacker holding
+  the detector off by flipping modes repeatedly. Live-verified: the rule fired and the
+  anomaly detector saw nothing — blind spot proven and closed in one test.
+  **rule-gate is now R1–R14.**
+- **No long-run drift (AINOS3-81).** A 7 h nominal soak found **no degradation** — the
+  detector's score margin *widened*. The old v2 drift pathology is closed for good. The same
+  soak surfaced the INERTIAL false-alarm problem.
+- **Provenance is now enforced (AINOS3-80).** All 18 headline figures were traced to source
+  and tagged (`[OOF]` / `[live-soak]` / `[in-sample]` / `[design-target]` / `[unverifiable]`).
+  An untagged number is now a bug. Two material findings: the alarm threshold was calibrated
+  **in-sample** while the doc claimed held-out, and the detector's **training corpus was
+  never recorded**, leaving four published claims unverifiable by anyone including us.
+- **The published competition doesn't survive scrutiny (AINOS3-82).** A university group
+  reports near-perfect results on the same simulator. Their dataset records each attack type
+  in **one sitting**, so a model can identify the *recording session* instead of the attack —
+  demonstrated three ways (the clock alone gets 88 %; memory usage alone 100 %). Our lower
+  numbers reflect a harder problem measured more strictly.
+- **Two changes were withdrawn before shipping.** A proposed eclipse-window alarm suppression
+  would have destroyed **67 % of attack detection** — caught only because the attack-side
+  check was run first. A proposed sensitivity change delivered **zero improvement at 2.6× the
+  false alarms** once re-tested on corrected data.
 
 ## Suggested 5-minute flow
 
 1. **Bottom line first** (coverage doc "Bottom line"): a two-stage detector —
-   v5 per-mode IsolationForest (detection) + v3 classifier (labeling) + incident
-   aggregation (one alert per attack, with a reason).
+   per-mode IsolationForest (detection) + hybrid classifier (labeling) + incident
+   aggregation (one alert per attack, with a reason) — **plus a parallel rule layer**
+   (R1–R14, consistency-check, staleness-check) that catches the 13 validated
+   Section-A techniques the dynamics model is structurally blind to.
 2. **Demo the matrix** — open the SPARTA HTML, show the coverage overlay: green
-   = caught, and the per-technique panel with status, classifier tier, signal
-   class, and the top telemetry fields that drove it.
+   = caught, the per-technique panel with status, classifier tier, signal class and
+   top telemetry fields, and the **violet markers** showing what changed this sprint.
 3. **Walk three contrasting techniques:**
-   - a **strong catch** (e.g. `IMP-0005` → THRUSTER.CommandCount) — detected +
-     labeled + explained;
-   - a **DEAD / unlabelable** class — to show the honest limit (sibling-ambiguous
-     vs nominal-ambiguous, coverage doc §B);
-   - an **explanation caveat** — generic activity counters can top the list
-     (AINOS3-39); the attack-specific field is within the top-N.
-4. **The honest limits** (coverage doc "What it does NOT catch", A–F): SUNSAFE-
-   tied detection, unlabelable classes, unobservable attacks, out-of-fold label
-   accuracy, and the ~52 s post-mode-switch blind window (AINOS3-35, just reduced
-   from ~124 s).
-5. **Next bets** — the open backlog (AINOS3-30 extra MIDs to revive DEAD classes,
-   AINOS3-68 DeepSAD revisit — gate still uncleared, next-ml-bet next-ML spike) — and
-   ask which matter most. (AINOS3-37 hybrid is now live-deployed, so the classification-
-   trust epic is closed; the standing signal-adding work is the remaining lever.)
+   - a **strong catch** (`EX-0012.07` propulsion — ~80 % of attack frames vs ~1 %
+     nominal, replicated three times) — detected + labeled + explained;
+   - a **confirmed gap** (`EX-0012.09` EPS switch — detected by nothing) — to show
+     we publish the misses, not just the hits;
+   - a **DEAD / unlabelable** class — the honest limit (sibling-ambiguous vs
+     nominal-ambiguous, coverage doc §B).
+4. **The honest limits** (coverage doc "What it does NOT catch", A–F): the classifier
+   cannot detect what Stage 1 missed, unlabelable classes, unobservable attacks,
+   out-of-fold label accuracy, the **~52 s post-mode-switch blind window** — now closed
+   for the mode-force case by R14 — and **INERTIAL's 33.6 % false-alarm rate**, which
+   makes that mode presently unusable for detection.
+5. **Next bets** — and this is where the ask is. The signal lever (AINOS3-88) returned a
+   NULL, so the open backlog is now: **AINOS3-86** INERTIAL false alarms (High — likely
+   blocks several other measurements), **AINOS3-87** the EPS gap, **AINOS3-89** the
+   catch-rate provenance disagreement, and the AINOS3-78 hybrid-routing fix. **AINOS3-68**
+   (DeepSAD) stays gated — the gate was not cleared. Ask which of these matter most to
+   them, and whether more independent collection runs are worth the wall-clock.
 
 ## Feedback capture (→ turn each into a ticket)
 
@@ -89,12 +161,15 @@ applicable leaf now carries a verdict.
 |---|-------------|---------------------|---------------------------------------|--------------------|
 |   |             |                     |                                       |                    |
 
-After the session, file the captured rows as backlog tickets (mirror the
-`SPRINT_24_PLAN.md` format: Summary + Description + Type) and link them back here.
+After the session, file the captured rows as backlog tickets (Summary + Description + Type,
+per the crosswalk rule), add each to `JIRA_CROSSWALK.md`, and link them back here.
 
 ## Status
 
-- [x] Doc ready (`V5_DETECTOR_COVERAGE.md`, current).
-- [x] Demo ready + current (`sparta_coverage.html` rebuilt with explanations).
-- [ ] **Presentation delivered** — owner action (cannot be automated).
+- [x] Doc ready (`V5_DETECTOR_COVERAGE.md`, current to 2026-08-19).
+- [x] Demo ready + current (`sparta_coverage.html` rebuilt 2026-08-19 with the
+      Sprint-27 violet markers).
+- [x] Sprint-27 corrections folded in — the readout now covers Sprints 26 **and** 27.
+- [ ] **Presentation delivered** — owner action (cannot be automated). Slipped from
+      Sprint 26 and Sprint 27; it is the only open item in Sprint 27.
 - [ ] **Feedback captured as tickets** — fill the table above during/after.
