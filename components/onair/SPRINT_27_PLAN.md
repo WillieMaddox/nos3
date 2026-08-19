@@ -73,12 +73,13 @@ metric-provenance-audit 2 · hybrid-drift-soak 1 · benchmark-fayyaz 3 · AINOS3
 T ≈ **4.75** — right at the ~16 E / ~7–8 T capacity, leaving headroom for the
 signal-feasibility corpus run's unattended wall-clock.
 
-**Status (2026-08-19, reconciled against Jira): 5 of 6 committed items ✅ DONE.**
-`AINOS3-77` · `AINOS3-80` · `AINOS3-81` · `AINOS3-82` · `AINOS3-88` (signal-feasibility, split
-out of AINOS3-30) are **Done**. **`AINOS3-76`** (stakeholder rollout, owner action) and
-**`AINOS3-78`** (cluster-345 regression, stretch) are **To Do**. Everything else —
-`AINOS3-30`, `-45`, `-68`, `-83`, `-84`, `-85`, and the two new findings `-86`/`-87` — is in
-the **backlog**. No stretch item was attempted.
+**Status (2026-08-19, reconciled against Jira): 5 of 6 committed items ✅ DONE, plus one
+stretch.** `AINOS3-77` · `AINOS3-80` · `AINOS3-81` · `AINOS3-82` · `AINOS3-88`
+(signal-feasibility, split out of AINOS3-30) are **Done**, and the stretch spike
+**`AINOS3-78`** (cluster-345 regression) is **Done** as well. **`AINOS3-76`** (stakeholder
+rollout, owner action) is the only open item. Everything else — `AINOS3-30`, `-45`, `-68`,
+`-83`, `-84`, `-85`, the two findings `-86`/`-87`, and the four late findings `-89`…`-92` —
+is in the **backlog**.
 
 The sprint's headline outcome is not the one planned: the signal lever returned a **NULL**,
 while the *hardening* half surfaced defects nobody had tickets for — see below.
@@ -558,10 +559,10 @@ tickets.
 | AINOS3-85 | actuator-saturation-fidelity | Spike | 2 | 0.5 | The EX-0005.02 RW-torque path didn't build a real body tumble; find an injection that reaches actuator saturation (tests the within-mode-recovery vs no-FDIR boundary) |
 | AINOS3-86 | inertial-false-alarms | Story | 5 | 1.5 | **HIGH** — INERTIAL nominal FP measured **33.6 %**; mode currently unusable for detection. Settling hypothesis refuted |
 | AINOS3-87 | detect-eps-switch | Story | 3 | 1.0 | EX-0012.09 EPS switch toggle is detected by **nothing** in steady flight (0/3 reps) despite a published 99 % catch rate |
-| — | catch-rate-provenance-gap | Spike | 3 | 0.75 | Published per-technique catch rates disagree with measurement in **both** directions — `EX-0014.04` 98 % vs 7.4 % |
-| — | verify-nominal-incident-filter | Task | 1 | 0.25 | Does the operator view filter `cluster=nominal`? Decides whether INERTIAL's 71 false incidents/hr are user-visible |
-| — | startracker-inert-fields | Spike | 2 | 0.5 | 5 `ST_DEV` fields constant corpus-wide — an ADCS sensor reporting nothing |
-| — | soak-drift-hz | Task | 1 | 0.25 | `analyze_soak_drift.py --hz` default 4.2 vs true ~5.6 — every uptime bin mislabelled ~33 % |
+| AINOS3-89 | catch-rate-provenance-gap | Spike | 3 | 0.75 | Published per-technique catch rates disagree with measurement in **both** directions — `EX-0014.04` 98 % vs 7.4 % |
+| AINOS3-90 | verify-nominal-incident-filter | Task | 1 | 0.25 | Does the operator view filter `cluster=nominal`? Decides whether INERTIAL's 71 false incidents/hr are user-visible |
+| AINOS3-91 | startracker-inert-fields | Spike | 2 | 0.5 | 5 `ST_DEV` fields constant corpus-wide — an ADCS sensor reporting nothing |
+| AINOS3-92 | soak-drift-hz | Task | 1 | 0.25 | `analyze_soak_drift.py --hz` default 4.2 vs true ~5.6 — every uptime bin mislabelled ~33 % |
 
 `AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility`
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
@@ -680,7 +681,7 @@ First establish the on-board footprint, because the outcome forks:
   matrix, with the evidence and a note on which MID would be needed.
 - Either way, the published 99 % catch rate is corrected to what is actually measured.
 
-### catch-rate-provenance-gap — Published catch rates disagree with measurement · `Spike` · Medium · E 3 · T 0.75 (~6h)
+### AINOS3-89 — Published catch rates disagree with measurement · `Spike` · Medium · E 3 · T 0.75 (~6h)
 
 **Summary:** As an analyst, I want to know why published per-technique catch rates disagree
 with fresh measurement **in both directions**, because until that is explained no
@@ -709,7 +710,7 @@ comparisons.
   corpus with a provenance tag, or explicitly marked as unverified.
 - Note recorded in `AINOS3_80_METRIC_PROVENANCE.md`, which owns the provenance register.
 
-### verify-nominal-incident-filter — Is `cluster=nominal` filtered from the operator view? · `Task` · Medium · E 1 · T 0.25 (~2h)
+### AINOS3-90 — Is `cluster=nominal` filtered from the operator view? · `Task` · Medium · E 1 · T 0.25 (~2h)
 
 **Summary:** As an operator, I want to know whether incidents labelled `cluster=nominal`
 reach the operator display, because that single fact decides whether INERTIAL's **71 false
@@ -730,7 +731,7 @@ impression of reliability. **We have not checked.** Cheap to answer and it re-pr
   `V5_DETECTOR_COVERAGE.md`.
 - If suppressed: record where the filter lives, so it is not removed by accident later.
 
-### startracker-inert-fields — 5 `ST_DEV` star-tracker fields are constant · `Spike` · Medium · E 2 · T 0.5 (~4h)
+### AINOS3-91 — 5 `ST_DEV` star-tracker fields are constant · `Spike` · Medium · E 2 · T 0.5 (~4h)
 
 **Summary:** As a defender, I want to know why five star-tracker fields never change, because
 an ADCS-relevant sensor reporting nothing is either a dead subscription or a blind spot, and
@@ -752,7 +753,7 @@ invisible, and the fused `ADCS_DI` view may be carrying the whole attitude signa
 - If never populated: record it, and reclassify any star-tracker technique that depends on
   them as UNSUBSCRIBED rather than covered.
 
-### soak-drift-hz — `analyze_soak_drift.py` uses the wrong sample rate · `Task` · Low · E 1 · T 0.25 (~2h)
+### AINOS3-92 — `analyze_soak_drift.py` uses the wrong sample rate · `Task` · Low · E 1 · T 0.25 (~2h)
 
 **Summary:** As an analyst, I want the drift tool to derive the frame rate from the data,
 because its hardcoded 4.2 Hz default mislabels every uptime bin by about a third.
@@ -809,9 +810,9 @@ a single ticket.
 | 1 | **IF threshold calibrated in-sample** — calibration rows == training rows in all 4 modes; the doc claimed held-out. ⚠ **Scope enlarged 2026-08-14: all four thresholds are mis-set, in different directions** — see follow-on below | AINOS3-80 F1 | **High** |
 | 2 | **INERTIAL FP regression 0.54 %** (raw 7.5 %, 7.5× its calibration target) vs a documented 0.00 %; 71 false incidents/hour | AINOS3-81 | **High** |
 | 3 | **IF training corpus unrecorded** — no csv-dir/manifest/dates in the pickle, so 4 headline metrics are `[unverifiable]` | AINOS3-80 F2 | **High** |
-| 4 | `analyze_soak_drift.py --hz` defaults to 4.2; true rate ~5.6 Hz → uptime bins mislabelled ~33 % | AINOS3-81 | Low → **`soak-drift-hz`** |
-| 5 | 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`) constant corpus-wide — an ADCS sensor reporting nothing | signal-feasibility | Medium → **`startracker-inert-fields`** |
-| 6 | Operator-facing filtering of `cluster=nominal` incidents **unverified** — determines whether finding 2 is user-visible | AINOS3-81 | Medium → **`verify-nominal-incident-filter`** |
+| 4 | `analyze_soak_drift.py --hz` defaults to 4.2; true rate ~5.6 Hz → uptime bins mislabelled ~33 % | AINOS3-81 | Low → **AINOS3-92** |
+| 5 | 5 `ST_DEV` star-tracker fields (`IsValid`, `Q0`–`Q3`) constant corpus-wide — an ADCS sensor reporting nothing | AINOS3-88 | Medium → **AINOS3-91** |
+| 6 | Operator-facing filtering of `cluster=nominal` incidents **unverified** — determines whether finding 2 is user-visible | AINOS3-81 | Medium → **AINOS3-90** |
 
 **Recommended fix for 1–3:** re-derive the IF threshold on a held-out split of the baseline
 corpus, and persist training inputs into the pickle (mirroring the classifier's
@@ -828,7 +829,7 @@ genuine ground-link commanding is tested. `AINOS3-68` **stays gated**.
 
 ## Follow-on work agreed 2026-08-14
 
-### signal-feasibility follow-on — two more collection rounds
+### AINOS3-88 follow-on — two more collection rounds
 
 Round 1 could not resolve a 2-point effect because every technique executed **once**. Agreed:
 collect **two further rounds** (3 total) so leave-one-instance-out becomes possible and the

@@ -28,5 +28,9 @@
   "26:AINOS3-71": "SCOPE CORRECTED, same ticket. Plan says 'DS/FM'; the sprint found the DS premise wrong (DS.FileWriteCounter climbs in nominal and would false-positive) and shipped FM-only. Crosswalk records the corrected scope. Not a reuse - the ticket delivered what it set out to, by a different field.",
   "26:AINOS3-72": "Same work. Crosswalk appends the outcome (R12+R13, re-pointed to full to/ci HK).",
   "26:AINOS3-75": "Same work. Crosswalk names the three held-outs the plan refers to collectively.",
-  "27:AINOS3-87": "Same work. Crosswalk appends the finding ('nothing catches it in steady flight') to the plan's shorter title; the plan title is the Jira summary."
+  "27:AINOS3-87": "Same work. Crosswalk appends the finding ('nothing catches it in steady flight') to the plan's shorter title; the plan title is the Jira summary.",
+  "27:AINOS3-89": "Same work. Plan heading is the short form; the crosswalk title carries the EX-0014.04 98% vs 7.4% example that motivated the ticket.",
+  "27:AINOS3-90": "Same work, identical question. The crosswalk title appends why it matters (INERTIAL's 71 false incidents/hr).",
+  "27:AINOS3-91": "Same work. Crosswalk adds 'corpus-wide' and the consequence (ADCS sensor reporting nothing); the plan heading states the observation only.",
+  "27:AINOS3-92": "Same work. Crosswalk names the concrete numbers (4.2 vs ~5.6, bins off ~33%); the plan heading names the defect."
 }

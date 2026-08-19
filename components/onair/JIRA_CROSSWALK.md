@@ -81,7 +81,7 @@ Jira 2026-07-15 and entered below.
 | AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
 | AINOS3-79 | detector-rigor | Epic | — | Detector hardening & measurement honesty | Sprint 27 |
 | AINOS3-77 | mode-transition-rule | Task | coverage-expansion | R14: flag ADCS mode-force (SET_MODE) IF blind spot | Sprint 27 · ✅ Done |
-| AINOS3-78 | cluster-345-regression | Spike | coverage-expansion | Diagnose hybrid EX-0012.{03,04,05} label regression | Sprint 27 · To Do |
+| AINOS3-78 | cluster-345-regression | Spike | coverage-expansion | Diagnose hybrid EX-0012.{03,04,05} label regression | Sprint 27 · ✅ Done |
 | AINOS3-80 | metric-provenance-audit | Spike | detector-rigor | Sweep reported metrics for in-sample optimism | Sprint 27 · ✅ Done |
 | AINOS3-81 | hybrid-drift-soak | Task | detector-rigor | Long soak: live hybrid + calibration hold, no drift | Sprint 27 · ✅ Done |
 | AINOS3-82 | benchmark-fayyaz | Spike | detector-rigor | Compare vs Fayyaz CuCD-ID NOS3/cFS dataset (Data in Brief 2026) | Sprint 27 · ✅ Done |
@@ -90,10 +90,10 @@ Jira 2026-07-15 and entered below.
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Injection that reaches actuator saturation (recovery-boundary test) | Backlog |
 | AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band (measured 33.6%) | Backlog |
 | AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected (nothing catches it in steady flight) | Backlog |
-| — | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) — uptime bins off ~33% | Backlog |
-| — | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide — ADCS sensor reporting nothing | Backlog |
-| — | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? Decides if INERTIAL's 71 false incidents/hr are visible | Backlog |
-| — | catch-rate-provenance-gap | Spike | detector-rigor | Published per-technique catch rates disagree with measurement in both directions (EX-0014.04 98% vs 7.4%) | Backlog |
+| AINOS3-89 | catch-rate-provenance-gap | Spike | detector-rigor | Published per-technique catch rates disagree with measurement in both directions (EX-0014.04 98% vs 7.4%) | Backlog |
+| AINOS3-90 | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? Decides if INERTIAL's 71 false incidents/hr are visible | Backlog |
+| AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide — ADCS sensor reporting nothing | Backlog |
+| AINOS3-92 | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) — uptime bins off ~33% | Backlog |
 | AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
