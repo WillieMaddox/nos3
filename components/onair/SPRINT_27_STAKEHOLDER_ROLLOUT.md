@@ -1,13 +1,13 @@
 # Sprint 27 Stakeholder Rollout (AINOS3-76 · EPIC AINOS3-42)
 
-**Component:** `OnAIR-Security` · **Sprint:** 27 · **Prepared:** 2026-08-19 · **Status:** ⏳ not yet delivered
+**Component:** `OnAIR-Security` · **Sprint:** 27 · **Prepared:** 2026-08-19 · **Updated:** 2026-08-22 · **Status:** ⏳ not yet delivered
 
 Instance of the recurring playbook —
 [`STAKEHOLDER_ROLLOUT_TEMPLATE.md`](STAKEHOLDER_ROLLOUT_TEMPLATE.md) holds the flow,
 the feedback-capture procedure and the artifact descriptions. This file holds only what
 is specific to this readout.
 
-**Artifacts as of 2026-08-19:** `V5_DETECTOR_COVERAGE.md` current to 2026-08-19;
+**Artifacts as of 2026-08-22:** `V5_DETECTOR_COVERAGE.md` current to 2026-08-20 (re-derived tiers);
 `app/sparta_coverage.html` rebuilt with the Sprint-27 violet markers (EX-0012 ×6,
 EX-0014 ×1, DE-0005 ×1).
 
@@ -31,6 +31,21 @@ The specific claims Sprint 27 overturned:
 | Hybrid classifier gains INERTIAL **+0.058** | Contested — the same routing *costs* 20.9 pts on the `EX-0012.{03,04,05}` cluster (AINOS3-78). Net still positive; the INERTIAL half is what's in question |
 | "Next bet: extra MIDs revive the DEAD classes" | **NULL result** (AINOS3-88). More recorded telemetry did **not** improve attack naming |
 | One-line briefing summary (15/23 techniques ≥ 50 %) | **Withdrawn 2026-08-14.** Use the replacement in `V5_DETECTOR_COVERAGE.md` § "One-line summary" |
+| **4 techniques are ROBUST — "trust the label"** (`DE-0003.01`, `DE-0003.10`, `EX-0008.02`, `IMP-0005`) | **ROBUST is now EMPTY.** None of the four met the rule we published for it ("F1 ≥ 0.85 on every split"); `DE-0003.01` actually scored **0.03**. Tiers re-derived 2026-08-20 and 16 of 24 moved. The classifier itself got **better** — this is a correction to the claim, not a regression |
+
+> **The ROBUST row is the hardest of the seven — prepare for it.** The other six say
+> *"we measured something new and it changed."* This one says *"we published a claim our
+> own data never supported, for months."* Do not soften it, and expect the follow-up
+> question: **"what else is like this?"** The honest answer is that we went looking — the
+> AINOS3-80 provenance audit tagged all 18 headline figures, `AINOS3-89` is open precisely
+> because per-technique catch rates still disagree with measurement, and the tier column
+> is now *derived from an artifact* rather than hand-maintained, so this specific failure
+> cannot recur silently. What we cannot claim is that we have found everything.
+>
+> Have the counterweight ready in the same breath, because it is true and it is buried
+> under the correction: **the classifier is materially better than the old tiers implied**
+> — macro mean-F1 **0.282 → 0.364**, and folds scoring a flat zero fell from **39/78 to
+> 21/78**. Fifteen classes improved. The downgrades are honesty, not decay.
 
 **One inconsistency is visible on screen.** The `EX-0012.09` panel shows the
 CONFIRMED-GAP note next to an incident recall of **3/3 (100 %)** — a stale figure from the
@@ -112,6 +127,17 @@ our own measurements. Several did not survive.
   in **one sitting**, so a model can identify the *recording session* instead of the attack —
   demonstrated three ways (the clock alone gets 88 %; memory usage alone 100 %). Our lower
   numbers reflect a harder problem measured more strictly.
+- **The confidence tiers were re-derived, and the old ones were never supported
+  (2026-08-20).** The overlay was still showing v3 classifier artifacts three weeks after
+  the hybrid went live. Fixing that exposed something worse than staleness: the four
+  techniques published as **ROBUST — "trust the label"** did not meet the rule we
+  published for them, and the rules for the other three tiers had never been written down
+  anywhere. `DE-0003.01` averaged **F1 0.03** while carrying the "trust the label" badge.
+  Tiers are now **derived from LOIO folds by a script**, with the rule stated for all four
+  tiers, and the coverage overlay reads that artifact rather than hardcoded strings — so
+  the column can no longer drift from the model without anyone noticing. **ROBUST is
+  currently empty**; the 0.85 bar was deliberately not lowered to populate it. Same pass
+  confirmed the cluster taxonomy is **unchanged** under the hybrid.
 - **Two changes were withdrawn before shipping.** A proposed eclipse-window alarm suppression
   would have destroyed **67 % of attack detection** — caught only because the attack-side
   check was run first. A proposed sensitivity change delivered **zero improvement at 2.6× the
@@ -120,7 +146,10 @@ our own measurements. Several did not survive.
 ## This readout's three techniques (flow step 3)
 
 - **Strong catch:** `EX-0012.07` propulsion — ~80 % of attack frames vs ~1 % nominal,
-  replicated three times. Detected + labeled + explained.
+  replicated three times. Strong on **detection**; be precise that the *label* is not —
+  it tiers HIGH-VAR (min F1 0.14 across runs). Its explanation is now a good demo of the
+  hybrid regen: the top field moved from a scheduler counter to
+  `ADCS_DI.Payload.Imu.wbn`, the angular rate that *is* the propulsion signature.
 - **Confirmed gap:** `EX-0012.09` EPS switch — detected by nothing. Use this one; it is
   the clearest demonstration that we publish misses, not just hits.
 - **Honest limit:** the `EX-0012.{03,04,05}` sibling cluster — telemetry-identical
@@ -128,9 +157,15 @@ our own measurements. Several did not survive.
 
 ## This readout's limits (flow step 4)
 
-Beyond the standing limits in the coverage doc: the **~52 s post-mode-switch blind
-window** — now closed for the mode-force case by R14 — and **INERTIAL's 33.6 %
-false-alarm rate**, which makes that mode presently unusable for detection.
+Beyond the standing limits in the coverage doc:
+
+- the **~52 s post-mode-switch blind window** — now closed for the mode-force case by R14;
+- **INERTIAL's 33.6 % false-alarm rate**, which makes that mode presently unusable for
+  detection;
+- **no technique's label is reliable on every run** — the ROBUST tier is empty. Six are
+  usable on every run as a strong suggestion (`EX-0008.01/.02`, `IMP-0002/0005/0006`,
+  `DE-0003.10`); three cannot be labeled at all. Detection is the strong half of this
+  system, naming is the weak half, and the tier table now says so honestly.
 
 ## This readout's ask (flow step 5)
 
