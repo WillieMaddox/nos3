@@ -242,15 +242,39 @@
       "<th title='detected: top telemetry fields (SHAP, NOS3-311/312). out-of-scope / n/a: why it can%27t be seen or run.'>" +
       "Top fields / review</th>" +
       "</tr></thead><tbody>" + rows + "</tbody></table></div>" +
-      "<div class='nos3-foot'>Each row is one sub-technique with its <b>own</b> verdict — a " +
-      "technique is a mix, never one colour. <b>detected</b> = caught on the labeled corpus " +
-      "(≥1 alert), or <b>detected (gate)</b> when the dynamics-IF misses it by design but a " +
-      "complementary gate (rule-gate R1–R10, consistency-check, or staleness-check, named " +
-      "under \"Top fields / review\") caught it live. <b>out of scope</b> = applies to NOS3 but emits no telemetry " +
-      "signal (Section C). <b>not applicable</b> = the attack can't run against NOS3 at all " +
-      "(off-board / not-modelled, Section D). <b>not evaluated</b> = a real sub-technique not " +
-      "yet assessed. \"Frame catch\" is the per-frame SUNSAFE flag rate. Signal class: ON_BOARD " +
-      "(visible) · OBFUSCATION (self-hidden) · UNSUBSCRIBED (not monitored) · CONCEPTUAL (no-op).</div>";
+      "<div class='nos3-foot'>" +
+      "<p>Each row is one sub-technique with its <b>own</b> verdict — a technique is a " +
+      "mix, never one colour.</p>" +
+
+      "<div class='nos3-foot-h'>Verdict</div>" +
+      "<dl class='nos3-key'>" +
+      "<dt>detected</dt><dd>caught on the labeled corpus (≥ 1 alert).</dd>" +
+      "<dt>detected (gate)</dt><dd>the dynamics-IF misses it by design, but a complementary " +
+      "gate — rule-gate R1–R14, consistency-check or staleness-check, named under " +
+      "\"Top fields / review\" — caught it live.</dd>" +
+      "<dt>out of scope</dt><dd>applies to NOS3 but emits no telemetry signal (Section C).</dd>" +
+      "<dt>not applicable</dt><dd>the attack can't run against NOS3 at all (off-board / " +
+      "not modelled, Section D).</dd>" +
+      "<dt>not evaluated</dt><dd>a real sub-technique not yet assessed.</dd>" +
+      "</dl>" +
+
+      "<div class='nos3-foot-h'>Columns</div>" +
+      "<dl class='nos3-key'>" +
+      "<dt>Frame catch</dt><dd>per-frame SUNSAFE flag rate — <b>detection</b>.</dd>" +
+      "<dt>Incidents</dt><dd>incidents detected / total; <i>(n labeled ✓)</i> is how many " +
+      "were also named correctly.</dd>" +
+      "<dt>Top fields</dt><dd><b>Classification</b> attribution — not detection, not the " +
+      "gates. Each % is that telemetry field's share of the classifier's SHAP mass for this " +
+      "class. Only the top 6 are shown, so they need not total 100 %. Faithful ranking: " +
+      "generic activity counters often outrank the attack-specific field (NOS3-311).</dd>" +
+      "<dt>Top fields <i>(review)</i></dt><dd>where a technique has no detection, this cell " +
+      "carries the prose reason instead — why it can't be seen and what would be needed.</dd>" +
+      "</dl>" +
+
+      "<div class='nos3-foot-h'>Signal class</div>" +
+      "<p>ON_BOARD (visible) · OBFUSCATION (self-hidden) · UNSUBSCRIBED (not monitored) · " +
+      "CONCEPTUAL (no-op).</p>" +
+      "</div>";
     host.parentNode.insertBefore(div, host.nextSibling);
   }
 
@@ -330,17 +354,27 @@
     ".nos3-table tr.row-none td,.nos3-table tr.row-na td{opacity:.72}" +
     ".nos3-lab{opacity:.6;font-size:.62rem}" +
     ".nos3-table-wrap{overflow-x:auto}" +
-    ".nos3-table td.nos3-why{min-width:230px;vertical-align:middle}" +
+    // Field names reach 48 chars (CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter),
+    // so the label flexes to fill whatever the row leaves rather than sitting at a
+    // fixed cap with dead space before the percentage. The panel scrolls
+    // horizontally (.nos3-table-wrap), so a wide min-width costs nothing.
+    ".nos3-table td.nos3-why{min-width:360px;vertical-align:middle}" +
     ".nos3-table td.nos3-review{font-size:.72rem;line-height:1.35;color:#64748b;" +
     "font-style:italic;white-space:normal;max-width:340px;vertical-align:middle}" +
     ".nos3-why-row{position:relative;display:flex;align-items:center;height:15px;margin:2px 0;" +
     "border-radius:3px;overflow:hidden;background:var(--bg-primary,#0f0f23);font-size:.62rem}" +
     ".nos3-why-fill{position:absolute;left:0;top:0;bottom:0;background:rgba(59,130,246,.30);z-index:0}" +
     ".nos3-why-lab{position:relative;z-index:1;padding-left:.35rem;white-space:nowrap;overflow:hidden;" +
-    "text-overflow:ellipsis;max-width:155px;font-family:var(--font-mono,monospace)}" +
-    ".nos3-why-pct{position:relative;z-index:1;margin-left:auto;padding:0 .35rem;" +
+    "text-overflow:ellipsis;flex:1 1 auto;min-width:0;font-family:var(--font-mono,monospace)}" +
+    ".nos3-why-pct{position:relative;z-index:1;flex:0 0 auto;padding:0 .35rem;" +
     "font-variant-numeric:tabular-nums;opacity:.9}" +
-    ".nos3-foot{padding:.5rem .8rem;font-size:.64rem;opacity:.72;line-height:1.5}" +
+    ".nos3-foot{padding:.6rem .8rem;font-size:.64rem;opacity:.78;line-height:1.45}" +
+    ".nos3-foot p{margin:0 0 .3rem}" +
+    ".nos3-foot-h{font-weight:700;text-transform:uppercase;letter-spacing:.05em;" +
+    "font-size:.58rem;opacity:.6;margin:.55rem 0 .2rem}" +
+    ".nos3-key{display:grid;grid-template-columns:max-content 1fr;gap:.16rem .7rem;margin:0}" +
+    ".nos3-key dt{font-weight:600;opacity:.95;white-space:nowrap}" +
+    ".nos3-key dd{margin:0}" +
     ".nos3-legend{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;font-size:.66rem}" +
     ".nos3-legend strong{font-size:.7rem;margin-right:.2rem;color:var(--text-secondary)}";
 
