@@ -7,7 +7,16 @@ per-mode heads) + the four parallel detector gates (rule-gate R1–R14,
 consistency-check, staleness-check) currently deployed in the OnAIR plugin against
 the NOS3 cFS flight software.
 
-**Last updated:** 2026-08-19 — folded in AINOS3-78: the `EX-0012.{03,04,05}` sibling
+**Last updated:** 2026-08-20 — **the classifier confidence tiers (§4) were re-derived and
+most of them moved.** They had been hardcoded, unreproducible strings; an audit found that
+**none of the four techniques published as ROBUST met the documented "F1 ≥ 0.85 on every
+split" rule** (`DE-0003.01` averaged 0.03). Tiers now come from
+`data/onair/models/classifier_tiers.json`, derived from the deployed hybrid's LOIO folds
+with the rule written down for all four tiers. **ROBUST is currently empty.** The same pass
+rebuilt the per-class explanation catalog against the hybrid's live routing, and confirmed
+the cluster taxonomy is **unchanged** under the hybrid. Detection figures are untouched.
+
+**Previously:** 2026-08-19 — folded in AINOS3-78: the `EX-0012.{03,04,05}` sibling
 cluster's *labeling* regressed under the deployed hybrid, the loss is **entirely INERTIAL**,
 and the mitigation is recommended but **not deployed** (Section B.1). Detection is unaffected.
 
@@ -54,9 +63,12 @@ telemetry fields at ~5 Hz:
    instances — the spread is wider than most differences we quote against it).
    The deployed classifier is the
    **selective per-mode hybrid** (AINOS3-37): the signal-rich INERTIAL/SUNSAFE
-   modes route to their own per-mode heads (+0.06 each, ROBUST +0.10) while
-   PASSIVE/BDOT keep the global head (no regression), with per-mode confidence
-   calibration so a reported confidence means the same thing across heads.
+   modes route to their own per-mode heads (+0.06 each) while PASSIVE/BDOT keep
+   the global head (no regression), with per-mode confidence calibration so a
+   reported confidence means the same thing across heads. (AINOS3-37 also recorded
+   **+0.10 on the "ROBUST" set** — that referred to the four techniques tiered
+   ROBUST *before* the 2026-08-20 re-derivation, a set that no longer qualifies;
+   see §4.)
 3. **Parallel gate layer — "What the dynamics model can't see."** Four
    complementary gates run *beside* the IF for attacks whose footprint is a
    discrete flag/counter change, a transient spoof, or a frozen stream — none
@@ -71,7 +83,7 @@ telemetry fields at ~5 Hz:
 |---|---|
 | Will it cry wolf? | Rarely — under 1 alarm per ~5 hours of nominal flight. |
 | Will it catch a real attack? | **Yes — at the incident level, 93 % of genuinely detectable state-change attacks raise an alert** (vs ~61 % of individual frames; one alert per attack is what matters). Detection is strongest in SUNSAFE; weaker in other modes. |
-| Will it tell me *which* attack? | For ~8 techniques, yes with high confidence. For others it narrows to a *family* of indistinguishable techniques. A handful it cannot label at all (documented below). |
+| Will it tell me *which* attack? | **For no technique is the label reliable on every run** (§4: the ROBUST tier is currently empty). For **six** it is usable on every run as a strong suggestion — `EX-0008.01/.02`, `IMP-0002/0005/0006`, `DE-0003.10`. For others it narrows to a *family* of indistinguishable techniques, or is a hint only. Three cannot be labeled at all. |
 | Does Stage 2 catch things Stage 1 misses? | **No** — Stage 2 only *sharpens* what Stage 1 flagged. **But the parallel gate layer does** — it catches 13 validated Section-A techniques (flag/counter/spoof/freeze) the dynamics-IF is structurally blind to. |
 
 ---
@@ -222,19 +234,56 @@ When Stage 1 alarms, the classifier names the technique. Reliability varies by
 technique, so we report it in tiers (measured by leave-one-instance-out
 cross-validation — i.e. accuracy on a spacecraft run the model never saw):
 
-- **ROBUST (trust the label):** `DE-0003.01`, `DE-0003.10`, `EX-0008.02`,
-  `IMP-0005` — F1 ≥ 0.85 on every split.
-- **STABLE-MID (good as a top-3 suggestion):** `IMP-0002`, `IMP-0003`,
-  `IMP-0006`, plus the `nominal` label.
-- **HIGH-VARIANCE (label is a hint, not a verdict):** `EX-0008.01`,
-  `EX-0012.07/.08/.09`, `EX-0014.04` — correct on some runs, not others.
-- **DEAD (cannot be labeled as-is):** see next section.
+⚠ **These tiers were re-derived on 2026-08-20 and most of them moved.** They had
+been hardcoded strings whose derivation nobody could reproduce; an audit found
+**none of the four techniques previously published as ROBUST met the stated rule**
+— `DE-0003.01` averaged **F1 0.03** while being published as "trust the label".
+The tiers are now derived from the deployed hybrid's LOIO folds by
+`components/onair/training/derive_classifier_tiers.py`, which writes
+`data/onair/models/classifier_tiers.json`; the coverage overlay reads that
+artifact rather than a constant. `[OOF]`
+
+**The rule** (first match wins; `min`/`max` are across LOIO folds, so a technique
+that works on one spacecraft run and fails on another cannot hide behind a mean):
+
+| Tier | Rule | Meaning |
+|---|---|---|
+| **ROBUST** | min F1 ≥ 0.85 | trust the label — reliable on *every* run |
+| **STABLE-MID** | min F1 ≥ 0.50 | usable on every run; good as a top-3 suggestion |
+| **HIGH-VAR** | max F1 ≥ 0.25 | a hint, not a verdict — right on some runs, not others |
+| **DEAD** | max F1 < 0.25 | cannot be labeled as-is |
+
+Techniques that are telemetry-indistinguishable are scored on their **cluster's**
+F1, because the cluster is the label the system actually emits (§B.1). Scoring
+`EX-0012.04` at its technique F1 (0.01) would tier a label we never claim to
+produce; its cluster scores 0.45.
+
+- **ROBUST — currently EMPTY.** No technique meets the bar. `IMP-0005` is the
+  closest at **min 0.848** across folds, 0.002 short. The 0.85 threshold is
+  inherited verbatim from the previous version of this section and was
+  deliberately **not** lowered to populate the tier.
+- **STABLE-MID:** `IMP-0005` (0.85), `EX-0008.02` (0.77), `IMP-0006` (0.72),
+  `EX-0008.01` (0.71), `IMP-0002` (0.60), `DE-0003.10` (0.50), plus `nominal`
+  (0.78). *(min F1 in parentheses.)*
+- **HIGH-VARIANCE:** the `EX-0012.{03,04,05}` and `EX-0012.12`/`EX-0014.01`
+  clusters, `DE-0003.01/.02/.03/.06/.08`, `EX-0012.07/.08/.09`, `EX-0014.04`,
+  `IMP-0001`, `IMP-0003`. Note `IMP-0003` spans **0.11 → 0.94** across three runs
+  — the clearest example of why the mean is the wrong statistic here.
+- **DEAD (cannot be labeled as-is):** `DE-0003.09`, `EX-0014.03`,
+  `EX-0012.04 [prereq]`. See next section.
+
+**The hybrid is materially better than the v3 global head at labeling**, which the
+old tier list obscured: macro mean-F1 **0.282 → 0.364**, and folds scoring a
+flat-zero F1 drop from **39/78 to 21/78**. Fifteen classes improved, five
+regressed. The tier *downgrades* below are corrections to the published claim,
+not a regression in the model.
 
 Overall technique-identification accuracy is **~65 %** (top-1, novel run;
 deployed selective per-mode hybrid, LOIO 0.646) — calibrated, not overfit
 (held-out and cross-validated numbers agree within ~1 point). The hybrid keeps
 the global head's overall level while banking the dynamic-mode gains
-(INERTIAL/SUNSAFE +0.06 each, ROBUST +0.10) at zero PASSIVE/BDOT cost.
+(INERTIAL/SUNSAFE +0.06 each, and +0.10 on the then-ROBUST set — see §4 for why
+that set no longer qualifies) at zero PASSIVE/BDOT cost.
 
 ### 5. Complementary detector gates (what the dynamics-IF can't see)
 
@@ -431,7 +480,7 @@ the v3 global-head OOF breakdown that motivated the hybrid; the **current
 per-technique `label_ok` under the deployed hybrid is in the coverage overlay** —
 e.g. the hybrid lifts IMP-0002 and IMP-0006 to fully labelled):
 
-- **By tier** (coherent with §4): ROBUST clusters keep their labels out-of-fold
+- **By tier** (as tiered *before* the 2026-08-20 re-derivation): the then-ROBUST clusters keep their labels out-of-fold
   (`EX-0008.02` 100 %, `IMP-0005` 100 %, the `IMP-0001/2/3/6` family ~67 %);
   HIGH-VARIANCE and DEAD clusters collapse (`EX-0012.08/.09`, `EX-0014.03/.04`
   → 0 %). The aggregate is dragged down by the many always-*detected*-but-not-
@@ -528,30 +577,30 @@ steady flight.
 
 | Technique | Catch (SUNSAFE) | Classifier tier | Signal | Note |
 |---|--:|---|---|---|
-| EX-0008.01 ATS | 91 % | HIGH-VAR | ON_BOARD | |
-| EX-0008.02 RTS | 91 % | **ROBUST** | ON_BOARD | reliably caught & labeled |
-| EX-0012.03 prop cmd | < 25 % | sibling | ON_BOARD | ≡ .04/.05 cluster; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
-| EX-0012.04 app tables | 63 % | DEAD→sibling | ON_BOARD | ≡ .03/.05 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
-| EX-0012.05 scheduler | 64 % | sibling | ON_BOARD | ≡ .03/.04 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
+| EX-0008.01 ATS | 91 % | **STABLE-MID** | ON_BOARD | |
+| EX-0008.02 RTS | 91 % | **STABLE-MID** | ON_BOARD | reliably caught; label usable on every run (min F1 0.77) but not authoritative |
+| EX-0012.03 prop cmd | < 25 % | HIGH-VAR | ON_BOARD | ≡ .04/.05 cluster; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
+| EX-0012.04 app tables | 63 % | HIGH-VAR | ON_BOARD | ≡ .03/.05 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
+| EX-0012.05 scheduler | 64 % | HIGH-VAR | ON_BOARD | ≡ .03/.04 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
 | EX-0012.07 propulsion | 100 % | HIGH-VAR | ON_BOARD | always detected |
 | EX-0012.08 ADCS | 100 % | HIGH-VAR | ON_BOARD | always detected; label unstable across runs |
 | EX-0012.09 EPS | ⚠ **0 %** | HIGH-VAR | ON_BOARD | **CONFIRMED GAP** — detected by nothing in steady flight (0/3 reps); the 99 % came from transient-dominated data. Ticketed AINOS3-87 |
-| EX-0012.12 system clock | 57 % | sibling | ON_BOARD | ≡ EX-0014.01 |
-| EX-0014.01 time spoof | 26 % | DEAD→sibling | ON_BOARD | ≡ EX-0012.12 |
-| EX-0014.03 sensor spoof | 91 % | nominal-amb. | ON_BOARD | detected, not labelable |
+| EX-0012.12 system clock | 57 % | HIGH-VAR | ON_BOARD | ≡ EX-0014.01 |
+| EX-0014.01 time spoof | 26 % | HIGH-VAR | ON_BOARD | ≡ EX-0012.12 |
+| EX-0014.03 sensor spoof | 91 % | DEAD | ON_BOARD | detected, not labelable |
 | EX-0014.04 PNT spoof | 98 % | HIGH-VAR | ON_BOARD | |
-| IMP-0001 deception | 61 % | low-stable | OBFUSCATION | counter telescoping |
+| IMP-0001 deception | 61 % | HIGH-VAR | OBFUSCATION | counter telescoping |
 | IMP-0002 disruption | 58 % | **STABLE-MID** | ON_BOARD | |
-| IMP-0003 denial | 100 % | **STABLE-MID** | ON_BOARD | |
-| IMP-0005 destruction | 75 % | **ROBUST** | ON_BOARD | reliably caught & labeled |
+| IMP-0003 denial | 100 % | HIGH-VAR | ON_BOARD | |
+| IMP-0005 destruction | 75 % | **STABLE-MID** | ON_BOARD | best-labeled technique (min F1 0.85) — 0.002 short of the ROBUST bar |
 | IMP-0006 theft | 62 % | STABLE-MID | UNSUBSCRIBED | side effects + R13 route-mask change (downlink-redirect variant) |
-| DE-0003.01 disable logging | < 25 % | **ROBUST** | OBFUSCATION | labelable when flagged |
-| DE-0003.02 clear logs | < 25 % | low-stable | OBFUSCATION | counter telescoped |
-| DE-0003.03 | < 25 % | DEAD (nominal) | UNSUBSCRIBED | out of scope |
-| DE-0003.06 | < 25 % | DEAD (nominal) | ON_BOARD | one-way confusion only |
-| DE-0003.08 | < 25 % | DEAD (nominal) | OBFUSCATION | telescoped |
-| DE-0003.09 | < 25 % | DEAD (nominal) | ON_BOARD | NOOP-only |
-| DE-0003.10 | < 25 % | **ROBUST** | ON_BOARD | labelable when flagged |
+| DE-0003.01 disable logging | < 25 % | HIGH-VAR | OBFUSCATION | ⚠ was published ROBUST; actually min F1 0.29 (v3: 0.03) |
+| DE-0003.02 clear logs | < 25 % | HIGH-VAR | OBFUSCATION | counter telescoped |
+| DE-0003.03 | < 25 % | HIGH-VAR | UNSUBSCRIBED | out of scope |
+| DE-0003.06 | < 25 % | HIGH-VAR | ON_BOARD | one-way confusion only |
+| DE-0003.08 | < 25 % | HIGH-VAR | OBFUSCATION | telescoped |
+| DE-0003.09 | < 25 % | DEAD | ON_BOARD | NOOP-only |
+| DE-0003.10 | < 25 % | **STABLE-MID** | ON_BOARD | was published ROBUST; min F1 0.50 across folds |
 
 *(DE-0003.04/05/07/11/12 are CONCEPTUAL/UNSUBSCRIBED — out of scope for
 telemetry detection.)*

@@ -26,13 +26,17 @@ window.NOS3_COVERAGE_META = {
     "frame_rate": "MIXED \u2014 a 24-run steady-flight replication showed this column credits the IF with detections the rule-gate makes (EX-0012.08 -> R14, EX-0014.04 -> R1; IF lift ~0 for both), and that EX-0012.09 is detected by nothing (0/3 reps). Where the IF IS the right detector it is vindicated: EX-0012.07 propulsion measures +77.5 +/- 3.6 lift in steady flight.",
     "false_positive_rate": "live-soak \u2014 SUNSAFE 0.02-0.74%, PASSIVE/BDOT 0.00%. INERTIAL is a serious open defect: 33.6% nominal (21.1-48.5%) across 12 runs at a 600s hold, up from 0.00% published and 7.5% over a 7h soak; the settling explanation is refuted and the mode is currently unusable for detection (ticketed inertial-false-alarms). The 1% figure quoted elsewhere is a design-target calibrated in-sample, not a measurement (AINOS3-80 F1).",
     "technique_top1": "OOF \u2014 0.645 +/- 0.036 across three instances; the spread exceeds most deltas quoted against it.",
+    "tier": "OOF \u2014 derived by derive_classifier_tiers.py from LOIO folds of the DEPLOYED hybrid, scored at the level actually reported (cluster F1 for multi-member clusters). Was hardcoded and unreproducible until 2026-08-20; an audit then found none of the four techniques published as ROBUST met the documented 'F1 >= 0.85 on every split' rule (DE-0003.01 averaged 0.03). ROBUST is currently EMPTY \u2014 IMP-0005 is the closest at min 0.848 \u2014 and the bar was deliberately not lowered to populate it.",
+    "explanation": "OOF-independent \u2014 per-class mean-|SHAP| over the frozen corpus, computed against the DEPLOYED hybrid with live routing (a frame in a routed mode is explained by that mode's head). Percentages are each field's share of the summed attribution over ALL fields, so the displayed top-6 need not total 100%.",
+    "cluster": "OOF \u2014 re-derived from the hybrid's confusion matrix at the deployed tau=0.1; membership is UNCHANGED from the v3-global taxonomy at every tau tested (0.10/0.15/0.20/0.30).",
     "audit": "components/onair/AINOS3_80_METRIC_PROVENANCE.md"
   }
 };
 window.NOS3_COVERAGE = {
   "EX-0008.01": {
     "name": "ATS",
-    "tier": "HIGH-VAR",
+    "tier": "STABLE-MID",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.91,
     "incident_detected": 3,
@@ -42,12 +46,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 2,
     "cluster": "EX-0008.01",
-    "explanation": "CFE_EVS_HK.AppData[SC].AppMessageSentCounter:60%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:15%|CFE_TBL.CommandErrorCounter:10%|CFE_EVS_HK.AppData[SBN].AppMessageSquelchedCounter:5%|CFE_TBL.CommandCounter\u0394:2%|CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:2%",
+    "explanation": "CFE_TBL.CommandErrorCounter:66%|CFE_EVS_HK.AppData[SC].AppMessageSentCounter:11%|RW.DeviceCount_RW1:5%|ADCS_GNC.HwhlB:5%|ADCS_GNC.svb:2%|SC.CmdCtr:2%",
     "review": ""
   },
   "EX-0008.02": {
     "name": "RTS",
-    "tier": "ROBUST",
+    "tier": "STABLE-MID",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.91,
     "incident_detected": 3,
@@ -57,12 +62,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 3,
     "cluster": "EX-0008.02",
-    "explanation": "CFE_EVS_HK.AppData[SC].AppMessageSentCounter:86%|CFE_TBL.CommandErrorCounter:8%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:3%|SC.CmdCtr:1%|ADCS_GNC.bvb:1%|ADCS_DI.Payload.Imu.acc:0%",
+    "explanation": "CFE_EVS_HK.AppData[SC].AppMessageSentCounter:55%|CFE_TBL.CommandErrorCounter:29%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:6%|RW.DeviceCount_RW1:5%|SC.CmdCtr:1%|ADCS_DI.Payload.Mag.bvb:1%",
     "review": ""
   },
   "EX-0012.03": {
     "name": "Memory write",
-    "tier": "SIBLING",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": null,
     "incident_detected": 6,
@@ -72,12 +78,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": "Sprint 27",
     "label_ok": 2,
     "cluster": "EX-0012.{03,04,05}",
-    "explanation": "CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:22%|CFE_SB.UnmarkedMem:22%|SCH.UnexpectedMajorFrameCount:6%|SCH.SameSlotCount:6%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:5%|ADCS_GNC.bvb:4%",
+    "explanation": "CFE_SB.UnmarkedMem:24%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:21%|ADCS_GNC.Tcmd:9%|SCH.SameSlotCount:5%|ADCS_GNC.bvb:5%|RW.CommandCounter:4%",
     "review": ""
   },
   "EX-0012.04": {
     "name": "App subscriber tables",
-    "tier": "SIBLING",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.63,
     "incident_detected": 5,
@@ -87,12 +94,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": "Sprint 27",
     "label_ok": 1,
     "cluster": "EX-0012.{03,04,05}",
-    "explanation": "CFE_SB.UnmarkedMem:41%|SCH.MultipleSlotsCount:11%|SCH.SameSlotCount:9%|ADCS_GNC.svb:8%|RW.DeviceCount_RW2:5%|RW.DeviceCount_RW0:5%",
+    "explanation": "CFE_SB.UnmarkedMem:42%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:9%|SCH.MultipleSlotsCount:7%|SCH.SameSlotCount:4%|RW.DeviceCount_RW2:4%|ADCS_GNC.svb:3%",
     "review": ""
   },
   "EX-0012.05": {
     "name": "Scheduling algorithm",
-    "tier": "SIBLING",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.64,
     "incident_detected": 6,
@@ -102,12 +110,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": "Sprint 27",
     "label_ok": 1,
     "cluster": "EX-0012.{03,04,05}",
-    "explanation": "CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:34%|SCH.SameSlotCount:20%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:10%|ADCS_GNC.bvb:5%|CFE_SB.MemInUse:5%|SCH.UnexpectedMajorFrameCount:3%",
+    "explanation": "CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:27%|SCH.ValidMajorFrameCount:8%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:8%|SCH.SameSlotCount:8%|ADCS_GNC.bvb:7%|CFE_SB.MemInUse:6%",
     "review": ""
   },
   "EX-0012.07": {
     "name": "Propulsion subsystem",
     "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 1.0,
     "incident_detected": 4,
@@ -117,12 +126,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": "Sprint 27",
     "label_ok": 2,
     "cluster": "EX-0012.07",
-    "explanation": "SCH.SameSlotCount:28%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:17%|ADCS_DI.Payload.Imu.wbn:17%|ADCS_GNC.wbn:6%|EPS.DeviceCount:5%|CFE_EVS_HK.MessageSendCounter:4%",
+    "explanation": "ADCS_DI.Payload.Imu.wbn:28%|ADCS_GNC.wbn:16%|SCH.SameSlotCount:11%|CFE_EVS_HK.MessageSendCounter:9%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:6%|ADCS_GNC.Tcmd:5%",
     "review": ""
   },
   "EX-0012.08": {
     "name": "ADCS subsystem",
     "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 1.0,
     "incident_detected": 2,
@@ -132,12 +142,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": "Sprint 27",
     "label_ok": 1,
     "cluster": "EX-0012.08",
-    "explanation": "ADCS_GNC.Tcmd:46%|ADCS_GNC.bvb:22%|CFE_EVS_HK.MessageSendCounter:13%|ADCS_DI.Payload.Css.Sensor:8%|ADCS_GNC.wbn:4%|CFE_SB.NoSubscribersCounter\u0394:2%",
+    "explanation": "ADCS_GNC.Tcmd:43%|ADCS_DO.Rw.Tcmd:10%|ADCS_GNC.bvb:8%|NOVATEL_HK.DeviceCount:7%|ADCS_HK.CommandCount:6%|ADCS_DI.Payload.Mag.bvb:4%",
     "review": ""
   },
   "EX-0012.09": {
     "name": "EPS subsystem \u2014 CONFIRMED GAP, see review",
     "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.0,
     "incident_detected": 3,
@@ -147,12 +158,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": "Sprint 27",
     "label_ok": 0,
     "cluster": "EX-0012.09",
-    "explanation": "CFE_EVS_HK.MessageSendCounter:57%|EPS.DeviceCount:42%|SCH.UnexpectedMajorFrameCount:1%|ADCS_GNC.bvb:0%|RW.data.momentum:0%|ADCS_DI.Payload.Rw.HwhlB:0%",
+    "explanation": "EPS.DeviceCount:40%|CFE_EVS_HK.MessageSendCounter:27%|RW.CommandCounter:13%|ADCS_GNC.bvb:8%|RW.DeviceCount_RW2:4%|ADCS_DI.Payload.Rw.HwhlB:1%",
     "review": "CONFIRMED GAP (2026-08-17). The published 99% came from transient-dominated data. In steady flight a 24-run replication found NOTHING detects it: IF lift -0.4 +/- 0.1 (0.00% of attack frames) and no rule-gate rule fired in 0/3 reps. The attack sends EPS_FC_SWITCH \u2014 a discrete state change the dynamics IF is blind to by design \u2014 but unlike its siblings (EX-0012.08 -> R14, EX-0014.04 -> R1) no rule covers it. Needs: establish whether the switch toggle appears in any recorded EPS field; if yes an R1/R6-style rule, if no reclassify as UNSUBSCRIBED. Ticketed `detect-eps-switch`."
   },
   "EX-0012.12": {
     "name": "System clock",
-    "tier": "SIBLING",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.57,
     "incident_detected": 6,
@@ -162,12 +174,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 1,
     "cluster": "EX-0012.12/EX-0014.01",
-    "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:44%|CFE_SB.MsgSendErrorCounter:14%|SCH.SameSlotCount:13%|SCH.UnexpectedMajorFrameCount:6%|RW.DeviceCount_RW1:5%|ADCS_DI.Payload.Mag.bvb:3%",
+    "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:37%|CFE_SB.MsgSendErrorCounter:24%|SCH.SameSlotCount:11%|SCH.UnexpectedMajorFrameCount:7%|ADCS_GNC.HwhlB:3%|ADCS_DI.Payload.Rw.HwhlB:2%",
     "review": ""
   },
   "EX-0014.01": {
     "name": "Time spoof",
-    "tier": "SIBLING",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.26,
     "incident_detected": 6,
@@ -177,12 +190,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 2,
     "cluster": "EX-0012.12/EX-0014.01",
-    "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:31%|CFE_SB.MsgSendErrorCounter:15%|SCH.SameSlotCount:8%|RADIO_HK.DeviceErrorCount:5%|SCH.UnexpectedMajorFrameCount:4%|CFE_EVS_HK.MessageSendCounter:3%",
+    "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:25%|CFE_SB.MsgSendErrorCounter:16%|SCH.SameSlotCount:6%|SCH.UnexpectedMajorFrameCount:6%|CFE_SB.MemInUse:4%|ADCS_GNC.bvb:4%",
     "review": ""
   },
   "EX-0014.03": {
     "name": "Sensor data spoof",
     "tier": "DEAD",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.91,
     "incident_detected": 3,
@@ -192,12 +206,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 0,
     "cluster": "EX-0014.03",
-    "explanation": "ADCS_GNC.bvb:13%|SCH.SameSlotCount:13%|CFE_EVS_HK.AppData[CFE_TBL].AppMessageSentCounter:9%|CFE_EVS_HK.MessageSendCounter:8%|EPS.DeviceCount:6%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:6%",
+    "explanation": "CFE_EVS_HK.MessageSendCounter:14%|ADCS_GNC.HwhlB:10%|RW.data.momentum:7%|CFE_SB.MemInUse:7%|ADCS_GNC.bvb:6%|SCH.SameSlotCount:5%",
     "review": ""
   },
   "EX-0014.04": {
     "name": "PNT spoof",
     "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.98,
     "incident_detected": 3,
@@ -207,12 +222,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": "Sprint 27",
     "label_ok": 0,
     "cluster": "EX-0014.04",
-    "explanation": "CFE_SB.MemInUse:46%|CFE_EVS_HK.MessageSendCounter:9%|CFE_SB.MsgSendErrorCounter:6%|EPS.DeviceCount:6%|SCH.SameSlotCount:5%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:5%",
+    "explanation": "CFE_SB.MemInUse:38%|CFE_SB.MsgSendErrorCounter:23%|SCH.ValidMajorFrameCount:8%|RW.data.momentum:6%|ADCS_GNC.HwhlB:4%|CFE_EVS_HK.MessageSendCounter:4%",
     "review": ""
   },
   "IMP-0001": {
     "name": "Deception",
-    "tier": "LOW-STABLE",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "OBFUSCATION",
     "frame_rate": 0.61,
     "incident_detected": 3,
@@ -222,12 +238,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 2,
     "cluster": "IMP-0001",
-    "explanation": "CFE_EVS_HK.MessageSendCounter:34%|CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:27%|EPS.CommandErrorCount:10%|ADCS_GNC.HwhlB:9%|ADCS_GNC.svb:4%|ADCS_GNC.wbn:3%",
+    "explanation": "CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:57%|CFE_EVS_HK.CommandCounter:11%|EPS.CommandErrorCount:11%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:7%|CFE_EVS_HK.MessageSendCounter:5%|ADCS_GNC.HwhlB:4%",
     "review": ""
   },
   "IMP-0002": {
     "name": "Disruption",
     "tier": "STABLE-MID",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.58,
     "incident_detected": 3,
@@ -237,12 +254,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 3,
     "cluster": "IMP-0002",
-    "explanation": "CFE_EVS_HK.CommandCounter:46%|CFE_EVS_HK.MessageSendCounter:23%|RW.DeviceCount_RW0:18%|CFE_EVS_HK.AppData[TO_LAB_APP].AppMessageSentCounter:10%|ADCS_DI.Payload.Imu.wbn\u0394:1%|ADCS_GNC.svb:1%",
+    "explanation": "CFE_EVS_HK.CommandCounter:77%|CFE_EVS_HK.AppData[TO_LAB_APP].AppMessageSentCounter:8%|RW.data.momentum:6%|CFE_EVS_HK.MessageSendCounter:2%|CFE_SB.MemInUse:1%|CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:1%",
     "review": ""
   },
   "IMP-0003": {
     "name": "Denial",
-    "tier": "STABLE-MID",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 1.0,
     "incident_detected": 3,
@@ -252,12 +270,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 2,
     "cluster": "IMP-0003",
-    "explanation": "CFE_EVS_HK.CommandCounter:32%|RW.CommandCounter:12%|CFE_SB.MsgSendErrorCounter:10%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:10%|RW.DeviceCount_RW1:10%|CFE_SB.UnmarkedMem:5%",
+    "explanation": "CFE_EVS_HK.CommandCounter:60%|CFE_SB.MsgSendErrorCounter:15%|CFE_EVS_HK.AppData[SBN].AppMessageSentCounter:13%|RW.CommandCounter:4%|ADCS_GNC.HwhlB:1%|SCH.UnexpectedMajorFrameCount:1%",
     "review": ""
   },
   "IMP-0005": {
     "name": "Destruction",
-    "tier": "ROBUST",
+    "tier": "STABLE-MID",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": 0.75,
     "incident_detected": 3,
@@ -267,12 +286,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 3,
     "cluster": "IMP-0005",
-    "explanation": "CFE_ES.CommandCounter:72%|THRUSTER.CommandCount:18%|CFE_TBL.CommandCounter:7%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:1%|ADCS_DI.Payload.Rw.HwhlB:0%|ADCS_GNC.bvb:0%",
+    "explanation": "CFE_ES.CommandCounter:85%|CFE_TBL.CommandCounter:10%|THRUSTER.CommandCount:1%|EPS.CommandCount:0%|ADCS_GNC.bvb:0%|ADCS_GNC.wbn:0%",
     "review": ""
   },
   "IMP-0006": {
     "name": "Theft",
     "tier": "STABLE-MID",
+    "tier_source": "derived",
     "signal": "UNSUBSCRIBED",
     "frame_rate": 0.62,
     "incident_detected": 3,
@@ -282,12 +302,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 3,
     "cluster": "IMP-0006",
-    "explanation": "CFE_EVS_HK.AppData[TO_LAB_APP].AppMessageSentCounter:75%|RW.DeviceCount_RW0:12%|ADCS_GNC.HwhlB:2%|ADCS_DI.Payload.Mag.bvb:2%|ADCS_GNC.svb:2%|NOVATEL.Novatel_oem615.ECEFZ\u0394:2%",
+    "explanation": "CFE_EVS_HK.AppData[TO_LAB_APP].AppMessageSentCounter:89%|RW.data.momentum:3%|ADCS_GNC.bvb:2%|CFE_EVS_HK.CommandCounter:2%|ADCS_DI.Payload.Mag.bvb:1%|RW.DeviceCount_RW0:0%",
     "review": ""
   },
   "DE-0003.01": {
     "name": "Vehicle command counter",
-    "tier": "ROBUST",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "OBFUSCATION",
     "frame_rate": null,
     "incident_detected": 0,
@@ -297,12 +318,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.01",
-    "explanation": "CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:46%|EPS.DeviceCount:14%|CFE_EVS_HK.MessageSendCounter:9%|SCH.ScheduleActivitySuccessCount:8%|ADCS_GNC.wbn:7%|ADCS_DI.Payload.Imu.wbn:5%",
+    "explanation": "CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:55%|ADCS_GNC.bvb:6%|EPS.DeviceCount:5%|SCH.ScheduleActivitySuccessCount:4%|ADCS_DI.Payload.Mag.bvb:3%|SCH.UnexpectedMajorFrameCount:3%",
     "review": ""
   },
   "DE-0003.02": {
     "name": "Rejected command counter",
-    "tier": "LOW-STABLE",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "OBFUSCATION",
     "frame_rate": null,
     "incident_detected": 0,
@@ -312,12 +334,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.02",
-    "explanation": "ADCS_DI.Payload.Css.Sensor:78%|EPS.DeviceCount\u0394:7%|ADCS_GNC.wbn:7%|CFE_EVS_HK.AppData[SBN].AppMessageSquelchedCounter:4%|CFE_EVS.PacketID.EventID:2%|SCH.UnexpectedMajorFrame\u0394:0%",
+    "explanation": "CFE_EVS_HK.MessageSendCounter:31%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:16%|CFE_EVS_HK.LogOverflowCounter:6%|ADCS_GNC.bvb:6%|RW.data.momentum:6%|EPS.DeviceCount:5%",
     "review": ""
   },
   "DE-0003.03": {
     "name": "Command receiver mode",
-    "tier": "DEAD",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "UNSUBSCRIBED",
     "frame_rate": null,
     "incident_detected": 1,
@@ -327,12 +350,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.03",
-    "explanation": "ADCS_DI.Payload.Imu.wbn:22%|CFE_EVS_HK.AppData[CI_LAB_APP].AppMessageSentCounter:17%|ADCS_DI.Payload.Fss.svb:9%|ADCS_DI.Payload.Css.Sensor\u0394:8%|ADCS_GNC.bvb\u0394:6%|CFE_SB.NoSubscribersCounter:6%",
+    "explanation": "CFE_EVS_HK.AppData[CI_LAB_APP].AppMessageSentCounter:31%|RW.DeviceCount_RW2:17%|RW.CommandCounter:8%|ADCS_GNC.bvb:7%|SCH.ScheduleActivitySuccessCount:6%|ADCS_DI.Payload.Css.svb:4%",
     "review": ""
   },
   "DE-0003.06": {
     "name": "Telemetry downlink modes",
-    "tier": "DEAD",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": null,
     "incident_detected": 0,
@@ -342,12 +366,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.06",
-    "explanation": "RADIO_HK.DeviceErrorCount\u0394:30%|ADCS_GNC.wbn:22%|ADCS_DI.Payload.Imu.acc:12%|ADCS_GNC.Mode\u0394:8%|CFE_SB.NoSubscribersCounter\u0394:8%|ADCS_GNC.bvb\u0394:5%",
+    "explanation": "CFE_EVS_HK.CommandCounter:41%|CFE_EVS_HK.AppData[TO_LAB_APP].AppMessageSentCounter:14%|RADIO_HK.DeviceErrorCount:6%|CFE_EVS_HK.MessageSendCounter:6%|SCH.ScheduleActivitySuccessCount:5%|CFE_EVS_HK.AppData[CFE_SB].AppMessageSentCounter:3%",
     "review": ""
   },
   "DE-0003.08": {
     "name": "Received commands",
-    "tier": "DEAD",
+    "tier": "HIGH-VAR",
+    "tier_source": "derived",
     "signal": "OBFUSCATION",
     "frame_rate": null,
     "incident_detected": 0,
@@ -357,12 +382,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 0,
     "cluster": "DE-0003.08",
-    "explanation": "CFE_EVS_HK.MessageSendCounter:42%|ADCS_DI.Payload.Fss.svb:23%|ADCS_GNC.bvb:9%|SCH.MultipleSlotsCount:8%|CFE_EVS_HK.LogOverflowCounter:5%|ADCS_GNC.svb:3%",
+    "explanation": "CFE_EVS_HK.MessageSendCounter:44%|ADCS_GNC.wbn:8%|RW.DeviceCount_RW2:8%|CFE_EVS_HK.AppData[CFE_ES].AppMessageSentCounter:5%|SCH.ScheduleActivitySuccessCount\u0394:4%|CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:3%",
     "review": ""
   },
   "DE-0003.09": {
     "name": "System clock for evasion",
     "tier": "DEAD",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": null,
     "incident_detected": 3,
@@ -372,12 +398,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 1,
     "cluster": "DE-0003.09",
-    "explanation": "CFE_TIME.CommandCounter:58%|SCH.MultipleSlotsCount:35%|SCH.UnexpectedMajorFrameCount:1%|ADCS_DI.Payload.Imu.wbn:1%|SCH.UnexpectedMajorFrame:1%|ADCS_DI.Payload.Css.svb:1%",
+    "explanation": "CFE_EVS_HK.AppData[SCH].AppMessageSentCounter:22%|CFE_TIME.CommandCounter:20%|SCH.MultipleSlotsCount:17%|SCH.SameSlotCount:7%|SCH.UnexpectedMajorFrameCount:6%|CFE_SB.MemInUse:5%",
     "review": ""
   },
   "DE-0003.10": {
     "name": "GPS ephemeris",
-    "tier": "ROBUST",
+    "tier": "STABLE-MID",
+    "tier_source": "derived",
     "signal": "ON_BOARD",
     "frame_rate": null,
     "incident_detected": 3,
@@ -387,12 +414,13 @@ window.NOS3_COVERAGE = {
     "updated_sprint": null,
     "label_ok": 3,
     "cluster": "DE-0003.10",
-    "explanation": "NOVATEL_HK.CommandCount:86%|CFE_SB.MsgSendErrorCounter:11%|SCH.MultipleSlotsCount:1%|SCH.UnexpectedMajorFrameCount:0%|NOVATEL.Novatel_oem615.ECEFX\u0394:0%|CFE_SB.MemInUse:0%",
+    "explanation": "NOVATEL_HK.CommandCount:89%|CFE_SB.MsgSendErrorCounter:3%|CFE_EVS_HK.AppData[SCH].AppMessageSentCounter:2%|CFE_EVS_HK.AppData[CFE_EVS].AppMessageSentCounter:1%|SCH.MultipleSlotsCount:1%|SCH.UnexpectedMajorFrameCount:1%",
     "review": ""
   },
   "EX-0001.01": {
     "name": "Command packets",
     "tier": "OUT-OF-SCOPE",
+    "tier_source": "fallback",
     "signal": "CONCEPTUAL",
     "frame_rate": null,
     "incident_detected": 0,
@@ -408,6 +436,7 @@ window.NOS3_COVERAGE = {
   "EX-0009.01": {
     "name": "Flight software",
     "tier": "OUT-OF-SCOPE",
+    "tier_source": "fallback",
     "signal": "CONCEPTUAL",
     "frame_rate": null,
     "incident_detected": 0,
@@ -423,6 +452,7 @@ window.NOS3_COVERAGE = {
   "IMP-0004": {
     "name": "Degradation",
     "tier": "OUT-OF-SCOPE",
+    "tier_source": "fallback",
     "signal": "CONCEPTUAL",
     "frame_rate": null,
     "incident_detected": 0,
@@ -438,6 +468,7 @@ window.NOS3_COVERAGE = {
   "DE-0003.04": {
     "name": "Command receiver RSSI",
     "tier": "OUT-OF-SCOPE",
+    "tier_source": "fallback",
     "signal": "CONCEPTUAL",
     "frame_rate": null,
     "incident_detected": null,
@@ -453,6 +484,7 @@ window.NOS3_COVERAGE = {
   "DE-0003.05": {
     "name": "Command receiver lock modes",
     "tier": "OUT-OF-SCOPE",
+    "tier_source": "fallback",
     "signal": "CONCEPTUAL",
     "frame_rate": null,
     "incident_detected": 0,
@@ -468,6 +500,7 @@ window.NOS3_COVERAGE = {
   "DE-0003.07": {
     "name": "Cryptographic modes",
     "tier": "OUT-OF-SCOPE",
+    "tier_source": "fallback",
     "signal": "CONCEPTUAL",
     "frame_rate": null,
     "incident_detected": 0,
@@ -483,6 +516,7 @@ window.NOS3_COVERAGE = {
   "DE-0003.12": {
     "name": "Poison AI/ML training",
     "tier": "OUT-OF-SCOPE",
+    "tier_source": "fallback",
     "signal": "CONCEPTUAL",
     "frame_rate": null,
     "incident_detected": 0,

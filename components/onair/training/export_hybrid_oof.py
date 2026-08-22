@@ -93,24 +93,49 @@ def main():
         print(f"  instance {i}: X={X.shape}")
 
     fid_all, ridx_all, pred_all, conf_all = [], [], [], []
+    # y_true / fold_of_row / labels are persisted alongside the predictions so
+    # this cache can drive recluster_from_cache.py and per-class F1 directly.
+    # Without them the file records what the hybrid predicted but not what was
+    # true, which makes it unusable for re-deriving the cluster taxonomy or the
+    # classifier tiers — both of which are hybrid-dependent.
+    true_all, fold_all, mode_all = [], [], []
     for held in range(len(data)):
         Xtr = np.vstack([data[j][0] for j in range(len(data)) if j != held])
         ytr = np.concatenate([data[j][1] for j in range(len(data)) if j != held])
         mtr = np.concatenate([data[j][2] for j in range(len(data)) if j != held])
-        Xte, _, mte, fte, rte = data[held]
+        Xte, yte, mte, fte, rte = data[held]
         t1 = time.time()
         yp, conf = fit_predict_selective_conf(Xtr, ytr, mtr, Xte, mte, hp, routed)
         fid_all.append(fte); ridx_all.append(rte)
         pred_all.append(yp.astype(str)); conf_all.append(conf)
+        true_all.append(np.asarray(yte).astype(str))
+        fold_all.append(np.full(len(yp), held, dtype=np.int64))
+        mode_all.append(np.asarray(mte).astype(str))
         print(f"  fold {held}: {len(yp)} OOF preds ({time.time()-t1:.0f}s)")
 
+    labels = sorted(set(np.concatenate(true_all).tolist()))
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     np.savez_compressed(
         args.out,
         file_id=np.concatenate(fid_all),
         row_idx=np.concatenate(ridx_all),
         y_pred=np.concatenate(pred_all),
-        confidence=np.concatenate(conf_all))
+        confidence=np.concatenate(conf_all),
+        y_true=np.concatenate(true_all),
+        fold_of_row=np.concatenate(fold_all),
+        adcs_mode=np.concatenate(mode_all),
+        fold_held=np.arange(len(data), dtype=np.int64),
+        labels=np.array(labels, dtype=str),
+        # `--classifier` supplies only the RECIPE (schema + hyper-parameters);
+        # the heads are refit per fold and routing is applied here. Recording
+        # just the pickle name would read as "these are v3-global predictions",
+        # which is exactly wrong — so state the model explicitly.
+        provenance_model=np.array(
+            f"selective per-mode hybrid (routed: {','.join(routed) or 'none'}) "
+            f"— recipe from {os.path.basename(args.classifier)}"),
+        provenance_recipe_pickle=np.array(os.path.basename(args.classifier)),
+        provenance_route_modes=np.array(",".join(routed)),
+        provenance_csv_dir=np.array(args.csv_dir))
     n = sum(len(a) for a in pred_all)
     print(f"\nwrote {args.out}  ({n} OOF predictions)")
     print(f"total: {time.time()-t0:.0f}s")

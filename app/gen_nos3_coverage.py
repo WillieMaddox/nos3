@@ -24,6 +24,14 @@ ROOT = os.path.dirname(HERE)
 RESCORE = os.path.join(ROOT, "data/onair/models/cluster_rescore/incident_rescore.json")
 TAXONOMY = os.path.join(ROOT, "data/onair/models/cluster_rescore/cluster_taxonomy.json")
 CATALOG = os.path.join(ROOT, "data/onair/models/explanation_catalog.json")  # NOS3-312
+# Classifier confidence tiers, DERIVED from LOIO folds by
+# components/onair/training/derive_classifier_tiers.py. Before 2026-08-20 these
+# were hardcoded strings in ENRICH below whose derivation nobody could
+# reproduce — and an audit found none of the four published ROBUST techniques
+# met the documented "F1 >= 0.85 on every split" rule. The tier in ENRICH is now
+# only a FALLBACK, used for techniques the classifier does not score at all
+# (gate-detected and out-of-scope leaves).
+TIERS = os.path.join(ROOT, "data/onair/models/classifier_tiers.json")
 
 # Source of truth from V5_DETECTOR_COVERAGE.md coverage matrix.
 # tier:  ROBUST | STABLE-MID | HIGH-VAR | SIBLING | LOW-STABLE | DEAD | OUT-OF-SCOPE
@@ -213,13 +221,22 @@ def main():
     explain_of = {tid: e.get("top_features_str", "")
                   for tid, e in (catalog.get("classes") or {}).items()}
 
+    # Derived confidence tiers (preferred over ENRICH's fallback strings).
+    tiers_doc = json.load(open(TIERS)) if os.path.exists(TIERS) else {}
+    tier_of = {k: v["tier"] for k, v in (tiers_doc.get("classes") or {}).items()}
+    if not tier_of:
+        print(f"!! WARNING: {os.path.basename(TIERS)} missing — falling back to the "
+              f"hardcoded ENRICH tiers, which are NOT reproducible. Regenerate with "
+              f"components/onair/training/derive_classifier_tiers.py", flush=True)
+
     coverage = {}
     for tid, (tier, signal, frame_rate, label) in ENRICH.items():
         pa = per_attack.get(tid, {})
         det, n = pa.get("detected"), pa.get("n")
         coverage[tid] = {
             "name": label,
-            "tier": tier,
+            "tier": tier_of.get(tid, tier),
+            "tier_source": "derived" if tid in tier_of else "fallback",
             "signal": signal,
             "frame_rate": frame_rate,
             "incident_detected": det,
@@ -300,6 +317,23 @@ def main():
                                    "in-sample, not a measurement (AINOS3-80 F1).",
             "technique_top1": "OOF — 0.645 +/- 0.036 across three instances; the "
                               "spread exceeds most deltas quoted against it.",
+            "tier": "OOF — derived by derive_classifier_tiers.py from LOIO folds of "
+                    "the DEPLOYED hybrid, scored at the level actually reported "
+                    "(cluster F1 for multi-member clusters). Was hardcoded and "
+                    "unreproducible until 2026-08-20; an audit then found none of the "
+                    "four techniques published as ROBUST met the documented "
+                    "'F1 >= 0.85 on every split' rule (DE-0003.01 averaged 0.03). "
+                    "ROBUST is currently EMPTY — IMP-0005 is the closest at min 0.848 "
+                    "— and the bar was deliberately not lowered to populate it.",
+            "explanation": "OOF-independent — per-class mean-|SHAP| over the frozen "
+                           "corpus, computed against the DEPLOYED hybrid with live "
+                           "routing (a frame in a routed mode is explained by that "
+                           "mode's head). Percentages are each field's share of the "
+                           "summed attribution over ALL fields, so the displayed "
+                           "top-6 need not total 100%.",
+            "cluster": "OOF — re-derived from the hybrid's confusion matrix at the "
+                       "deployed tau=0.1; membership is UNCHANGED from the v3-global "
+                       "taxonomy at every tau tested (0.10/0.15/0.20/0.30).",
             "audit": "components/onair/AINOS3_80_METRIC_PROVENANCE.md",
         },
     }
