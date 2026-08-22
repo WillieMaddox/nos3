@@ -537,14 +537,18 @@ honest-OOF overlay correction — and capture feedback as backlog.
 hybrid) but the **presentation slipped** (owner-action, not completed). Re-attempt this
 sprint. Lead with the honesty story — detection is strong and unchanged, labeling improved
 (+7.7 pts) *and* the overlay stopped overstating it — since that reframes the lower
-displayed number correctly. Capture feedback in the `STAKEHOLDER_ROLLOUT.md` table, file as
-tickets.
+displayed number correctly. The script is now
+[`SPRINT_27_STAKEHOLDER_ROLLOUT.md`](SPRINT_27_STAKEHOLDER_ROLLOUT.md) — split out of the
+recurring playbook (`STAKEHOLDER_ROLLOUT_TEMPLATE.md`) on 2026-08-19 so each sprint's
+readout is preserved instead of overwritten. ⚠ It now covers **Sprints 26 and 27**, and
+leads with the six Sprint-26 claims Sprint 27 overturned.
 
 **Acceptance Criteria:**
 
-- Doc + overview presented — **owner action** (cannot be automated); the "What changed
-  since Sprint 25" section + the coverage-overlay honesty-fix bullet are the script.
-- Feedback captured in the `STAKEHOLDER_ROLLOUT.md` table, then filed as backlog tickets.
+- Doc + overview presented — **owner action** (cannot be automated); the "Read this before
+  presenting" correction table + both "What changed" sections are the script.
+- Feedback captured in the `SPRINT_27_STAKEHOLDER_ROLLOUT.md` table, then filed as backlog
+  tickets (slug assigned at triage, crosswalk row added).
 
 ---
 
