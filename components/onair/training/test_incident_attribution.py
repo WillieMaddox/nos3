@@ -1,4 +1,4 @@
-"""Tests for incident_attribution.py (NOS3-311 incident-record wiring)."""
+"""Tests for incident_attribution.py (AINOS3-38 incident-record wiring)."""
 import os
 import sys
 from types import SimpleNamespace

@@ -27,6 +27,24 @@ How to use it:
   `rollout-s25`, …), never an arbitrary counter.
 - `—` in the Jira column = not yet created / not yet entered.
 
+### Retired `NOS3-###` draft IDs
+
+Early planning used a `NOS3-###` numbering that Jira never issued. Those IDs are
+**retired**; the table below is the full map so a stale reference in old code or
+docs can be resolved without re-deriving it from work descriptions. Anything
+still carrying a `NOS3-###` is a bug — replace it with the key here.
+
+| Retired draft ID | Real Jira key | Work |
+|---|---|---|
+| `NOS3-301` | **AINOS3-33** | Mode-aware classifier (closed, negative result) |
+| `NOS3-302` | **AINOS3-34** | Out-of-fold incident-label accuracy |
+| `NOS3-311` | **AINOS3-38** | Per-incident SHAP attribution (offline) |
+| `NOS3-312` | **AINOS3-40** | Surface explanations in the incident record + demo |
+
+`NOS3-211` (the coverage-overlay generator) predates the crosswalk and has no
+Jira key; it survives only as a provenance comment in `app/gen_nos3_coverage.py`
+and `app/nos3_overlay.js`.
+
 ## Sprint 26 (planning)
 
 Workstream Sprint 5 (`SPRINT_26_PLAN.md`), theme "Section B Coverage & Close the Trust

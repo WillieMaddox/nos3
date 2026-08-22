@@ -182,7 +182,7 @@ def main():
             "max_frames": args.max_frames,
             "appdata_resolved": slot_map is not None,
             "note": "faithful ranking; generic activity counters may top the list "
-                    "(NOS3-311). Attack-specific field is within top-N. "
+                    "(AINOS3-38). Attack-specific field is within top-N. "
                     "AINOS3-48: CFE_EVS_HK.AppData resolved to AppData[<app>].<field> "
                     "via cfe_appid_crosswalk.json (per-app-per-field, so a widely-"
                     "distributed EVS signal may occupy several top-N slots). "

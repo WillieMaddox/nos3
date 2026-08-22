@@ -1,4 +1,4 @@
-"""NOS3-311 validation — run attribution on real attacks from the frozen v3
+"""AINOS3-38 validation — run attribution on real attacks from the frozen v3
 corpus and print the top telemetry fields per attack, so they can be checked
 against each attack's known SPARTA footprint.
 

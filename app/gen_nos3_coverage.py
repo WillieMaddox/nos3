@@ -23,7 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 RESCORE = os.path.join(ROOT, "data/onair/models/cluster_rescore/incident_rescore.json")
 TAXONOMY = os.path.join(ROOT, "data/onair/models/cluster_rescore/cluster_taxonomy.json")
-CATALOG = os.path.join(ROOT, "data/onair/models/explanation_catalog.json")  # NOS3-312
+CATALOG = os.path.join(ROOT, "data/onair/models/explanation_catalog.json")  # AINOS3-40
 # Classifier confidence tiers, DERIVED from LOIO folds by
 # components/onair/training/derive_classifier_tiers.py. Before 2026-08-20 these
 # were hardcoded strings in ENRICH below whose derivation nobody could
@@ -216,7 +216,7 @@ def main():
         for m in members:
             cluster_of[m] = rep
 
-    # NOS3-312: per-class explanation (top telemetry fields) from the catalog.
+    # AINOS3-40: per-class explanation (top telemetry fields) from the catalog.
     catalog = json.load(open(CATALOG)) if os.path.exists(CATALOG) else {}
     explain_of = {tid: e.get("top_features_str", "")
                   for tid, e in (catalog.get("classes") or {}).items()}
@@ -245,7 +245,7 @@ def main():
             "updated": UPDATED.get(tid), "updated_sprint": UPDATED_SPRINT if tid in UPDATED else None,
             "label_ok": pa.get("label_ok"),
             "cluster": cluster_of.get(tid),
-            "explanation": explain_of.get(tid, ""),  # NOS3-312
+            "explanation": explain_of.get(tid, ""),  # AINOS3-40
             "review": REVIEW.get(tid, ""),           # why-OOS / what's-needed
         }
 

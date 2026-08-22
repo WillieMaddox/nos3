@@ -1,4 +1,4 @@
-"""NOS3-312 — build the per-class explanation catalog (offline).
+"""AINOS3-40 — build the per-class explanation catalog (offline).
 
 The live OnAIR plugin runtime has no shap, so per-incident SHAP can't run live.
 Instead we precompute, per classifier class, the top-N telemetry fields that
@@ -9,7 +9,7 @@ class's explanation — no shap dependency in flight software.
     python3 build_explanation_catalog.py \
         --out ../../../data/onair/models/explanation_catalog.json
 
-Faithful-ranking caveat (see NOS3-311): entries reflect the model's real drivers,
+Faithful-ranking caveat (see AINOS3-38): entries reflect the model's real drivers,
 which are often generic activity counters with the attack-specific field beneath.
 """
 import argparse
@@ -88,7 +88,7 @@ def main():
             "max_frames": args.max_frames,
             "appdata_resolved": slot_map is not None,
             "note": "faithful ranking; generic activity counters may top the list "
-                    "(NOS3-311). Attack-specific field is within top-N. "
+                    "(AINOS3-38). Attack-specific field is within top-N. "
                     "AINOS3-48: CFE_EVS_HK.AppData resolved to AppData[<app>].<field> "
                     "via cfe_appid_crosswalk.json (per-app-per-field, so a widely-"
                     "distributed EVS signal may occupy several top-N slots).",

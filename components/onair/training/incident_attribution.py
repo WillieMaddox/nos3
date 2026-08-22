@@ -1,4 +1,4 @@
-"""NOS3-311 — attach per-incident SHAP attribution to Incident records (offline).
+"""AINOS3-38 — attach per-incident SHAP attribution to Incident records (offline).
 
 Bridges `attribution.py` (per-frame SHAP) to the `IncidentAggregator`'s output
 so every incident carries a ranked top-N of the telemetry fields that drove its
@@ -8,7 +8,7 @@ Why offline / why not in the live plugin: the OnAIR flight runtime has no shap,
 and the `Incident` dataclass lives in the `components/onair/fsw` submodule. This
 module therefore enriches incidents in the training tree without modifying the
 live emit path or the dataclass. Surfacing these explanations in the live
-incident side-file + demo app is the separate ticket NOS3-312.
+incident side-file + demo app is the separate ticket AINOS3-40.
 """
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ def enrich_incident_record(
 ) -> dict:
     """``incident.to_dict()`` augmented with ``top_features`` (list of dicts) and
     ``top_features_str`` (the compact one-line form). This is the enriched
-    incident record NOS3-312 will surface live."""
+    incident record AINOS3-40 will surface live."""
     top = attribute_incident(
         incident, X, frame_to_row, clf, feature_names,
         class_col_of_label, explainer=explainer, top_n=top_n,

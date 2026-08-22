@@ -1,16 +1,16 @@
-"""NOS3-311 — per-incident feature attribution for the v3 attack classifier.
+"""AINOS3-38 — per-incident feature attribution for the v3 attack classifier.
 
 Offline SHAP attribution. Given the deployed HistGradientBoostingClassifier and
 the frames belonging to one incident, compute which *telemetry fields* drove the
 classification, as an operator-readable ranked list ("EPS.DeviceHK.Switch,
 ADCS_GNC.Mode, ...") rather than feature indices.
 
-Why offline first (NOS3-311 vs the live-plugin work in NOS3-312): this satisfies
+Why offline first (AINOS3-38 vs the live-plugin work in AINOS3-40): this satisfies
 both acceptance criteria — "each incident carries a ranked top-N contributing
 fields" and "attributions validated against >=3 known attacks" — without adding
 shap to the OnAIR flight runtime. `shap.TreeExplainer` supports HistGradientBoosting
 as of shap >= 0.49 and is path-dependent (no predict_proba sampling), so it is
-cheap enough to lift into the plugin later if NOS3-312 wants live explanations.
+cheap enough to lift into the plugin later if AINOS3-40 wants live explanations.
 
 Feature-name convention in `schema["feature_names"]` (894 entries):
   - scalar          : "CFE_EVS.Spare1"
