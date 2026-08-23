@@ -82,6 +82,10 @@ data/onair/batch_*_results.json
 # Mendeley 10.17632/7n2d42pm3n.3). Redistributable but not ours to vendor;
 # benchmark_fayyaz.py re-downloads or takes --data-dir.
 data/onair/external/
+# SPARTA reference material fetched from https://sparta.aerospace.org/related-work/iob
+# (Space Vehicle Logging Best Practices guide + spreadsheet, Distro A). Aerospace
+# Corporation's to distribute, not ours to vendor — re-download from the IOB page.
+data/sparta/
 # data/onair is data (NAS-backed) → git-ignored, EXCEPT the small deployed-config
 # JSONs in models/ which are committed explicitly (cluster_taxonomy.json,
 # incident_rescore*.json, explanation_catalog.json, *_report.md).

@@ -569,6 +569,9 @@ leads with the six Sprint-26 claims Sprint 27 overturned.
 | AINOS3-92 | soak-drift-hz | Task | 1 | 0.25 | `analyze_soak_drift.py --hz` default 4.2 vs true ~5.6 — every uptime bin mislabelled ~33 % |
 | — | overlay-column-scope-mismatch | Bug | 2 | 0.5 | Overlay displays **Catch** (SUNSAFE-only) next to **Incidents** (contains **zero** SUNSAFE) as though comparable — two people have already drawn a false conclusion from it |
 | — | coverage-table-schema | Spike | 5 | 1.5 | **Schema** redesign of the coverage table — mode as a first-class axis, per-cell provenance, detection/attribution/naming split. Nine defects in one sprint trace to the schema, not to diligence. Design: [`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md) |
+| — | sparta-logging-gap-analysis | Spike | 5 | 1.5 | SPARTA's **Space Vehicle Logging Best Practices** (PDF + ~20-sheet workbook, `data/sparta/`) mapped against what we actually record — our logging changed repeatedly and left inconsistencies, and the workbook may name telemetry we don't know exists |
+| — | sparta-stix-ingest | Spike | 3 | 1.0 | SPARTA is published as **STIX 2.1** — the most granular form of the knowledge base. Use it to verify our attack scripts really implement the technique they claim, and to enumerate what we've never attempted |
+| — | quarantine-stale-corpus | Task | 3 | 0.75 | `data/onair/csv` is **30 GB / 1,465 entries** mixing live and pre-correction collections. Map artifact→corpus dependencies **first**, then quarantine — several deployed artifacts still derive from `csv_corpus_v3stage` |
 
 `AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility`
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
@@ -867,6 +870,109 @@ briefed as such — ideally alongside the ROBUST correction rather than as a sec
 - Boundary with **AINOS3-89** recorded: stage 3 subsumes it, so the two must not both run.
 - Sequencing recorded: stages 3–5 gated on **AINOS3-86**, since making mode a first-class
   axis while INERTIAL is uninterpretable builds a column of noise.
+
+### sparta-logging-gap-analysis — SPARTA logging best practices vs what we record · `Spike` · Medium · E 5 · T 1.5 (~12h)
+
+**Summary:** As a defender, I want SPARTA's *Space Vehicle Logging Best Practices* mapped
+against the telemetry we actually record, because the binding constraint on this project is
+**observability** (AINOS3-69) and this is an authoritative, technique-indexed list of what a
+spacecraft *should* be logging.
+
+**Description:** Sourced from SPARTA's Indicators-of-Behavior page
+(<https://sparta.aerospace.org/related-work/iob>): a guide PDF plus a **~20-sheet workbook**,
+both in `data/sparta/` (git-ignored — Aerospace Corporation's to distribute; re-download from
+the IOB page). Two distinct payoffs, and they should not be conflated:
+
+1. **Consistency.** Our logging method changed repeatedly across the project, leaving a mix
+   of formats and field sets. The guide gives an external standard to normalise against
+   rather than an internally-invented one.
+2. **Coverage.** The workbook indexes recommended log sources **by SPARTA technique**. Any
+   row naming telemetry we don't currently subscribe to is a concrete observability lead —
+   exactly what AINOS3-88 concluded we lack, and it arrives already tied to techniques
+   rather than guessed at.
+
+Every sheet must be read. A partial pass would most likely miss the sheets that matter,
+since the useful content is the technique↔log-source mapping, not the prose.
+
+**Acceptance Criteria:**
+
+- All ~20 sheets reviewed; a one-line purpose recorded for each so the next reader can skip
+  to the relevant one.
+- A gap table: recommended log source → do we record it (yes / inconsistently / no) → which
+  MID would carry it if not.
+- Recommended sources split into **subscribable now** (a MID exists on the bus),
+  **needs FSW work**, and **not modelled by NOS3**, with a count for each.
+- Any technique currently marked out-of-scope/UNSUBSCRIBED in `V5_DETECTOR_COVERAGE.md`
+  that the workbook says *is* loggable is flagged explicitly — those are re-openable verdicts.
+- Feeds AINOS3-69's observability constraint and the AINOS3-45 corpus decision; does **not**
+  itself subscribe anything.
+
+### sparta-stix-ingest — Use the SPARTA STIX 2.1 dataset as ground truth · `Spike` · Medium · E 3 · T 1.0 (~8h)
+
+**Summary:** As a security researcher, I want the SPARTA knowledge base ingested in its
+**STIX 2.1** form, because it is the most granular representation available and every other
+view (including the HTML matrix we built the overlay from) is derived from it.
+
+**Description:** Per the SPARTA user guide, the dataset ships as STIX 2.1 and is most easily
+handled with the `stix2` Python library, or as plain JSON from the API. Three uses, in
+descending confidence:
+
+1. **Validate what we claim.** We have 30-plus attack scripts asserting they implement a
+   given technique. STIX carries each technique's authoritative description and
+   relationships — a script whose behaviour does not match its technique's definition is a
+   mislabelled result, and mislabelled results have already cost this project a full
+   re-derivation (`EX-0012` wave-1).
+2. **Enumerate what we have never attempted**, mechanically, instead of by reading the
+   matrix by eye.
+3. **Explore the design space** — relationships between techniques, countermeasures, and
+   IOBs that the flat matrix does not expose.
+
+Worth deciding as part of this: whether STIX becomes a **build-time source** for the
+coverage matrix rather than the hand-maintained technique lists in `gen_nos3_coverage.py`.
+That would remove a whole class of drift and is a natural fit with
+[`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md).
+
+**Acceptance Criteria:**
+
+- STIX bundle fetched and loadable; the fetch documented and repeatable (API call or
+  download path), not a one-off manual step.
+- Every validated attack script mapped to its STIX technique object; mismatches between
+  script behaviour and technique definition listed.
+- Techniques with no script enumerated, separated from techniques ruled out-of-scope.
+- A recorded decision on STIX-as-build-source for the coverage matrix — yes/no with reason.
+
+### quarantine-stale-corpus — Separate live corpus data from superseded · `Task` · Medium · E 3 · T 0.75 (~6h)
+
+**Summary:** As a maintainer, I want superseded corpus data quarantined out of the working
+set, because `data/onair/csv` holds **30 GB across 1,465 entries** mixing collections we
+still depend on with collections we know are invalid — and the mix invites scoring against
+bad data.
+
+**Description:** Several collections are known-superseded: the wave-1 attack runs whose
+scripts had the four bug classes, the COSMOS-up sweep superseded by the mode-balanced
+corpus, and everything collected under `scenario_all_modes_dwell` before the blind-window
+defect was found (83 % of attack frames unusable).
+
+⚠ **Dependency mapping comes first, and this is the whole risk.** `csv_corpus_v3stage` is
+**frozen and still load-bearing** — the deployed classifier's LOIO, the cluster taxonomy,
+the explanation catalog and the newly-derived `classifier_tiers.json` all trace to it.
+Moving it would break four artifacts and silently invalidate the tier column we just fixed.
+"Pre-correction" does **not** mean "safe to move".
+
+Quarantine, not delete, at least initially: a sibling `data/onair/csv_stale/` with a README
+per moved collection saying what it was, why it is superseded, and what (if anything) still
+cites it. Deletion can follow once nothing references it for a sprint.
+
+**Acceptance Criteria:**
+
+- Inventory of `data/onair/csv` by collection: date range, size, collecting scenario, and
+  the defect (if any) that supersedes it.
+- **Artifact→corpus dependency map** produced *before* anything moves; every artifact in
+  `data/onair/models/` traced to the corpus it was built from.
+- Superseded collections moved to `data/onair/csv_stale/` with a per-collection README.
+- Nothing that a live artifact depends on is moved — verified by regenerating at least one
+  dependent artifact after the move and diffing to zero.
+- Space reclaimed recorded, and a note on whether deletion is now safe.
 
 ### AINOS3-85 — Reach actuator saturation for the recovery-boundary test · `Spike` · Backlog · E 2 · T 0.5 (~4h)
 
