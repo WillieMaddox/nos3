@@ -1,6 +1,6 @@
 # Sprint 27 Stakeholder Rollout (AINOS3-76 · EPIC AINOS3-42)
 
-**Component:** `OnAIR-Security` · **Sprint:** 27 · **Prepared:** 2026-08-19 · **Updated:** 2026-08-22 · **Status:** ⏳ not yet delivered
+**Component:** `OnAIR-Security` · **Sprint:** 27 · **Prepared:** 2026-08-19 · **Updated:** 2026-08-23 · **Status:** ✅ delivered, signed off in Jira 2026-08-23
 
 Instance of the recurring playbook —
 [`STAKEHOLDER_ROLLOUT_TEMPLATE.md`](STAKEHOLDER_ROLLOUT_TEMPLATE.md) holds the flow,
@@ -195,16 +195,20 @@ Capture here:
 ### I am not sure which of these need their own ticket, can be grouped into a single ticket, or don't require a ticket at all (e.g. memory update, housekeeping task, etc.)
 
 The main feedback I get from stakeholders is,
+
 1. "Less red and yellow, more green"
 2. "Less HIGH-VAR and DEAD, more ROBUST". 
+
 We had ROBUST classifications before. What will it take to make them (and possibly other sub-techniques) yet ROBUST again? This is a high level goal that we should be improving consistently or always be striving for at least. If that means we go back to the drawing board on something in order to do it right, I'm all for it. Better to have a brief setback and get on the right path than to keep on a path going nowhere.
 
 ---
 
 With regard to the sparta coverage sub-technique tables:
+
 1. Which of the columns are IF related and which are classifier related?
 2. Why does DE-0003.08 show its verdict as not detected and have HIGH-VAR, while DE-0003.09 has a partial verdict but DEAD?
 3. The "Classifier Tier" column is missing a summary description in the footer below the table.
+
 Update in `V5_DETECTOR_COVERAGE.md` and `sparta_coverage.html`.
 
 ---
@@ -212,8 +216,10 @@ Update in `V5_DETECTOR_COVERAGE.md` and `sparta_coverage.html`.
 I spent a few hours researching the Sparta website and found some very interesting information I think will be very useful in helping to achieving our goals.
 Probably the most interesting page and the one most relevant to our work is the Sparta Indicators of Behavior page, https://sparta.aerospace.org/related-work/iob.
 A complete understanding of these IOBs, I believe, will make problem solving, debugging and data analysis that much easier across almost every task associated with this project. Two topics on this page I find most interesting:
+
 1. Best practice guidelines for spacecraft subsystem logging to SPARTA techniques. Links are provided to a pdf of the guide as well as a detailed and comprehensive spreadsheet. I've already taken the liberty of downloading them for you. See the `data/sparta/` directory. Both files may help us improve significantly the quality of our log data. For example, our logging methods have gone through a number of changes and as a result left us with a mix of inconsistent log data. Or the spreadsheet may provide critically helpful telemetry currently unknown to us. The list goes on and on. Be sure to understand the details of every sheet contained in the file (~20 sheets).
 2. STIX patterns, how they relate to the Indicators of Behavior and how to use them. According to the SPARTA user guide, https://sparta.aerospace.org/resources/user-guide:
+
 >Structured Threat Information Expression (STIX™) is a language and serialization format used to exchange cyber threat intelligence (CTI). The SPARTA dataset is available in STIX 2.1.
 >STIX is a machine-readable format providing access to the SPARTA knowledge base. It is the most granular representation of the SPARTA data, and all other representations are derived from the STIX dataset.
 >The SPARTA STIX representation is most easily manipulated in Python using the stix2 library https://github.com/oasis-open/cti-python-stix2#installation. 

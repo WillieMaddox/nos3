@@ -66,7 +66,7 @@ documents already-done work (create + close it).
 | AINOS3-39 | counter-reliance-audit | Spike | classification-trust | Activity-counter reliance audit — rec: keep v3 | ✅ Done (2026-07-29) |
 | AINOS3-37 | selective-mode-hybrid | Story | classification-trust | Selective per-mode hybrid | ○ Stretch |
 | AINOS3-42 | stakeholder-rollout | Epic | — | Stakeholder rollout & feedback (recurring) | — |
-| AINOS3-76 | rollout-s26 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 26 | Sprint 27 · To Do |
+| AINOS3-76 | rollout-s26 | Task | stakeholder-rollout | Stakeholder rollout — Sprint 26 | Sprint 27 · ✅ Done (2026-08-23) |
 
 ## Sprint 25 (prior)
 

@@ -73,13 +73,14 @@ metric-provenance-audit 2 · hybrid-drift-soak 1 · benchmark-fayyaz 3 · AINOS3
 T ≈ **4.75** — right at the ~16 E / ~7–8 T capacity, leaving headroom for the
 signal-feasibility corpus run's unattended wall-clock.
 
-**Status (2026-08-19, reconciled against Jira): 5 of 6 committed items ✅ DONE, plus one
-stretch.** `AINOS3-77` · `AINOS3-80` · `AINOS3-81` · `AINOS3-82` · `AINOS3-88`
+**Status (2026-08-23 — SPRINT CLOSED): all 6 committed items ✅ DONE, plus one stretch.**
+`AINOS3-76` · `AINOS3-77` · `AINOS3-80` · `AINOS3-81` · `AINOS3-82` · `AINOS3-88`
 (signal-feasibility, split out of AINOS3-30) are **Done**, and the stretch spike
-**`AINOS3-78`** (cluster-345 regression) is **Done** as well. **`AINOS3-76`** (stakeholder
-rollout, owner action) is the only open item. Everything else — `AINOS3-30`, `-45`, `-68`,
-`-83`, `-84`, `-85`, the two findings `-86`/`-87`, and the four late findings `-89`…`-92` —
-is in the **backlog**.
+**`AINOS3-78`** (cluster-345 regression) is **Done** as well. `AINOS3-76` — the stakeholder
+readout, carried since Sprint 26 — was **delivered and signed off 2026-08-23**, closing the
+last open item. Everything else — `AINOS3-30`, `-45`, `-68`, `-83`, `-84`, `-85`, the two
+findings `-86`/`-87`, the four late findings `-89`…`-92`, and the five raised by the readout
+`-93`…`-97` — is in the **backlog**.
 
 The sprint's headline outcome is not the one planned: the signal lever returned a **NULL**,
 while the *hardening* half surfaced defects nobody had tickets for — see below.
@@ -549,6 +550,13 @@ leads with the six Sprint-26 claims Sprint 27 overturned.
   presenting" correction table + both "What changed" sections are the script.
 - Feedback captured in the `SPRINT_27_STAKEHOLDER_ROLLOUT.md` table, then filed as backlog
   tickets (slug assigned at triage, crosswalk row added).
+
+**Result:** ✅ **DONE (2026-08-23)** — delivered and signed off after slipping two sprints.
+Covered Sprints 26 **and** 27, led with the seven-row correction table. Feedback triaged into
+five tickets (`AINOS3-93`…`-97`), three doc questions answered in place (column semantics,
+the `DE-0003.08`/`.09` verdict-vs-tier confusion, the missing tier key), and two standing
+stakeholder asks — "more green", "more ROBUST" — deliberately **not** ticketed: too many
+inputs, no finish line, so they are a standing direction judged at readout time.
 
 ---
 
