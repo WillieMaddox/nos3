@@ -37,5 +37,9 @@
   "27:AINOS3-94": "Same work. Plan heading is the short form; the crosswalk title enumerates the three schema changes and the nine-defect motivation.",
   "27:AINOS3-95": "Same work. Plan heading names the comparison, the crosswalk title names the artifact (~20-sheet workbook) and the verb (gap-analyse).",
   "27:AINOS3-96": "Same work. Plan heading gives the intent ('as ground truth'), the crosswalk title gives the two concrete deliverables (validate scripts, map gaps).",
-  "27:AINOS3-97": "Same work. Plan heading is the outcome ('separate live from superseded'), the crosswalk title is the method plus the scale (30 GB, 1,465 entries) and the dependency-map precondition."
+  "27:AINOS3-97": "Same work. Plan heading is the outcome ('separate live from superseded'), the crosswalk title is the method plus the scale (30 GB, 1,465 entries) and the dependency-map precondition.",
+  "28:AINOS3-92": "Same as 27:AINOS3-92 - carryover into Sprint 28, plan heading reused verbatim from the sprint that scoped it.",
+  "28:AINOS3-95": "Same as 27:AINOS3-95 - carryover into Sprint 28, plan heading reused verbatim. Re-prioritised to High and re-sized E 5 -> E 3 after measuring the workbook (19 sheets, ~330 data rows); priority and estimate are not part of the title binding.",
+  "28:AINOS3-96": "Same as 27:AINOS3-96 - carryover into Sprint 28, plan heading reused verbatim. Re-prioritised to High and moved to the head of the sprint because it gates the label set; scope unchanged.",
+  "28:AINOS3-97": "Same as 27:AINOS3-97 - carryover into Sprint 28, plan heading reused verbatim. Reparented to the new corpus-integrity epic; parent is not part of the title binding."
 }

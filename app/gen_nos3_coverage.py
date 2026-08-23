@@ -80,30 +80,11 @@ ENRICH = {
 # dot when any sub-technique under it changed, so a reader scanning the matrix can
 # see where to look without diffing. Reason strings surface in the tooltip.
 # Clear this dict at the start of each sprint.
-UPDATED_SPRINT = "Sprint 27"
+UPDATED_SPRINT = "Sprint 28"
 UPDATED = {
-    # AINOS3-78 — the .03/.04/.05 sibling cluster's *labeling* regressed under the
-    # deployed hybrid. Detection (frame_rate) is unchanged; this is a classifier
-    # finding only, and the mitigation is recommended but NOT deployed.
-    "EX-0012.03": "Cluster labeling regressed under the deployed hybrid (AINOS3-78). "
-                  "Detection unchanged; naming is the affected half. Loss is entirely "
-                  "INERTIAL (-20.9 pts frame-level); mitigation recommended, not deployed.",
-    "EX-0012.04": "Cluster labeling regressed under the deployed hybrid (AINOS3-78). "
-                  "Detection unchanged; naming is the affected half. Loss is entirely "
-                  "INERTIAL (-20.9 pts frame-level); mitigation recommended, not deployed.",
-    "EX-0012.05": "Cluster labeling regressed under the deployed hybrid (AINOS3-78). "
-                  "Detection unchanged; naming is the affected half. Loss is entirely "
-                  "INERTIAL (-20.9 pts frame-level); mitigation recommended, not deployed.",
-    "EX-0012.07": "IF vindicated in steady flight: +77.5 +/- 3.6 lift across 3 runs "
-                  "(~80% of attack frames vs ~1% nominal).",
-    "EX-0012.08": "Detector attribution corrected: caught by rule-gate R14 (mode-force), "
-                  "not the anomaly detector — IF lift ~0 in steady flight.",
-    "EX-0012.09": "CONFIRMED GAP: catch rate 99% -> 0%. Detected by nothing in steady "
-                  "flight (0/3 reps, no IF lift, no rule fired). Ticketed AINOS3-87.",
-    "EX-0014.04": "Detector attribution corrected: caught by rule-gate R1 (GPS disable), "
-                  "not the anomaly detector — IF lift ~0 in steady flight.",
-    "DE-0005":    "New detection: rule-gate R14 mode-force, plus the R14 mode-flap "
-                  "sub-rule for repeated forced transitions (AINOS3-77).",
+    # Cleared at Sprint 28 kickoff (2026-08-23). Sprint 27 markers served their
+    # readout (AINOS3-76, delivered 2026-08-23). Add entries as this sprint changes
+    # coverage assessments.
 }
 
 # ── Section-A gate-detected techniques (coverage-validation campaign, AINOS3-50…62,

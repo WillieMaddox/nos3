@@ -45,6 +45,62 @@ still carrying a `NOS3-###` is a bug — replace it with the key here.
 Jira key; it survives only as a provenance comment in `app/gen_nos3_coverage.py`
 and `app/nos3_overlay.js`.
 
+## Sprint 28 (planning)
+
+Workstream Sprint 7 (`SPRINT_28_PLAN.md`), theme "Read the Manual Before Rebuilding"
+(2026-08-23 → 2026-09-06). Sprint 27 established that **corpus size and quality**, not
+feature design, are the binding constraint (`AINOS3-88` NULL) and that 83 % of attack frames
+sat inside the detector's blind window. The corpus rebuild was planned for this sprint and
+then **deliberately re-ordered behind the two SPARTA spikes**: `AINOS3-96` gates the *label
+set* (our scripts' technique claims are the classifier's classes) and `AINOS3-95` gates the
+*schema* (subscribe before collecting, not after). The rebuild moves to Sprint 29, built on
+verified labels and a settled schema.
+
+Keys for the four new slugs were created and entered **2026-08-23**: `corpus-integrity`
+(AINOS3-98), `fold-variance-triage` (AINOS3-99), `corpus-rebuild-steadyflight` (AINOS3-100)
+and `retrain-clean-corpus` (AINOS3-101). The last two are the **Sprint 29** spine, created
+early so the deferral is tracked on the board rather than in a plan document.
+
+| Jira | Slug | Type | Epic (parent) | Title | Status |
+|---|---|---|---|---|---|
+| AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
+| AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Ingest the SPARTA STIX 2.1 dataset; validate existing attack scripts against it and map unimplemented techniques | Sprint 28 · ◑ Committed (re-prioritised to High) |
+| AINOS3-95 | sparta-logging-gap-analysis | Spike | coverage-expansion | Gap-analyse SPARTA's Space Vehicle Logging Best Practices (~20-sheet workbook) against our recorded telemetry | Sprint 28 · ◑ Committed (re-prioritised to High; re-sized E 5 → E 3) |
+| AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected in steady flight | Sprint 28 · ◑ Committed |
+| AINOS3-79 | detector-rigor | Epic | — | Detector hardening & measurement honesty | — |
+| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band (measured 33.6%) | Sprint 28 · ◑ Committed (diagnosis bounded; see plan) |
+| AINOS3-90 | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? | Sprint 28 · ◑ Committed |
+| AINOS3-92 | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) | Sprint 28 · ◑ Committed |
+| AINOS3-98 | corpus-integrity | Epic | — | Corpus integrity — the corpus as a first-class, versioned artifact | — |
+| AINOS3-99 | fold-variance-triage | Spike | corpus-integrity | Explain the per-instance F1 spread holding the tier column down | Sprint 28 · ◑ Committed |
+| AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Inventory data/onair/csv (30 GB, 1,465 entries), map artifact->corpus dependencies, quarantine superseded collections | Sprint 28 · ◑ Committed (reparent from detector-rigor) |
+| AINOS3-94 | coverage-table-schema | Spike | detector-rigor | Redesign the coverage table schema: mode as an axis, per-cell provenance, split detection/attribution/naming | Sprint 28 · ○ Stretch (stages 1–2 only) |
+| AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | Overlay shows Catch (SUNSAFE-only) beside Incidents (zero SUNSAFE) as if comparable | Sprint 28 · ○ Stretch |
+| AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide | Sprint 28 · ○ Stretch |
+
+### Sprint 29 (deferred spine — keys assigned 2026-08-23, scheduled next sprint)
+
+| Jira | Slug | Type | Epic (parent) | Title | Status |
+|---|---|---|---|---|---|
+| AINOS3-100 | corpus-rebuild-steadyflight | Story | corpus-integrity | Recollect the classified attack set under the steady-flight protocol | Backlog (Sprint 29 target) |
+| AINOS3-101 | retrain-clean-corpus | Story | corpus-integrity | Retrain + re-derive tiers on the clean corpus — is `ROBUST` reachable? | Backlog (Sprint 29 target) |
+| AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | Retrain dropping harmful bus-activity features | Backlog (fold into retrain-clean-corpus, never its own cycle) |
+
+### ⚠ AINOS3-45 — close as superseded (2026-08-23)
+
+`AINOS3-45` (`corpus-instance-4`, *"4th corpus instance"*) is scoped against the collection
+protocol found defective in Sprint 27 — mode cycling every 60 s against a ~45 s detector
+warmup, leaving **83 % of attack frames inside the blind window**. Executing it as written
+would add a fourth LOIO fold built from unusable data, which is worse than not collecting at
+all, because the tier rule takes the **minimum** across folds.
+
+The replacement work is materially different in protocol, mode scope and instance count, so
+per this file's immutability rule it gets a **new slug and a new key**
+(`corpus-rebuild-steadyflight`) rather than a re-scope in place. That is the `AINOS3-30`
+lesson applied deliberately.
+
+**Recommendation: close `AINOS3-45` as superseded.** Do not re-scope it.
+
 ## Sprint 26 (planning)
 
 Workstream Sprint 5 (`SPRINT_26_PLAN.md`), theme "Section B Coverage & Close the Trust
@@ -217,8 +273,9 @@ weak-class corpus and ablate five candidate feature blocks (E 5 / T 1.5, vs the 
 E 8 / T 2.5). That violated this file's immutability rule: a key is bound to one slug and one
 scope, permanently.
 
-**Resolution:** the Sprint-27 work is split out under the new slug **`signal-feasibility`**
-and needs its own Jira key. `AINOS3-30` reverts to its original scope and stays **open**;
-nothing done in Sprint 27 should be used to close it.
+**Resolution:** the Sprint-27 work was split out under the new slug **`signal-feasibility`**
+and given its own key, **`AINOS3-88`** (assigned 2026-08-19; ✅ Done, NULL result).
+`AINOS3-30` reverts to its original scope and stays **open**; nothing done in Sprint 27
+should be used to close it.
 
 **Do not close AINOS3-30 against the Sprint-27 results.** They answer a different question.
