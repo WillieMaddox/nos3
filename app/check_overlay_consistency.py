@@ -19,33 +19,36 @@ wrong test — most of the gap between them is expected and healthy:
 
   - different granularity: `Catch` is the fraction of attack FRAMES flagged;
     `Incidents` is the fraction of attacks that raised AT LEAST ONE alert.
-    Incident recall SHOULD sit above frame catch — that is what incident
-    aggregation is for. A large positive gap is normal.
-  - different scope: `Catch` is SUNSAFE-only, while incidents are scored over a
-    corpus whose attack windows span every mode. An attack invisible in SUNSAFE
-    can still raise an incident off another mode's frames.
+  - different scope, and this one is absolute: `Catch` is SUNSAFE-only, while
+    every incident is attributed to its attack's FIRST corruption frame's mode.
+    Attacks start where the FSW boots, so the corpus holds 91 PASSIVE, 23
+    INERTIAL, 1 BDOT and **zero SUNSAFE** incidents. The two columns therefore
+    describe populations that never overlap, and NO arithmetic between them is
+    meaningful — not a difference, not a ratio, not a direction.
 
-So the checks below look for gaps that those two explanations do NOT cover.
+So the checks below avoid cross-column arithmetic as evidence. What they look
+for is a panel that READS as self-contradictory to someone seeing it for the
+first time, plus one finding (NEVER-NAMED) that holds within a single column.
 
-  IMPOSSIBLE       catch == 0 yet incidents were raised. Not literally
-                   impossible (see scope, above) but it means every incident
-                   came from a mode outside the published figure — and one of
-                   those modes, INERTIAL, currently has a 33.6 % false-alarm
-                   rate, so "detected" there may be noise. Always worth a look.
-  INVERTED         incident recall BELOW frame catch by more than --margin.
-                   Backwards: frames were flagged but no incident formed.
-                   Suggests hysteresis or aggregation is dropping real signal.
+  SAYS-BOTH        the panel asserts "caught nothing" and "caught everything"
+                   at once: catch == 0 with incidents raised. Given the scope
+                   note above this is not a contradiction in the data, but it
+                   IS one on screen — and the incidents came from modes
+                   including INERTIAL, which currently runs a 33.6 %
+                   false-alarm rate, so "detected" there may be noise.
   NEVER-NAMED      high incident recall with zero correct labels. Reads as
                    "solved" on screen while the classifier never once got it
-                   right.
-  WIDE             a gap larger than --margin in the expected direction. Not a
-                   defect; listed so nobody is surprised by it mid-demo.
+                   right. The strongest finding this check produces, because it
+                   needs no cross-column comparison to hold.
+  WIDE             a gap larger than --margin. Reported ONLY so nobody is
+                   surprised mid-demo — see the scope note: the gap is not
+                   evidence of anything.
 
 Usage:
     python3 app/check_overlay_consistency.py [--margin 0.25] [--quiet]
 
-Exit status is 1 if any IMPOSSIBLE / INVERTED / NEVER-NAMED panel is found, so
-this can gate a rollout the way check_ticket_titles.py gates a sprint plan.
+Exit status is 1 if any SAYS-BOTH / NEVER-NAMED panel is found, so this can
+gate a rollout the way check_ticket_titles.py gates a sprint plan.
 """
 from __future__ import annotations
 
@@ -98,22 +101,25 @@ def audit(cov: dict, margin: float) -> list[dict]:
         gap = recall - catch
         if catch == 0.0 and recall > 0:
             findings.append(dict(
-                tid=tid, kind="IMPOSSIBLE", catch=catch, recall=recall,
+                tid=tid, kind="SAYS-BOTH", catch=catch, recall=recall,
                 label_ok=label_ok,
-                note="zero frames flagged in SUNSAFE yet incidents raised — "
-                     "every incident came from another mode"))
-        elif gap < -margin:
-            findings.append(dict(
-                tid=tid, kind="INVERTED", catch=catch, recall=recall,
-                label_ok=label_ok,
-                note=f"incident recall {recall:.0%} is {abs(gap):.0%} BELOW "
-                     f"frame catch — frames flagged but no incident formed"))
+                note="panel shows 0% caught beside 100% of incidents "
+                     "detected; those incidents are all non-SUNSAFE"))
+        # NO "INVERTED" CHECK. An earlier version flagged incident recall
+        # falling below frame catch as backwards ("frames flagged but no
+        # incident formed") and fired on EX-0012.08. That test was invalid: it
+        # assumed both figures cover the same attacks. They cover DISJOINT
+        # populations — Catch is SUNSAFE-only, and because incidents are
+        # attributed to an attack's FIRST corruption frame's mode (attacks start
+        # in PASSIVE, where the FSW boots) the corpus contains ZERO SUNSAFE
+        # incidents. A gap in either direction is therefore uninformative about
+        # aggregation, and the check must not imply otherwise.
         elif gap > margin:
             findings.append(dict(
                 tid=tid, kind="WIDE", catch=catch, recall=recall,
                 label_ok=label_ok,
                 note=f"incident recall exceeds frame catch by {gap:.0%} "
-                     f"(expected direction; aggregation working)"))
+                     f"(populations do not overlap — not evidence)"))
 
         if recall >= 0.99 and label_ok == 0:
             findings.append(dict(
@@ -124,7 +130,7 @@ def audit(cov: dict, margin: float) -> list[dict]:
     return findings
 
 
-BLOCKING = {"IMPOSSIBLE", "INVERTED", "NEVER-NAMED"}
+BLOCKING = {"SAYS-BOTH", "NEVER-NAMED"}
 
 
 def main():
@@ -135,7 +141,7 @@ def main():
                    help="gap between incident recall and frame catch that counts "
                         "as notable (default 0.25)")
     p.add_argument("--quiet", action="store_true",
-                   help="suppress the WIDE (expected-direction) rows")
+                   help="suppress the WIDE (informational) rows")
     a = p.parse_args()
 
     cov = load_coverage(a.coverage)
@@ -152,7 +158,7 @@ def main():
     else:
         print(f"{'technique':<14}{'kind':<13}{'catch':>7}{'incid':>8}{'lbl':>5}  note")
         print("-" * 110)
-        order = {"IMPOSSIBLE": 0, "INVERTED": 1, "NEVER-NAMED": 2, "WIDE": 3}
+        order = {"SAYS-BOTH": 0, "NEVER-NAMED": 1, "WIDE": 2}
         for f in sorted(shown, key=lambda f: (order[f["kind"]], f["tid"])):
             c = "—" if f["catch"] is None else f"{f['catch']:.0%}"
             print(f"{f['tid']:<14}{f['kind']:<13}{c:>7}{f['recall']:>7.0%}"

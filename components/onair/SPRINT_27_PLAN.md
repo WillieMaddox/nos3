@@ -567,6 +567,7 @@ leads with the six Sprint-26 claims Sprint 27 overturned.
 | AINOS3-90 | verify-nominal-incident-filter | Task | 1 | 0.25 | Does the operator view filter `cluster=nominal`? Decides whether INERTIAL's 71 false incidents/hr are user-visible |
 | AINOS3-91 | startracker-inert-fields | Spike | 2 | 0.5 | 5 `ST_DEV` fields constant corpus-wide — an ADCS sensor reporting nothing |
 | AINOS3-92 | soak-drift-hz | Task | 1 | 0.25 | `analyze_soak_drift.py --hz` default 4.2 vs true ~5.6 — every uptime bin mislabelled ~33 % |
+| — | overlay-column-scope-mismatch | Bug | 2 | 0.5 | Overlay displays **Catch** (SUNSAFE-only) next to **Incidents** (contains **zero** SUNSAFE) as though comparable — two people have already drawn a false conclusion from it |
 
 `AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility`
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
@@ -775,6 +776,52 @@ passed explicitly.
   `--hz` retained as an override.
 - Warn when the derived rate differs from any supplied `--hz` by more than ~10 %.
 - Any drift table already published with the 4.2 default is re-checked or annotated.
+
+### overlay-column-scope-mismatch — `Catch` and `Incidents` are not comparable · `Bug` · Medium · E 2 · T 0.5 (~4h)
+
+**Summary:** As a presenter, I want the overlay to stop displaying two figures side by side
+that describe non-overlapping populations, because reading across them produces confident
+wrong conclusions — and it already has, twice.
+
+**Description:** The technique panel shows **Catch** and **Incidents** as adjacent columns.
+They cannot be compared:
+
+- **Catch** is the per-frame flag rate **in SUNSAFE only**.
+- **Incidents** are attributed to each attack's **first corruption frame's mode**. Attacks
+  start where the FSW boots, so the corpus holds **91 PASSIVE · 23 INERTIAL · 1 BDOT ·
+  0 SUNSAFE** incidents.
+
+The two columns therefore share **zero attacks**. No arithmetic between them means anything
+— not a difference, not a ratio, not a direction — yet the layout invites exactly that.
+`V5_DETECTOR_COVERAGE.md` §B already warns these are "two views that must not be confused",
+but the overlay presents them as if they were one.
+
+This is not hypothetical. **Two false conclusions have already been drawn from it:**
+
+1. `EX-0012.09` showing "0 % caught" beside "3/3 incidents" was read as a stale-data
+   contradiction. It is not — those incidents are simply all non-SUNSAFE.
+2. `EX-0012.08` (incident recall 67 % *below* its 100 % catch) was flagged as an inverted
+   result suggesting the incident aggregator was dropping real signal, and was one step from
+   being ticketed as a detector defect. It is an artifact of comparing disjoint populations.
+   `app/check_overlay_consistency.py` carries the retracted test as a comment so the mistake
+   is not re-made.
+
+The fix is presentational, not analytical — no re-measurement is required, which is what
+separates this from **AINOS3-89** (that one owns whether the Catch *values* are right; this
+one owns whether they can be read against the neighbouring column at all).
+
+**Acceptance Criteria:**
+
+- Each column states its population in the UI — at minimum "SUNSAFE frames" on Catch and the
+  attributed-mode rule on Incidents — so scope is visible without opening the coverage doc.
+- A panel whose Incidents contain no frames from Catch's mode does not render them as a
+  side-by-side pair, or renders them visibly separated.
+- The footer key explains that the two columns are not comparable and why (one sentence).
+- `check_overlay_consistency.py` still passes with no new blocking finding; its `SAYS-BOTH`
+  rule is re-examined once the presentation changes, since it exists to catch the same
+  misreading.
+- Ideally: report incidents per mode, or restrict the pairing to a common mode, so the
+  comparison becomes meaningful rather than merely labelled — record the decision either way.
 
 ### AINOS3-85 — Reach actuator saturation for the recovery-boundary test · `Spike` · Backlog · E 2 · T 0.5 (~4h)
 

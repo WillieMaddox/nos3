@@ -112,6 +112,7 @@ Jira 2026-07-15 and entered below.
 | AINOS3-90 | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? Decides if INERTIAL's 71 false incidents/hr are visible | Backlog |
 | AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide — ADCS sensor reporting nothing | Backlog |
 | AINOS3-92 | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) — uptime bins off ~33% | Backlog |
+| — | overlay-column-scope-mismatch | Bug | detector-rigor | Overlay shows Catch (SUNSAFE-only) beside Incidents (zero SUNSAFE) as if comparable — invites false conclusions | Backlog |
 | AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)
