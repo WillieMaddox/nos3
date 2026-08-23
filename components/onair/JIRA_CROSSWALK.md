@@ -112,11 +112,11 @@ Jira 2026-07-15 and entered below.
 | AINOS3-90 | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? Decides if INERTIAL's 71 false incidents/hr are visible | Backlog |
 | AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide — ADCS sensor reporting nothing | Backlog |
 | AINOS3-92 | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) — uptime bins off ~33% | Backlog |
-| — | overlay-column-scope-mismatch | Bug | detector-rigor | Overlay shows Catch (SUNSAFE-only) beside Incidents (zero SUNSAFE) as if comparable — invites false conclusions | Backlog |
-| — | coverage-table-schema | Spike | detector-rigor | Redesign the coverage table schema: mode as an axis, per-cell provenance, split detection/attribution/naming (9 defects in one sprint) | Backlog |
-| — | sparta-logging-gap-analysis | Spike | coverage-expansion | Gap-analyse SPARTA's Space Vehicle Logging Best Practices (~20-sheet workbook) against our recorded telemetry | Backlog |
-| — | sparta-stix-ingest | Spike | coverage-expansion | Ingest the SPARTA STIX 2.1 dataset; validate existing attack scripts against it and map unimplemented techniques | Backlog |
-| — | quarantine-stale-corpus | Task | detector-rigor | Inventory data/onair/csv (30 GB, 1,465 entries), map artifact->corpus dependencies, quarantine superseded collections | Backlog |
+| AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | Overlay shows Catch (SUNSAFE-only) beside Incidents (zero SUNSAFE) as if comparable — invites false conclusions | Backlog |
+| AINOS3-94 | coverage-table-schema | Spike | detector-rigor | Redesign the coverage table schema: mode as an axis, per-cell provenance, split detection/attribution/naming (9 defects in one sprint) | Backlog |
+| AINOS3-95 | sparta-logging-gap-analysis | Spike | coverage-expansion | Gap-analyse SPARTA's Space Vehicle Logging Best Practices (~20-sheet workbook) against our recorded telemetry | Backlog |
+| AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Ingest the SPARTA STIX 2.1 dataset; validate existing attack scripts against it and map unimplemented techniques | Backlog |
+| AINOS3-97 | quarantine-stale-corpus | Task | detector-rigor | Inventory data/onair/csv (30 GB, 1,465 entries), map artifact->corpus dependencies, quarantine superseded collections | Backlog |
 | AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 
 ### Coverage-validation — Section A (in-scope-now techniques) · ✅ ALL 13 VALIDATED (2026-07-17)

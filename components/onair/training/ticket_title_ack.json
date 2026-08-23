@@ -32,5 +32,10 @@
   "27:AINOS3-89": "Same work. Plan heading is the short form; the crosswalk title carries the EX-0014.04 98% vs 7.4% example that motivated the ticket.",
   "27:AINOS3-90": "Same work, identical question. The crosswalk title appends why it matters (INERTIAL's 71 false incidents/hr).",
   "27:AINOS3-91": "Same work. Crosswalk adds 'corpus-wide' and the consequence (ADCS sensor reporting nothing); the plan heading states the observation only.",
-  "27:AINOS3-92": "Same work. Crosswalk names the concrete numbers (4.2 vs ~5.6, bins off ~33%); the plan heading names the defect."
+  "27:AINOS3-92": "Same work. Crosswalk names the concrete numbers (4.2 vs ~5.6, bins off ~33%); the plan heading names the defect.",
+  "27:AINOS3-93": "Same work. Plan heading states the defect ('Catch and Incidents are not comparable'); the crosswalk title spells out why (SUNSAFE-only vs zero SUNSAFE) so it stands alone in Jira.",
+  "27:AINOS3-94": "Same work. Plan heading is the short form; the crosswalk title enumerates the three schema changes and the nine-defect motivation.",
+  "27:AINOS3-95": "Same work. Plan heading names the comparison, the crosswalk title names the artifact (~20-sheet workbook) and the verb (gap-analyse).",
+  "27:AINOS3-96": "Same work. Plan heading gives the intent ('as ground truth'), the crosswalk title gives the two concrete deliverables (validate scripts, map gaps).",
+  "27:AINOS3-97": "Same work. Plan heading is the outcome ('separate live from superseded'), the crosswalk title is the method plus the scale (30 GB, 1,465 entries) and the dependency-map precondition."
 }

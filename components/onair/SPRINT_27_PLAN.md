@@ -567,11 +567,11 @@ leads with the six Sprint-26 claims Sprint 27 overturned.
 | AINOS3-90 | verify-nominal-incident-filter | Task | 1 | 0.25 | Does the operator view filter `cluster=nominal`? Decides whether INERTIAL's 71 false incidents/hr are user-visible |
 | AINOS3-91 | startracker-inert-fields | Spike | 2 | 0.5 | 5 `ST_DEV` fields constant corpus-wide — an ADCS sensor reporting nothing |
 | AINOS3-92 | soak-drift-hz | Task | 1 | 0.25 | `analyze_soak_drift.py --hz` default 4.2 vs true ~5.6 — every uptime bin mislabelled ~33 % |
-| — | overlay-column-scope-mismatch | Bug | 2 | 0.5 | Overlay displays **Catch** (SUNSAFE-only) next to **Incidents** (contains **zero** SUNSAFE) as though comparable — two people have already drawn a false conclusion from it |
-| — | coverage-table-schema | Spike | 5 | 1.5 | **Schema** redesign of the coverage table — mode as a first-class axis, per-cell provenance, detection/attribution/naming split. Nine defects in one sprint trace to the schema, not to diligence. Design: [`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md) |
-| — | sparta-logging-gap-analysis | Spike | 5 | 1.5 | SPARTA's **Space Vehicle Logging Best Practices** (PDF + ~20-sheet workbook, `data/sparta/`) mapped against what we actually record — our logging changed repeatedly and left inconsistencies, and the workbook may name telemetry we don't know exists |
-| — | sparta-stix-ingest | Spike | 3 | 1.0 | SPARTA is published as **STIX 2.1** — the most granular form of the knowledge base. Use it to verify our attack scripts really implement the technique they claim, and to enumerate what we've never attempted |
-| — | quarantine-stale-corpus | Task | 3 | 0.75 | `data/onair/csv` is **30 GB / 1,465 entries** mixing live and pre-correction collections. Map artifact→corpus dependencies **first**, then quarantine — several deployed artifacts still derive from `csv_corpus_v3stage` |
+| AINOS3-93 | overlay-column-scope-mismatch | Bug | 2 | 0.5 | Overlay displays **Catch** (SUNSAFE-only) next to **Incidents** (contains **zero** SUNSAFE) as though comparable — two people have already drawn a false conclusion from it |
+| AINOS3-94 | coverage-table-schema | Spike | 5 | 1.5 | **Schema** redesign of the coverage table — mode as a first-class axis, per-cell provenance, detection/attribution/naming split. Nine defects in one sprint trace to the schema, not to diligence. Design: [`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md) |
+| AINOS3-95 | sparta-logging-gap-analysis | Spike | 5 | 1.5 | SPARTA's **Space Vehicle Logging Best Practices** (PDF + ~20-sheet workbook, `data/sparta/`) mapped against what we actually record — our logging changed repeatedly and left inconsistencies, and the workbook may name telemetry we don't know exists |
+| AINOS3-96 | sparta-stix-ingest | Spike | 3 | 1.0 | SPARTA is published as **STIX 2.1** — the most granular form of the knowledge base. Use it to verify our attack scripts really implement the technique they claim, and to enumerate what we've never attempted |
+| AINOS3-97 | quarantine-stale-corpus | Task | 3 | 0.75 | `data/onair/csv` is **30 GB / 1,465 entries** mixing live and pre-correction collections. Map artifact→corpus dependencies **first**, then quarantine — several deployed artifacts still derive from `csv_corpus_v3stage` |
 
 `AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility`
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
@@ -781,7 +781,7 @@ passed explicitly.
 - Warn when the derived rate differs from any supplied `--hz` by more than ~10 %.
 - Any drift table already published with the 4.2 default is re-checked or annotated.
 
-### overlay-column-scope-mismatch — `Catch` and `Incidents` are not comparable · `Bug` · Medium · E 2 · T 0.5 (~4h)
+### AINOS3-93 — `Catch` and `Incidents` are not comparable · `Bug` · Medium · E 2 · T 0.5 (~4h)
 
 **Summary:** As a presenter, I want the overlay to stop displaying two figures side by side
 that describe non-overlapping populations, because reading across them produces confident
@@ -827,7 +827,7 @@ one owns whether they can be read against the neighbouring column at all).
 - Ideally: report incidents per mode, or restrict the pairing to a common mode, so the
   comparison becomes meaningful rather than merely labelled — record the decision either way.
 
-### coverage-table-schema — Redesign the coverage-table schema · `Spike` · Medium · E 5 · T 1.5 (~12h)
+### AINOS3-94 — Redesign the coverage-table schema · `Spike` · Medium · E 5 · T 1.5 (~12h)
 
 **Summary:** As a maintainer, I want the per-technique coverage table rebuilt around a cell
 contract that makes mode, provenance and null-state explicit, because nine separate defects
@@ -871,7 +871,7 @@ briefed as such — ideally alongside the ROBUST correction rather than as a sec
 - Sequencing recorded: stages 3–5 gated on **AINOS3-86**, since making mode a first-class
   axis while INERTIAL is uninterpretable builds a column of noise.
 
-### sparta-logging-gap-analysis — SPARTA logging best practices vs what we record · `Spike` · Medium · E 5 · T 1.5 (~12h)
+### AINOS3-95 — SPARTA logging best practices vs what we record · `Spike` · Medium · E 5 · T 1.5 (~12h)
 
 **Summary:** As a defender, I want SPARTA's *Space Vehicle Logging Best Practices* mapped
 against the telemetry we actually record, because the binding constraint on this project is
@@ -907,7 +907,7 @@ since the useful content is the technique↔log-source mapping, not the prose.
 - Feeds AINOS3-69's observability constraint and the AINOS3-45 corpus decision; does **not**
   itself subscribe anything.
 
-### sparta-stix-ingest — Use the SPARTA STIX 2.1 dataset as ground truth · `Spike` · Medium · E 3 · T 1.0 (~8h)
+### AINOS3-96 — Use the SPARTA STIX 2.1 dataset as ground truth · `Spike` · Medium · E 3 · T 1.0 (~8h)
 
 **Summary:** As a security researcher, I want the SPARTA knowledge base ingested in its
 **STIX 2.1** form, because it is the most granular representation available and every other
@@ -941,7 +941,7 @@ That would remove a whole class of drift and is a natural fit with
 - Techniques with no script enumerated, separated from techniques ruled out-of-scope.
 - A recorded decision on STIX-as-build-source for the coverage matrix — yes/no with reason.
 
-### quarantine-stale-corpus — Separate live corpus data from superseded · `Task` · Medium · E 3 · T 0.75 (~6h)
+### AINOS3-97 — Separate live corpus data from superseded · `Task` · Medium · E 3 · T 0.75 (~6h)
 
 **Summary:** As a maintainer, I want superseded corpus data quarantined out of the working
 set, because `data/onair/csv` holds **30 GB across 1,465 entries** mixing collections we

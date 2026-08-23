@@ -1,7 +1,7 @@
 # Coverage table — redesign proposal
 
-**Component:** `OnAIR-Security` · **Written:** 2026-08-23 · **Status:** proposal, not accepted
-· **Slug:** `coverage-table-schema`
+**Jira:** AINOS3-94 · **Slug:** `coverage-table-schema` · **Component:** `OnAIR-Security`
+· **Written:** 2026-08-23 · **Status:** proposal, not accepted
 
 Design note for the per-technique coverage table that drives
 [`V5_DETECTOR_COVERAGE.md`](V5_DETECTOR_COVERAGE.md)'s matrix and the SPARTA overlay panel
@@ -167,6 +167,6 @@ Related tickets, and the boundaries between them:
 
 - **AINOS3-89** `catch-rate-provenance-gap` — whether the `Catch` *values* are right. Stage 3
   subsumes it; do not run both.
-- **`overlay-column-scope-mismatch`** — the immediate presentational fix for C1 on the
+- **AINOS3-93** — the immediate presentational fix for C1 on the
   current schema. Worth doing now as a stopgap; superseded by stage 5.
 - **AINOS3-90** `verify-nominal-incident-filter` — independent.
