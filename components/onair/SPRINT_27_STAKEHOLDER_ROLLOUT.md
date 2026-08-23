@@ -183,20 +183,55 @@ most, and whether more independent collection runs are worth the wall-clock.
 
 ## Feedback capture
 
-Procedure — the three steps, the `#` and `Type` conventions, and the worked examples —
-lives in [`STAKEHOLDER_ROLLOUT_TEMPLATE.md`](STAKEHOLDER_ROLLOUT_TEMPLATE.md). Capture
-here:
+Procedure — the three steps, the `#` and `Type` conventions, and the worked examples — lives in [`STAKEHOLDER_ROLLOUT_TEMPLATE.md`](STAKEHOLDER_ROLLOUT_TEMPLATE.md).
+Capture here:
 
 | Jira | Slug | # | Stakeholder | Feedback / question | Type |
 |---|---|---|---|---|---|
 |  |  |  |  |  |  |
+
+## Ideas for next sprint. (Questions to be answered, things to do, bugs to fix, etc.)
+
+### I am not sure which of these need their own ticket, can be grouped into a single ticket, or don't require a ticket at all (e.g. memory update, housekeeping task, etc.)
+
+The main feedback I get from stakeholders is,
+1. "Less red and yellow, more green"
+2. "Less HIGH-VAR and DEAD, more ROBUST". 
+We had ROBUST classifications before. What will it take to make them (and possibly other sub-techniques) yet ROBUST again? This is a high level goal that we should be improving consistently or always be striving for at least. If that means we go back to the drawing board on something in order to do it right, I'm all for it. Better to have a brief setback and get on the right path than to keep on a path going nowhere.
+
+---
+
+With regard to the sparta coverage sub-technique tables:
+1. Which of the columns are IF related and which are classifier related?
+2. Why does DE-0003.08 show its verdict as not detected and have HIGH-VAR, while DE-0003.09 has a partial verdict but DEAD?
+3. The "Classifier Tier" column is missing a summary description in the footer below the table.
+Update in `V5_DETECTOR_COVERAGE.md` and `sparta_coverage.html`.
+
+---
+
+I spent a few hours researching the Sparta website and found some very interesting information I think will be very useful in helping to achieving our goals.
+Probably the most interesting page and the one most relevant to our work is the Sparta Indicators of Behavior page, https://sparta.aerospace.org/related-work/iob.
+A complete understanding of these IOBs, I believe, will make problem solving, debugging and data analysis that much easier across almost every task associated with this project. Two topics on this page I find most interesting:
+1. Best practice guidelines for spacecraft subsystem logging to SPARTA techniques. Links are provided to a pdf of the guide as well as a detailed and comprehensive spreadsheet. I've already taken the liberty of downloading them for you. See the `data/sparta/` directory. Both files may help us improve significantly the quality of our log data. For example, our logging methods have gone through a number of changes and as a result left us with a mix of inconsistent log data. Or the spreadsheet may provide critically helpful telemetry currently unknown to us. The list goes on and on. Be sure to understand the details of every sheet contained in the file (~20 sheets).
+2. STIX patterns, how they relate to the Indicators of Behavior and how to use them. According to the SPARTA user guide, https://sparta.aerospace.org/resources/user-guide:
+>Structured Threat Information Expression (STIX™) is a language and serialization format used to exchange cyber threat intelligence (CTI). The SPARTA dataset is available in STIX 2.1.
+>STIX is a machine-readable format providing access to the SPARTA knowledge base. It is the most granular representation of the SPARTA data, and all other representations are derived from the STIX dataset.
+>The SPARTA STIX representation is most easily manipulated in Python using the stix2 library https://github.com/oasis-open/cti-python-stix2#installation. 
+>However, because STIX is represented in JSON, other programming languages can easily interact with the raw content.
+>To download SPARTA you may either make a call to the API directly, or utilize the dropdown menu as described on the website https://sparta.aerospace.org/resources/working-with.
+
+We may be able to use STIX to verify the correctness of and/or fix current attacks, generate new attacks, or gain deeper understanding about the whole attack/anomaly design space.
+Needless to say, consume and understand this page, specifically Logging and STIX as mentioned above. Moving forward, routinely check if any of its contents can help solve or make better new or existing items. Treat it as a reference source. 
+
+---
+
+Clean up the log data.  Delete any In a recent comment, you said, "...scored on the frozen corpus collected before we found the collection defect." I know you don't like deleting data, but more data isn't always better especially when it contains incorrect or dirty data. At the very least, move the data to a "stale" folder if you're not ready to delete it just yet.
 
 ## Status
 
 - [x] Doc ready (`V5_DETECTOR_COVERAGE.md`, current to 2026-08-19).
 - [x] Demo ready (`sparta_coverage.html` rebuilt 2026-08-19 with Sprint-27 markers).
 - [x] Sprint-27 corrections folded in — this readout covers Sprints 26 **and** 27.
-- [ ] Pre-flight click-through — one known stale figure (`EX-0012.09` 3/3); check the rest.
-- [ ] **Presentation delivered** — owner action. Slipped from Sprint 26 and Sprint 27;
-      it is the only open item in Sprint 27.
-- [ ] **Feedback captured** — table above worked through Step 3.
+- [x] Pre-flight click-through — one known stale figure (`EX-0012.09` 3/3); check the rest.
+- [x] **Presentation delivered** — owner action. Slipped from Sprint 26 and Sprint 27; it is the only open item in Sprint 27.
+- [x] **Feedback captured** — table above worked through Step 3.
