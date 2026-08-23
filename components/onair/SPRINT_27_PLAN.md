@@ -568,6 +568,7 @@ leads with the six Sprint-26 claims Sprint 27 overturned.
 | AINOS3-91 | startracker-inert-fields | Spike | 2 | 0.5 | 5 `ST_DEV` fields constant corpus-wide — an ADCS sensor reporting nothing |
 | AINOS3-92 | soak-drift-hz | Task | 1 | 0.25 | `analyze_soak_drift.py --hz` default 4.2 vs true ~5.6 — every uptime bin mislabelled ~33 % |
 | — | overlay-column-scope-mismatch | Bug | 2 | 0.5 | Overlay displays **Catch** (SUNSAFE-only) next to **Incidents** (contains **zero** SUNSAFE) as though comparable — two people have already drawn a false conclusion from it |
+| — | coverage-table-schema | Spike | 5 | 1.5 | **Schema** redesign of the coverage table — mode as a first-class axis, per-cell provenance, detection/attribution/naming split. Nine defects in one sprint trace to the schema, not to diligence. Design: [`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md) |
 
 `AINOS3-68` (DeepSAD) stays **gated** — reopen only if `signal-feasibility`
 finds a MID that broadens the labeled signal, or a validated attack finally activates a
@@ -822,6 +823,50 @@ one owns whether they can be read against the neighbouring column at all).
   misreading.
 - Ideally: report incidents per mode, or restrict the pairing to a common mode, so the
   comparison becomes meaningful rather than merely labelled — record the decision either way.
+
+### coverage-table-schema — Redesign the coverage-table schema · `Spike` · Medium · E 5 · T 1.5 (~12h)
+
+**Summary:** As a maintainer, I want the per-technique coverage table rebuilt around a cell
+contract that makes mode, provenance and null-state explicit, because nine separate defects
+in Sprint 27 trace to the schema rather than to the care taken with any one number.
+
+**Description:** Full argument and proposed schema in
+[`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md). In short, four structural causes:
+
+- **C1 — the row's unit is wrong.** One row per technique, but mode dominates the answers
+  (nominal FP 0.00 %→33.6 %, naming 10 %→35 % across modes). Each column resolves mode
+  *silently and differently*: `Catch` is SUNSAFE-only, `Incidents` are attributed to the
+  attack's first-frame mode (**zero** SUNSAFE), `tier` averages all four. `Catch` and
+  `Incidents` share no attacks yet sit adjacent.
+- **C2 — three questions in one row** (did we see it · which detector · can we name it), so
+  `Catch` mixed IF detections with rule-gate catches and `tier` absorbed `SIBLING`, which is
+  cluster membership, not a confidence level.
+- **C3 — per-cell provenance is displayed nowhere.** `frame_rate` is the last hardcoded
+  numeric column left.
+- **C4 — `None` means not-measured, suppressed, *and* not-applicable**, all rendered `—`.
+
+C1 and C3 alone account for six of the nine defects. This is a **schema-first** spike: define
+the cell contract, migrate the generator, let the overlay follow. The overlay is the cheap
+part; the expensive part is four artifacts feeding it on mismatched assumptions nobody wrote
+down.
+
+⚠ **Accept deliberately:** making mode explicit turns one number per technique into four
+cells, most reading `not-measured`, because outside SUNSAFE they are. The table will look
+markedly worse. That is a presentation regression and an honesty improvement, and it must be
+briefed as such — ideally alongside the ROBUST correction rather than as a second surprise.
+
+**Acceptance Criteria:**
+
+- Cell contract defined (`value` · `unit` · `state` · `scope.mode` · `provenance` ·
+  `interval.resampled`) with a validator that **fails the build** on a missing `state`,
+  `scope` or `provenance` — mirroring the doc's "an untagged number is a bug" rule.
+- Already-derived columns (tier, cluster, explanation) migrated onto it with **no
+  re-measurement**, proving the contract on real data.
+- A written decision on stages 3–5 (per-mode `frame_rate`, the detection/attribution/naming
+  split, per-mode rendering) — scoped and sequenced, not necessarily built in this spike.
+- Boundary with **AINOS3-89** recorded: stage 3 subsumes it, so the two must not both run.
+- Sequencing recorded: stages 3–5 gated on **AINOS3-86**, since making mode a first-class
+  axis while INERTIAL is uninterpretable builds a column of noise.
 
 ### AINOS3-85 — Reach actuator saturation for the recovery-boundary test · `Spike` · Backlog · E 2 · T 0.5 (~4h)
 
