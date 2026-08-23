@@ -8762,7 +8762,17 @@ window.NOS3_COVERAGE = {
 
       "<div class='nos3-foot-h'>Columns</div>" +
       "<dl class='nos3-key'>" +
-      "<dt>Frame catch</dt><dd>per-frame SUNSAFE flag rate — <b>detection</b>.</dd>" +
+      "<dt>Verdict</dt><dd><b>Detection.</b> Did any detector raise an alert — the IF or " +
+      "one of the gates. Independent of whether it could be named.</dd>" +
+      "<dt>Frame catch</dt><dd><b>Detection</b> (IF). Per-frame flag rate, <b>SUNSAFE only</b>.</dd>" +
+      "<dt>Classifier tier</dt><dd><b>Naming</b>, not detection. How far to trust the label, " +
+      "from out-of-fold F1 across runs the model never saw: <b>ROBUST</b> min F1 &ge; 0.85 " +
+      "(trust it — currently EMPTY) &middot; <b>STABLE-MID</b> min &ge; 0.50 (usable every run) " +
+      "&middot; <b>HIGH-VAR</b> max &ge; 0.25 (right on some runs, not others) &middot; " +
+      "<b>DEAD</b> max &lt; 0.25 (cannot be named). Derived from the deployed hybrid; " +
+      "multi-member clusters are scored on the cluster, since that is the label emitted. " +
+      "A technique can be tiered even where the Verdict says nothing was detected — the " +
+      "two columns answer different questions.</dd>" +
       "<dt>Incidents</dt><dd>incidents detected / total; <i>(n labeled ✓)</i> is how many " +
       "were also named correctly.</dd>" +
       "<dt>Top fields</dt><dd><b>Classification</b> attribution — not detection, not the " +

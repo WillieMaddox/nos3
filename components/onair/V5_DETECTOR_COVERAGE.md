@@ -605,6 +605,21 @@ steady flight.
 *(DE-0003.04/05/07/11/12 are CONCEPTUAL/UNSUBSCRIBED — out of scope for
 telemetry detection.)*
 
+**Reading the columns — they answer different questions, and mixing them misleads:**
+
+| Column | Question | Which half |
+|---|---|---|
+| **Catch (SUNSAFE)** | what fraction of attack *frames* did the anomaly detector flag | **detection** (IF), SUNSAFE only |
+| **Classifier tier** | how far can the *label* be trusted | **naming** (classifier), all modes |
+| **Signal** | is the attack observable on the bus at all | structural — neither |
+
+A technique can carry a tier while its Catch reads `< 25 %`: the tier is measured over all
+labeled attack frames in the corpus, not over what the detector happened to raise. So
+`DE-0003.08` (detector raised nothing, 0/3 incidents) still tiers **HIGH-VAR** — one fold
+reached F1 0.37 — while `DE-0003.09` (detector caught 3/4) tiers **DEAD**, because no fold
+exceeded 0.09. **Detection and naming are independent axes**; the table places them
+adjacently, which is a known defect of its schema ([`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md), cause C2).
+
 ---
 
 ## Provenance & caveats
