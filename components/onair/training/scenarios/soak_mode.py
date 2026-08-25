@@ -44,8 +44,9 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from cmd import (
     ADCS_HK_REQ_MID, ADCS_MODE_BDOT, ADCS_MODE_INERTIAL, ADCS_MODE_PASSIVE,
-    ADCS_MODE_SUNSAFE, CSS_HK_REQ_MID, FSS_HK_REQ_MID, IMU_HK_REQ_MID,
-    MAG_HK_REQ_MID, ST_HK_REQ_MID, TORQUER_HK_REQ_MID, Commander,
+    ADCS_MODE_SUNSAFE, ADCS_QUAT_IDENTITY, CSS_HK_REQ_MID, FSS_HK_REQ_MID,
+    IMU_HK_REQ_MID, MAG_HK_REQ_MID, ST_HK_REQ_MID, TORQUER_HK_REQ_MID,
+    Commander,
 )
 
 
@@ -118,12 +119,23 @@ def now_utc_iso() -> str:
 
 
 def soak(c: Commander, mode_name: str, duration_s: int,
-         recmd_interval_s: int = RECMD_INTERVAL_S) -> dict:
+         recmd_interval_s: int = RECMD_INTERVAL_S,
+         target_quaternion=None, enable_star_tracker: bool = False) -> dict:
     mode_code = MODE_TABLE[mode_name]
     recmd_note = (f"re-cmd every {recmd_interval_s}s" if recmd_interval_s > 0
                   else "NO re-command (stickiness test)")
     print(f"  [soak] entering {mode_name} for {duration_s}s "
           f"(~{duration_s/60:.0f} min), {recmd_note}")
+    # AINOS3-86 arm B: command the target attitude BEFORE entering the mode, so
+    # the controller has a defined setpoint from its first control cycle rather
+    # than converging on whatever qbn_cmd the app booted with.
+    if enable_star_tracker:
+        print("  [soak] enabling star tracker (required for qValid → INERTIAL "
+              "closed-loop control)")
+        c.st_enable(True)
+    if target_quaternion is not None:
+        print(f"  [soak] commanding target quaternion {target_quaternion}")
+        c.adcs_set_inertial_quaternion(target_quaternion)
     c.adcs_set_mode(mode_code)
 
     t0 = time.monotonic()
@@ -174,9 +186,31 @@ def main():
                         "and never again — the stickiness test (see the note on "
                         "RECMD_INTERVAL_S; the FSW has no autonomous mode logic, "
                         "so a mode should hold indefinitely on its own).")
+    p.add_argument("--target-quaternion", nargs=4, type=float, default=None,
+                   metavar=("Q1", "Q2", "Q3", "Q4"),
+                   help="INERTIAL only: command this unit target attitude "
+                        "(GENERIC_ADCS_INERTIAL_QUATERNION_CC) before entering "
+                        "the mode. Q4 is the real part. Omit to soak with no "
+                        "commanded target, which is what all prior tooling did "
+                        "(AINOS3-86 arm A).")
+    p.add_argument("--identity-quaternion", action="store_true",
+                   help="Shorthand for --target-quaternion 0 0 0 1.")
+    p.add_argument("--enable-star-tracker", action="store_true",
+                   help="Send GENERIC_STAR_TRACKER_ENABLE_CC before entering "
+                        "the mode. REQUIRED for a meaningful INERTIAL soak: "
+                        "without it qValid stays 0 and the inertial control law "
+                        "never runs (AINOS3-86).")
     p.add_argument("--out-dir", default="data/onair/scenarios",
                    help="Where to write the soak manifest JSON")
     args = p.parse_args()
+
+    if args.identity_quaternion:
+        if args.target_quaternion is not None:
+            p.error("pass --target-quaternion or --identity-quaternion, not both")
+        args.target_quaternion = list(ADCS_QUAT_IDENTITY)
+    if args.target_quaternion is not None and args.mode != "INERTIAL":
+        p.error(f"--target-quaternion is meaningful only for INERTIAL; "
+                f"{args.mode} pointing ignores the commanded attitude")
 
     if args.auto_discover:
         args.fsw_host = auto_discover_fsw_host()
@@ -199,11 +233,20 @@ def main():
         "dry_run": args.dry_run,
         "mode": args.mode,
         "duration_min": args.duration_min,
+        "recmd_interval_s": args.recmd_interval,
+        # AINOS3-86: which arm this soak is. Recorded so a side-file can be
+        # attributed without reading the shell history that produced it.
+        "target_quaternion": args.target_quaternion,
+        "star_tracker_enabled": args.enable_star_tracker,
+        "arm": ("controlled-inertial" if args.enable_star_tracker
+                else "uncontrolled-drift (qValid=0; pre-AINOS3-86 condition)"),
         "started_utc": now_utc_iso(),
     }
 
     try:
-        result = soak(c, args.mode, duration_s, args.recmd_interval)
+        result = soak(c, args.mode, duration_s, args.recmd_interval,
+                      target_quaternion=args.target_quaternion,
+                      enable_star_tracker=args.enable_star_tracker)
         manifest["result"] = result
     except KeyboardInterrupt:
         print("\ninterrupted — writing partial manifest")

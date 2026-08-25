@@ -53,6 +53,18 @@ ADCS_MODE_BDOT = 1
 ADCS_MODE_SUNSAFE = 2
 ADCS_MODE_INERTIAL = 3
 
+# AINOS3-86: INERTIAL pointing takes a commanded target attitude. Until now NO
+# scenario tooling ever sent it, so every INERTIAL soak we have run held the
+# mode with whatever `qbn_cmd` the app booted with — a candidate cause of the
+# 33.6% nominal false-alarm rate (sustained control effort toward a default
+# attitude is dynamics that legitimately look anomalous).
+ADCS_FC_INERTIAL_QUATERNION = 9
+
+# Body-to-inertial identity: body frame aligned with the inertial frame. A
+# well-defined target the controller can actually converge to, and the same
+# value the COSMOS lib uses (generic_adcs_lib.rb:96).
+ADCS_QUAT_IDENTITY = (0.0, 0.0, 0.0, 1.0)
+
 THR_FC_ENABLE = 2
 THR_FC_DISABLE = 3
 THR_FC_PERCENTAGE = 4
@@ -62,6 +74,16 @@ EPS_STATE_OFF = 0x00
 EPS_STATE_ON = 0xAA
 
 RADIO_FC_CONFIG = 2
+
+# AINOS3-86: the star tracker boots DISABLED and nothing ever enabled it, so it
+# never published device telemetry. That matters far beyond a missing field:
+# `AC_inertial()` is gated on `GNC->qValid` (generic_adcs_adac.c:338), which
+# traces to the ST valid flag — so INERTIAL mode performed NO closed-loop
+# pointing in any data collected before 2026-08-23. Enable it before any
+# INERTIAL work. Also the root cause of AINOS3-91's corpus-wide inert ST_DEV
+# fields.
+ST_FC_ENABLE = 2
+ST_FC_DISABLE = 3
 
 
 def build_ccsds_cmd(mid: int, fc: int, payload: bytes = b"") -> bytes:
@@ -112,6 +134,39 @@ class Commander:
         names = {0: "PASSIVE", 1: "BDOT", 2: "SUNSAFE", 3: "INERTIAL"}
         payload = struct.pack("B", mode)
         self.send(f"ADCS SET_MODE {names.get(mode, mode)}", ADCS_CMD_MID, ADCS_FC_SET_MODE, payload)
+
+    def st_enable(self, enable: bool = True) -> None:
+        """Enable (or disable) the star tracker device.
+
+        Required for INERTIAL: with the ST disabled the ADCS app sees
+        `St.valid == 0`, so `qValid == 0` and the inertial control law never
+        executes — the torque command freezes at whatever the previous mode left
+        and the vehicle drifts uncontrolled while still reporting Mode 3.
+        """
+        fc = ST_FC_ENABLE if enable else ST_FC_DISABLE
+        self.send(f"ST {'ENABLE' if enable else 'DISABLE'}", ST_CMD_MID, fc)
+
+    def adcs_set_inertial_quaternion(self, q=ADCS_QUAT_IDENTITY) -> None:
+        """Command the INERTIAL-mode target attitude (`GENERIC_ADCS_INERTIAL_QUATERNION_CC`).
+
+        Wire format from `Generic_ADCS_Quat_cmd_t` (generic_adcs_msg.h:53) — a
+        packed struct of the 8-byte command header plus `double qbn[4]`, so the
+        payload is four LITTLE-endian float64s, 32 bytes, total packet 40. The
+        CCSDS primary header stays big-endian as everywhere else; only the
+        doubles are little (matching GENERIC_ADCS_CMD.txt, which tags each
+        quaternion parameter LITTLE_ENDIAN inside a BIG_ENDIAN command).
+
+        `q` is (q1, q2, q3, q4) with q4 the real part.
+        """
+        if len(q) != 4:
+            raise ValueError(f"quaternion needs 4 components, got {len(q)}")
+        norm = sum(c * c for c in q) ** 0.5
+        if abs(norm - 1.0) > 1e-6:
+            raise ValueError(f"quaternion {q} is not unit-norm (|q|={norm:.6f}); "
+                             "the controller expects a normalised attitude")
+        payload = struct.pack("<4d", *(float(c) for c in q))
+        self.send(f"ADCS INERTIAL_QUATERNION {q}", ADCS_CMD_MID,
+                  ADCS_FC_INERTIAL_QUATERNION, payload)
 
     def thruster_pct(self, pct: int) -> None:
         """Fire thruster at given duty cycle (0-100). Note: long-form payload depends on
