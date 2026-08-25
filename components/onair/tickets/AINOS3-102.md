@@ -183,3 +183,51 @@ against a running stack before treating its absence as a configuration problem.*
 `syn`/`arducam` app-startup fix plus a publish path for `0x08C9` — FSW work of a different
 size to this ticket, and worth its own item if the SPARTA Payload sheets ever become a
 priority.
+
+### 2026-08-25 · ⚠ CORRECTION — `cam-sim` is not GUI-only; it is `<active>false</active>`
+
+Prompted to test rather than infer, and two of this ticket's own findings were wrong. Both
+came from reading the wrong file.
+
+**Wrong claim 1: "`cam-sim` launches only under the GUI `make launch` (`launch.sh:124`)".**
+`make launch-quiet` does not use `launch.sh` at all — it runs
+`scripts/fsw/launch_sat_quiet.sh`, which **does** start `cam-sim`, at line 136, in a form
+identical to the `css-sim` line 137 that works.
+
+**Wrong claim 2: "the payload apps are shelled / do not initialise" as an FSW fault.** The
+real cause is a single config flag. Running the sim's own command in the foreground:
+
+```
+[WARNING] SimConfig::run_simulator: Simulator "camsim" is not active in
+                                    "nos3-simulator.xml". Not running.
+```
+
+`cfg/build/sims/nos3-simulator.xml` has **`<active>false</active>`** for `camsim`, against
+`true` for every working sim. So `cam-sim` is started headlessly, reads its config, finds
+itself deactivated, and exits — and because `DFLAGS` contains `--rm` (`scripts/env.sh:45`),
+the container is auto-removed, leaving **no trace in `docker ps -a` and no logs**. That is why
+it looked like it was never launched.
+
+⚠ The `--rm` is the reason this was mis-diagnosed twice: a sim that refuses to run is
+indistinguishable from a sim that was never started, unless you catch it inside its ~20 s
+lifetime or re-run it by hand.
+
+**What survives, and what does not:**
+
+- **Survives:** `CAM_EXP` `0x08C9` has **no publish path** — `Exp_Pkt` is filled by
+  `CAM_read_prep` and never transmitted, `CAM_PUBLISH_CC` has no handler. That is static
+  source fact, independent of the sim. Activating `camsim` would still not put imagery on the
+  bus.
+- **Survives:** `CAM_HK` carries two `uint8` counters with zero scheduled commands, so `AC4`'s
+  "not worth a schema slot" decision stands unchanged.
+- **Does not survive:** the framing of `AC1`/`AC2` as "an FSW gap, not a launch gap". For
+  `CAM` it is a **one-line config flag**; the FSW gap is only the missing publish path.
+- **`syn` is different again:** it has **no entry whatsoever** in `nos3-simulator.xml` (0
+  matches), consistent with needing no simulator — `libsynopsis.so` is a linked library, not a
+  sim container. Its failure to initialise is still unexplained and is *not* a sim-activation
+  issue.
+
+**Not changed here.** Flipping `camsim` to `active` is a live-stack behaviour change affecting
+every soak baseline, for a payload whose only subscribable packet is two constant counters. It
+belongs to whoever picks up payload coverage, with `AC4`'s decision as the standing default:
+do not subscribe.
