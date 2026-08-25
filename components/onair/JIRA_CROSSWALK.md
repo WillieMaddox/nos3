@@ -133,7 +133,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-105 | test-encryption-bypass-observability | Story | coverage-expansion | Are encryptor bypass commands observable? | Backlog |
 | AINOS3-106 | r15-latch-policy | Task | detector-rigor | R15 latch policy after a clock jump | Backlog |
 | AINOS3-107 | frame-aliasing-semantics | Spike | detector-rigor | Frame aliasing and per-frame threshold meaning | Backlog |
-| AINOS3-108 | subscription-hygiene | Task | coverage-expansion | Resolve four silent MID subscriptions | Sprint 28 · ◑ Committed |
+| AINOS3-108 | subscription-hygiene | Task | coverage-expansion | Resolve four silent MID subscriptions | Sprint 28 · ⛔ Blocked (schema removal needs a retrain — fold into AINOS3-101) |
 | AINOS3-109 | csv-prune-integrity-fields | Spike | corpus-integrity | The CSV prune drops security-relevant fields | Sprint 28 · ◑ Committed |
 | — | build-missing-cfs-apps | Epic | — | Build the missing stock cFS apps |  |
 | — | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app |  |
