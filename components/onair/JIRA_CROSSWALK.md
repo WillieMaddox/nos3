@@ -127,7 +127,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-99 | fold-variance-triage | Spike | corpus-integrity | Explain the per-instance F1 spread holding the tier column down | Sprint 28 · ◑ Committed |
 | AINOS3-100 | corpus-rebuild-steadyflight | Story | corpus-integrity | Recollect the classified attack set under the steady-flight protocol | Backlog (Sprint 29 target) |
 | AINOS3-101 | retrain-clean-corpus | Story | corpus-integrity | Retrain + re-derive tiers on the clean corpus — is `ROBUST` reachable? | Backlog (Sprint 29 target) |
-| AINOS3-102 | headless-sim-coverage-gap | Bug | detector-rigor | Payload sims absent from the headless launch | Sprint 28 · ◑ Committed |
+| AINOS3-102 | headless-sim-coverage-gap | Bug | detector-rigor | Payload sims absent from the headless launch | Sprint 28 · ✅ Done |
 | AINOS3-103 | detect-cf-file-faults | Story | coverage-expansion | Detect CFDP file-operation faults | Sprint 28 · ◑ Committed |
 | AINOS3-104 | detect-adcs-gain-change | Story | coverage-expansion | Detect ADCS control-gain changes | Backlog |
 | AINOS3-105 | test-encryption-bypass-observability | Story | coverage-expansion | Are encryptor bypass commands observable? | Backlog |
