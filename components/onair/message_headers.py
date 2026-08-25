@@ -1109,3 +1109,240 @@ class FM_HousekeepingPkt_t(Structure):
         ("ChildCurrentCC",      c_uint8),
         ("ChildPreviousCC",     c_uint8),
     ]
+
+# ===========================================================================
+# Generic ADCS — Attitude Determination (0x0942) and Attitude Control (0x0944)
+# added 2026-08-25 for AINOS3-95 stage 2a.
+#
+# Both are siblings of DI/GNC/DO on the same ADAC send path
+# (generic_adcs_app.c SEND_{DI,AD,GNC,AC,DO}_CMD_CC = 3..7, all five scheduled
+# in sch_def_msgtbl.c), so they publish at the same measured 1.00 /s and were
+# simply never subscribed. AC is the reason for this pair: it carries each
+# controller's own gains AND live error state, which the aggregate ADCS_GNC
+# packet does not expose. Translated byte-exact from
+# components/generic_adcs/fsw/cfs/src/generic_adcs_msg.h.
+#
+# ⚠ Packing trap: Inertial.h_mgmt is `long` (8 bytes on x86-64) while
+# Sunsafe.h_mgmt is `uint8`. They are NOT the same width — c_long vs c_uint8.
+# ===========================================================================
+
+class Generic_ADCS_AD_Mag_Tlm_Payload_t(Structure):
+    """Magnetometer contribution to attitude determination."""
+    _pack_ = 1
+    _fields_ = [
+        ("bvb", c_double * 3),
+    ]
+
+class Generic_ADCS_AD_Sol_Tlm_Payload_t(Structure):
+    """Sun-vector determination; FssValid is not exposed anywhere else."""
+    _pack_ = 1
+    _fields_ = [
+        ("SunValid", c_uint8),
+        ("FssValid", c_uint8),
+        ("svb",      c_double * 3),
+    ]
+
+class Generic_ADCS_AD_Imu_Tlm_Payload_t(Structure):
+    """IMU rate determination. `wbn_prev` gives the previous-cycle rate, so a
+    frame carries its own delta — unavailable from ADCS_GNC."""
+    _pack_ = 1
+    _fields_ = [
+        ("init",     c_uint8),
+        ("alpha",    c_double),
+        ("valid",    c_uint8),
+        ("wbn_prev", c_double * 3),
+        ("wbn",      c_double * 3),
+        ("acc",      c_double * 3),
+    ]
+
+class Generic_ADCS_AD_ST_Tlm_Payload_t(Structure):
+    """Star-tracker attitude as consumed by determination.
+
+    ⚠ Note for AINOS3-91: this is a SECOND view of the star tracker, arriving on
+    a MID that is actually delivered — unlike ST_DEV 0x0936, which stage 0
+    measured as subscribed-but-silent."""
+    _pack_ = 1
+    _fields_ = [
+        ("Valid", c_uint8),
+        ("qbn",   c_double * 4),
+    ]
+
+class Generic_ADCS_AD_Tlm_t(Structure):
+    """GENERIC_ADCS_AD_MID 0x0942
+    Per-sensor attitude-determination outputs, before fusion.
+    Attack signal: a sensor's contribution diverging from the fused ADCS_GNC
+    solution (spoofed sensor accepted by determination); a validity flag
+    dropping while the fused solution stays confident.
+    """
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader", sbn.CFE_SB_Msg_t),
+        ("Mag",       Generic_ADCS_AD_Mag_Tlm_Payload_t),
+        ("Sol",       Generic_ADCS_AD_Sol_Tlm_Payload_t),
+        ("Imu",       Generic_ADCS_AD_Imu_Tlm_Payload_t),
+        ("ST",        Generic_ADCS_AD_ST_Tlm_Payload_t),
+    ]
+
+
+class Generic_ADCS_AC_Bdot_Tlm_t(Structure):
+    """B-dot detumble controller: gains + the rate-of-change it acts on."""
+    _pack_ = 1
+    _fields_ = [
+        ("b_range", c_double),
+        ("Kb",      c_double),
+        ("bold",    c_double * 3),
+        ("bdot",    c_double * 3),
+    ]
+
+class Generic_ADCS_AC_Sunsafe_Tlm_t(Structure):
+    """Sun-safe controller: gains, then its internal error state."""
+    _pack_ = 1
+    _fields_ = [
+        ("Kp",      c_double * 3),
+        ("Kr",      c_double * 3),
+        ("sside",   c_double * 3),
+        ("vmax",    c_double),
+        ("cmd_wbn", c_double * 3),
+        ("h_mgmt",  c_uint8),
+        ("therr",   c_double * 3),
+        ("werr",    c_double * 3),
+        ("Tcmd",    c_double * 3),
+        ("err_t",   c_double),
+    ]
+
+class Generic_ADCS_AC_Inertial_Tlm_t(Structure):
+    """Inertial-pointing controller: gains (incl. the integral term Ki) plus
+    therr / sumtherr / werr / qErr — the live error state AINOS3-86 needs and
+    which no currently-subscribed packet carries.
+
+    ⚠ h_mgmt is `long` here, not `uint8` as in the Sunsafe struct."""
+    _pack_ = 1
+    _fields_ = [
+        ("Kp",         c_double * 3),
+        ("Kr",         c_double * 3),
+        ("Ki",         c_double * 3),
+        ("phiErr_max", c_double),
+        ("qbn_cmd",    c_double * 4),
+        ("h_mgmt",     c_long),
+        ("therr",      c_double * 3),
+        ("sumtherr",   c_double * 3),
+        ("qErr",       c_double * 4),
+        ("werr",       c_double * 3),
+        ("Tcmd",       c_double * 3),
+    ]
+
+class Generic_ADCS_AC_Tlm_t(Structure):
+    """GENERIC_ADCS_AC_MID 0x0944
+    Per-mode attitude-control gains and internal error state, for all three
+    controllers simultaneously (only the active one is meaningful).
+    Attack signal: a gain changing without a commanded reconfiguration
+    (the ADCS/GN&C sheets rate "change in control logic/algorithms" High);
+    an integrator (Inertial.sumtherr) winding up while the fused solution
+    still looks nominal.
+    """
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader", sbn.CFE_SB_Msg_t),
+        ("Bdot",      Generic_ADCS_AC_Bdot_Tlm_t),
+        ("Sunsafe",   Generic_ADCS_AC_Sunsafe_Tlm_t),
+        ("Inertial",  Generic_ADCS_AC_Inertial_Tlm_t),
+    ]
+
+# ===========================================================================
+# CFDP telemetry — CF HK (0x08B0), added 2026-08-25 for AINOS3-95 stage 2b.
+# CF is pure-software CFDP (no hardware sim), scheduled + transmitted, so OnAIR
+# receives it (verified live: 20 packets / 90 s).
+#
+# ⚠ CAM (0x08C8) and SYN (0x08FC) were subscribed and then REMOVED after live
+# verification: their apps load but produce NO telemetry in the headless
+# `make launch-quiet` pipeline that runs soaks/corpus —
+#   * cam-sim launches ONLY via the GUI `make launch` (launch.sh:124, gnome-terminal),
+#     not headless; so CAM HK never flows in the recording pipeline.
+#   * syn has NO simulator at all (absent from launch.sh and nos3-simulator.xml).
+# This overturns the AINOS3-95 gap-analysis claim that CAM/SYN made the payload
+# sheets "subscribable now" — they are not, in the pipeline that matters.
+#
+# ⚠ Also EXCLUDED after source inspection (do not "helpfully" add them):
+#   CAM_EXP  0x08C9 — Exp_Pkt is init'd but never TransmitMsg'd (cam_app.c)
+#   SYN_DEV  0x08FD — transmit is commented out (syn_app.c:172)
+#   SB_STATS 0x080A — command-produced, 0 scheduler entries (needs FSW work)
+# ===========================================================================
+
+
+
+class CF_HkCmdCounters_t(Structure):
+    _pack_ = 1
+    _fields_ = [("cmd", c_uint16), ("err", c_uint16)]
+
+class CF_HkSent_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("file_data_bytes",      c_uint64),
+        ("pdu",                  c_uint32),
+        ("nak_segment_requests", c_uint32),
+    ]
+
+class CF_HkRecv_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("file_data_bytes",      c_uint64),
+        ("pdu",                  c_uint32),
+        ("error",                c_uint32),
+        ("spurious",             c_uint16),
+        ("dropped",              c_uint16),
+        ("nak_segment_requests", c_uint32),
+    ]
+
+class CF_HkFault_t(Structure):
+    """File-operation fault counters — static in nominal, so any increment is a
+    file-op fault burst (relevant to EX-0010 wiper/ransomware and EXF exfil)."""
+    _pack_ = 1
+    _fields_ = [
+        ("file_open",          c_uint16),
+        ("file_read",          c_uint16),
+        ("file_seek",          c_uint16),
+        ("file_write",         c_uint16),
+        ("file_rename",        c_uint16),
+        ("directory_read",     c_uint16),
+        ("crc_mismatch",       c_uint16),
+        ("file_size_mismatch", c_uint16),
+        ("nak_limit",          c_uint16),
+        ("ack_limit",          c_uint16),
+        ("inactivity_timer",   c_uint16),
+        ("spare",              c_uint16),
+    ]
+
+class CF_HkCounters_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("sent",  CF_HkSent_t),
+        ("recv",  CF_HkRecv_t),
+        ("fault", CF_HkFault_t),
+    ]
+
+class CF_HkChannel_Data_t(Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("counters",         CF_HkCounters_t),
+        ("q_size",           c_uint16 * 7),      # CF_QueueIdx_NUM
+        ("poll_counter",     c_uint8),
+        ("playback_counter", c_uint8),
+        ("frozen",           c_uint8),
+        ("spare",            c_uint8 * 7),
+    ]
+
+class CF_HkPacket_t(Structure):
+    """CF_HK_TLM_MID 0x08B0 — CFDP file-transfer housekeeping.
+    channel0/channel1 are modelled as explicit members rather than a [2] array
+    (identical wire layout under _pack_=1) so OnAIR's field-walker emits numeric
+    per-channel columns instead of one opaque array cell.
+    ⚠ Expect most channel fields constant-0 in nominal ops — CF is idle unless a
+    file transfer is running; the security value is the fault counters latching."""
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader", sbn.CFE_SB_Msg_t),
+        ("counters",  CF_HkCmdCounters_t),
+        ("spare",     c_uint8 * 4),
+        ("channel0",  CF_HkChannel_Data_t),
+        ("channel1",  CF_HkChannel_Data_t),
+    ]
