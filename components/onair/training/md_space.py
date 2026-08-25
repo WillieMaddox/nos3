@@ -10,8 +10,12 @@ BETWEEN list items, only before the first item and after the last.
 
 This INSERTS the surrounding blank lines and REMOVES any blank line that sits between
 two list items (a leftover from the earlier loose-list convention). It never changes,
-reorders, or removes non-blank content. Code blocks (``` / ~~~ fences) and table rows
-are left untouched. Always verify with `diff` that only blank lines moved.
+reorders, or removes non-blank content. Code blocks (``` / ~~~ fences), table rows and
+YAML frontmatter are left untouched. Always verify with `diff` that only blank lines moved.
+
+⚠ Frontmatter is skipped verbatim. A YAML block sequence (`sprints:` followed by `  - ...`)
+looks exactly like a markdown list to these rules, so without the skip the reformatter
+inserted blank lines inside the frontmatter of every ticket file it touched.
 
 Usage:
     md_space.py FILE...            # edit in place
@@ -42,12 +46,29 @@ def _next_nonblank(lines, start):
     return None
 
 
+def _frontmatter_end(lines):
+    """Index of the closing `---` of YAML frontmatter, or -1 when there is none.
+
+    Frontmatter only counts at the very top of the file, per the usual convention.
+    """
+    if not lines or lines[0].rstrip("\n") != "---":
+        return -1
+    for j in range(1, len(lines)):
+        if lines[j].rstrip("\n") in ("---", "..."):
+            return j
+    return -1                                   # unterminated; treat as ordinary text
+
+
 def reformat(lines):
     out = []
     in_code = False
     last_listish = False  # last non-blank emitted line was a list item or its continuation
     n = len(lines)
+    fm_end = _frontmatter_end(lines)
     for idx, line in enumerate(lines):
+        if idx <= fm_end:                       # YAML frontmatter — emit verbatim
+            out.append(line)
+            continue
         body = line.rstrip("\n")
         if FENCE.match(body):
             in_code = not in_code

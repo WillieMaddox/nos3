@@ -64,8 +64,8 @@ early so the deferral is tracked on the board rather than in a plan document.
 | Jira | Slug | Type | Epic (parent) | Title | Status |
 |---|---|---|---|---|---|
 | AINOS3-41 | coverage-expansion | Epic | — | Detection coverage expansion | — |
-| AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Ingest the SPARTA STIX 2.1 dataset; validate existing attack scripts against it and map unimplemented techniques | Sprint 28 · ◑ Committed (re-prioritised to High) |
-| AINOS3-95 | sparta-logging-gap-analysis | Spike | coverage-expansion | Gap-analyse SPARTA's Space Vehicle Logging Best Practices (~20-sheet workbook) against our recorded telemetry | Sprint 28 · ◑ Committed (re-prioritised to High; re-sized E 5 → E 3) |
+| AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Ingest the SPARTA STIX 2.1 dataset; validate existing attack scripts against it and map unimplemented techniques | Sprint 28 · ◑ Committed (re-prioritised to High ✅ 2026-08-23) |
+| AINOS3-95 | sparta-logging-gap-analysis | Spike | coverage-expansion | Gap-analyse SPARTA's Space Vehicle Logging Best Practices (~20-sheet workbook) against our recorded telemetry | Sprint 28 · ◑ Committed (re-prioritised to High ✅ 2026-08-23; re-sized E 5 → E 3) |
 | AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected in steady flight | Sprint 28 · ◑ Committed |
 | AINOS3-79 | detector-rigor | Epic | — | Detector hardening & measurement honesty | — |
 | AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band (measured 33.6%) | Sprint 28 · ◑ Committed (diagnosis bounded; see plan) |
@@ -73,7 +73,7 @@ early so the deferral is tracked on the board rather than in a plan document.
 | AINOS3-92 | soak-drift-hz | Task | detector-rigor | analyze_soak_drift.py --hz default wrong (4.2 vs ~5.6) | Sprint 28 · ◑ Committed |
 | AINOS3-98 | corpus-integrity | Epic | — | Corpus integrity — the corpus as a first-class, versioned artifact | — |
 | AINOS3-99 | fold-variance-triage | Spike | corpus-integrity | Explain the per-instance F1 spread holding the tier column down | Sprint 28 · ◑ Committed |
-| AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Inventory data/onair/csv (30 GB, 1,465 entries), map artifact->corpus dependencies, quarantine superseded collections | Sprint 28 · ◑ Committed (reparent from detector-rigor) |
+| AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Inventory data/onair/csv (30 GB, 1,465 entries), map artifact->corpus dependencies, quarantine superseded collections | Sprint 28 · ◑ Committed (reparented from detector-rigor ✅ 2026-08-23) |
 | AINOS3-94 | coverage-table-schema | Spike | detector-rigor | Redesign the coverage table schema: mode as an axis, per-cell provenance, split detection/attribution/naming | Sprint 28 · ○ Stretch (stages 1–2 only) |
 | AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | Overlay shows Catch (SUNSAFE-only) beside Incidents (zero SUNSAFE) as if comparable | Sprint 28 · ○ Stretch |
 | AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | 5 ST_DEV star-tracker fields constant corpus-wide | Sprint 28 · ○ Stretch |
@@ -86,7 +86,7 @@ early so the deferral is tracked on the board rather than in a plan document.
 | AINOS3-101 | retrain-clean-corpus | Story | corpus-integrity | Retrain + re-derive tiers on the clean corpus — is `ROBUST` reachable? | Backlog (Sprint 29 target) |
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | Retrain dropping harmful bus-activity features | Backlog (fold into retrain-clean-corpus, never its own cycle) |
 
-### ⚠ AINOS3-45 — close as superseded (2026-08-23)
+### AINOS3-45 — CLOSED as superseded (2026-08-23)
 
 `AINOS3-45` (`corpus-instance-4`, *"4th corpus instance"*) is scoped against the collection
 protocol found defective in Sprint 27 — mode cycling every 60 s against a ~45 s detector
@@ -99,7 +99,8 @@ per this file's immutability rule it gets a **new slug and a new key**
 (`corpus-rebuild-steadyflight`) rather than a re-scope in place. That is the `AINOS3-30`
 lesson applied deliberately.
 
-**Recommendation: close `AINOS3-45` as superseded.** Do not re-scope it.
+**`AINOS3-45` was closed as superseded on the board, 2026-08-23.** Do not re-scope or
+reopen it; the replacement is `AINOS3-100`.
 
 ## Sprint 26 (planning)
 
@@ -149,7 +150,7 @@ Jira 2026-07-15 and entered below.
 | Jira | Slug | Type | Epic (parent) | Title | Status |
 |---|---|---|---|---|---|
 | AINOS3-44 | tcn-feature | Story | coverage-expansion | TCN reconstruction-error feature (EX-0008) | Backlog |
-| AINOS3-45 | corpus-instance-4 | Task | — | 4th corpus instance | Backlog |
+| AINOS3-45 | corpus-instance-4 | Task | — | 4th corpus instance | ✖ Closed 2026-08-23 — superseded by AINOS3-100 |
 | AINOS3-46 | demo-tier-bc | Story | — | Demo app Tier B/C (live execution / agent) | Backlog |
 | AINOS3-47 | foundation-baseline | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
 | AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 DeepSAD after AINOS3-30 broadens signal | Backlog |
@@ -237,7 +238,7 @@ detailed ticket writeups (Summary/Description/AC + actuals) are in
 | Jira | Slug | Type | Epic (parent) | Title | Status |
 |---|---|---|---|---|---|
 | AINOS3-44 | tcn-feature | Story | coverage-expansion | TCN reconstruction-error feature (EX-0008) | Backlog |
-| AINOS3-45 | corpus-instance-4 | Task | — | 4th corpus instance | Backlog |
+| AINOS3-45 | corpus-instance-4 | Task | — | 4th corpus instance | ✖ Closed 2026-08-23 — superseded by AINOS3-100 |
 | AINOS3-46 | demo-tier-bc | Story | — | Demo app Tier B/C (live execution / agent) | Backlog |
 | AINOS3-47 | foundation-baseline | Story | coverage-expansion | Foundation-model zero-shot baseline | Backlog |
 | AINOS3-48 | appdata-slot-map | Task | explainability | EVS AppData slot→app reference map (enables counter-reliance-audit) | Backlog |

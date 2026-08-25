@@ -1,3 +1,5 @@
+<!-- tickets-migrated -->
+
 # Sprint 28 — "Read the Manual Before Rebuilding" 📖
 
 **Component:** `OnAIR-Security`
@@ -123,7 +125,7 @@ where green can appear. Both are called out in their bodies.
 
 ### AINOS3-96 — Use the SPARTA STIX 2.1 dataset as ground truth · `Spike` · **High** · E 3 · T 1.0 (~8h)
 
-Body as scoped in [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md). Promoted to **High** and placed
+Definition, ACs and results: [`tickets/AINOS3-96.md`](tickets/AINOS3-96.md). Promoted to **High** and placed
 **first in the sprint** for a reason that ticket did not state: it gates the label set that
 Sprint 29's rebuild and retrain will be built on.
 
@@ -146,19 +148,9 @@ collection, not after.
 `pip install stix2`. The fetch must be documented and repeatable — API call or download path
 — not a one-off manual step.
 
-**Acceptance Criteria:** as in `SPRINT_27_PLAN.md`, plus two additions for this sprint:
-
-- **Verdict per attack script**, not just a mismatch list: `implements-as-claimed` /
-  `mislabelled (correct technique named)` / `partially implements` / `undecidable from STIX`.
-  A count in each bucket is the headline result.
-- **A written decision on the multi-member clusters** — does STIX support treating
-  `EX-0012.{03,04,05}` as one class, or are they genuinely distinct techniques our telemetry
-  cannot separate? Those are different problems with different fixes, and the tier column
-  currently cannot tell them apart.
-
 ### AINOS3-95 — SPARTA logging best practices vs what we record · `Spike` · **High** · E 3 · T 0.75 (~6h)
 
-Body as scoped in [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md), with the estimate **revised down
+Definition, ACs and results: [`tickets/AINOS3-95.md`](tickets/AINOS3-95.md). with the estimate **revised down
 from E 5 / T 1.5** on measurement rather than assumption.
 
 **Re-sizing, with the evidence.** The ticket was written against "a ~20-sheet workbook" and
@@ -190,15 +182,9 @@ verdict, because "not modelled" is a legitimate and reusable answer.
 ⚠ **Day-1 setup:** `openpyxl` is **not installed** in the dev venv — required to open the
 workbook at all. `pip install openpyxl`.
 
-**Acceptance Criteria:** as in `SPRINT_27_PLAN.md`. The criterion that matters most for this
-sprint is the fourth one — **any technique currently marked out-of-scope / UNSUBSCRIBED in
-`V5_DETECTOR_COVERAGE.md` that the workbook says *is* loggable gets flagged explicitly.**
-Those are re-openable verdicts, and they are the one place in this sprint where the committed
-work can turn a red cell green.
-
 ### AINOS3-87 — `EX-0012.09` EPS switch toggle is undetected · `Story` · Medium · E 3 · T 1.0 (~8h)
 
-Body as scoped in [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md). The **only confirmed coverage
+Definition, ACs and results: [`tickets/AINOS3-87.md`](tickets/AINOS3-87.md). The **only confirmed coverage
 gap** on the board and the most direct available answer to "more green": measured across 3
 independent runs in held SUNSAFE, IF lift **−0.4 ± 0.1** and **no rule-gate rule fired in any
 run**, against a published **99 %** catch rate.
@@ -220,7 +206,7 @@ subscribe" — a materially stronger result for the same effort.
 
 ### AINOS3-86 — Bring INERTIAL's false-alarm rate into the design band · `Story` · **High** · E 5 · T 1.5 (~12h)
 
-Body as scoped in [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md) — the escalating history
+Definition, ACs and results: [`tickets/AINOS3-86.md`](tickets/AINOS3-86.md). — the escalating history
 (0.00 % published → 0.54 % operational / 7.5 % raw at 60 min → **33.6 %** at a 600 s hold,
 range 21.1–48.5 %), the three candidate causes, and the ⚠ **do not fix by tightening the
 threshold alone** warning (tightening to a 0.1 % target drives false alarms to 0.00 % but
@@ -255,97 +241,18 @@ where it looks good.
 
 ### AINOS3-90 — Is `cluster=nominal` filtered from the operator view? · `Task` · High · E 1 · T 0.25 (~2h)
 
-Body as scoped in [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md). **Run this on day 1.** One fact
+Definition, ACs and results: [`tickets/AINOS3-90.md`](tickets/AINOS3-90.md). **Run this on day 1.** One fact
 decides whether INERTIAL's **71 false incidents per hour** are an invisible log-volume
 annoyance or a credibility problem — and with `AINOS3-86` now committed, it sets that
 ticket's urgency rather than deciding whether it runs at all. Evidence from the deployed
 reporter path, not inference.
 
-**Result:** ✅ DONE (2026-08-23) — **NO. Nothing filters it, at any layer.** The answer is
-the credibility branch, and the ticket's implied cheap mitigation turns out to be a trap.
-
-**Code evidence — the deployed reporter path has no cluster predicate.** Every closed
-incident reaches the operator through `_handle_incident`
-(`fsw/plugins/xgb_classifier/xgb_classifier_plugin.py:585`), which prints a
-`[xgb_cls][INCIDENT #N] … → nominal` line and appends the row to `incident_*.csv`
-unconditionally. There is no `if cluster == "nominal"` anywhere in the chain, and the three
-sibling gates (`rule_gate`, `consistency_check`, `staleness_check`) write their own incident
-files by the same unfiltered pattern. Nothing downstream re-reads those files with a filter
-either — the coverage overlay in `app/` is a static offline artifact, and OnAIR publishes no
-telemetry into COSMOS, so the console log and the CSV **are** the operator view.
-
-**Data evidence — 55.8 false incidents/hour, all visible.** Measured on
-`incident_2026-08-15T14-29-46-306680_pid11.csv`: an 86.9 h `MODE_INERTIAL` session whose
-manifest (`scenarios/manifest_2026-08-15T14-29-48Z.json`) confines its attack batch to the
-first 15 min. Restricting to the post-batch, definitively-nominal window — 86.6 h,
-**4,836 incidents, 100 % `cluster=nominal`**, median 8 frames — gives **55.8 incidents/hour**.
-The ticket's figure of 71/hr is the same order; treat 55.8 as the measured replacement.
-Across all 113 archived incident files, 5,865 of 6,435 INERTIAL incidents (**91.1 %**) carry
-`cluster=nominal`.
-
-⚠ **Do not "just filter `cluster=nominal`" — it would cost 48.4 % of true attack frames.**
-The mitigation is tempting because it is one predicate and it is 100 %-effective on the clean
-window above. It is also exactly the shape of the sun-acquisition rule that nearly shipped on
-a clean nominal correlation. Checked on the attack side first, per this sprint's standing
-rule: in `loio_predictions_oof_v3hybrid_full.npz`, **48.4 % of the 79,932 true-attack frames
-are themselves predicted `nominal`** (BDOT 54.2 % · PASSIVE 55.7 % · SUNSAFE 47.8 % ·
-**INERTIAL 39.3 %**). Suppressing that cluster suppresses those frames too.
-
-*Stated limit:* that 48.4 % is **frame-level**, and incidents aggregate frames by summed
-top-1 probability, so the incident-level cost is lower — but it is not zero, and nobody has
-measured it. A nominal-suppression filter is therefore **not** a free win and must not ship
-without that measurement.
-
-**Consequence for `AINOS3-86`:** urgency **confirmed High**. 55.8 visible false incidents per
-hour in a mode with no attack running is a credibility problem in the operator's face, not a
-log-volume annoyance, and the one-line cosmetic escape is closed.
-
-**Side finding, not chased:** three archived incident files carry `cluster` values of `25`
-and `15` in `MODE_PASSIVE` — integers where a label belongs, i.e. a header-version mismatch
-between the writer and those files. 11 rows, all pre-dating the hybrid deployment. Noted for
-`AINOS3-97`'s inventory rather than fixed here.
-
 ### AINOS3-92 — `analyze_soak_drift.py` uses the wrong sample rate · `Task` · Medium · E 1 · T 0.25 (~2h)
 
-Body as scoped in [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md). **Now on the critical path:**
+Definition, ACs and results: [`tickets/AINOS3-92.md`](tickets/AINOS3-92.md). **Now on the critical path:**
 `AINOS3-86`'s soaks are read by this tool, and it mislabels every uptime bin by ~33 %
 (hardcoded 4.2 Hz vs a true ~5.6). Fix it **before** the first soak, not after. Derive the
 rate from the data; keep `--hz` as an override; warn on > 10 % disagreement.
-
-**Result:** ✅ DONE (2026-08-23) — **fixed, and the error was larger than the ticket said.**
-
-**The rate is now derived, not assumed.** The side-file carries no clock at all — only
-`frame_idx` — so `derive_hz()` reads `CFE_TIME.SecondsMET` from the `csv_out_*` log of the
-same session, paired by `(pid, nearest timestamp)`; OnAIR opens the two ~0.5 s apart, so the
-pairing is unambiguous. Two properties of that clock drove the implementation: MET is only
-~0.25 Hz-granular in the HK packet, so per-sample diffs are useless (median `dt` = 4.0 s →
-0.25 Hz) and only the endpoints over a long span are informative; and MET is **non-monotonic**
-across the OnAIR double buffer, so the span is `max − min`, not `last − first`.
-
-**Measured, across four 2026-08-15 sessions:** 5.551 · 5.460 · 5.100 · 4.783 Hz. The
-hardcoded 4.2 was **24 % low against 5.551**, and the effect on the tool's own output is
-worse than the ticket's ~33 %: the same 86.9 h soak reports **5,229 min at the derived rate
-and 6,911 min at 4.2** — every uptime bin overstated by **32 %**.
-
-**Guards, because a derived number can be wrong too:** rates outside 1–20 Hz are rejected, as
-are MET spans under 60 s (startup jitter dominates) and sessions with no pair or no
-`SecondsMET` column. When derivation fails and no `--hz` is given the tool warns on stderr and
-falls back to a named `FALLBACK_HZ = 5.5` rather than a silent constant. `--hz` remains an
-override and always wins, but is now checked: a > 10 % disagreement prints
-`WARNING: --hz 4.2 disagrees with the derived rate 5.551 Hz by 24%`. The resolved rate and its
-provenance print in the header and are recorded in the `--json` dump, so any future soak
-result carries its own rate.
-
-**Verification:** 10 tests in `training/test_soak_drift.py` covering derive, sub-second pair
-skew, no-pair, short-span, missing column, insane rate, loud fallback, and both override
-branches — all passing; plus all three paths exercised against the real 1.74 M-frame soak.
-
-⚠ **Every soak number published before today used 4.2 Hz.** Their FP *rates* are unaffected
-(a ratio of frame counts), but their **uptime axis is stretched ~32 %** — any claim of the
-form "FP was flat through T+6 h" was really measuring T+4.5 h. Re-run `--json` on any archived
-side-file before citing its bins.
-
----
 
 ## 🟨 EPIC AINOS3-98 — Corpus integrity: the corpus as a first-class artifact
 
@@ -368,49 +275,16 @@ it here. Parent changes are a normal Jira edit — only the `slug → key` bindi
 
 ### AINOS3-99 — Explain the per-instance F1 spread holding the tier column down · `Spike` · Medium · E 1 · T 0.25 (~2h)
 
-*Why does the same technique score 0.00 on one spacecraft run and 0.80 on another?*
+Definition, ACs and results: [`tickets/AINOS3-99.md`](tickets/AINOS3-99.md).
 
-**Summary:** As an ML engineer, I want to know which *runs* produce the zero-F1 LOIO folds,
-because the tier rule takes the **minimum** across folds, so a handful of bad runs — not the
-model's average ability — is what is holding `ROBUST` empty.
-
-**Description:** The derived tiers (`data/onair/models/classifier_tiers.json`, 26 classes,
-3 LOIO folds) show enormous per-instance spread:
-
-| class | fold F1s | min | max | tier |
-|---|---|--:|--:|---|
-| `IMP-0001` | `[0.00, 0.66, 0.80]` | 0.00 | 0.80 | HIGH-VAR |
-| `EX-0012.09` | `[0.00, 0.00, 0.50]` | 0.00 | 0.50 | HIGH-VAR |
-| `DE-0003.02` | `[0.07, 0.00, 0.65]` | 0.00 | 0.65 | HIGH-VAR |
-| `EX-0012.08` | `[0.52, 0.00, 0.29]` | 0.00 | 0.52 | HIGH-VAR |
-| `IMP-0003` | `[0.94, 0.11, 0.71]` | 0.11 | 0.94 | HIGH-VAR |
-
-A class reaching 0.80 on one spacecraft run and 0.00 on another is not information-limited —
-it is **instance-limited**. A single contaminated instance is already **ruled out**: zero-F1
-folds distribute across all three instances (**9 / 6 / 6** of 26 classes).
-
-That leaves the useful question — is the spread explained by the **blind-window collection
-defect**? The answer sizes Sprint 29's collection, which is why a 2-hour desk spike runs a
-sprint ahead of the ~15 h of wall-clock it governs.
-
-**Acceptance Criteria:**
-
-- Per-class, per-fold F1 cross-tabulated against the collecting run, from
-  `loio_predictions_oof_v3hybrid_full.npz` and the corpus manifest — no re-training.
-- For each zero-F1 fold, the fraction of that run's attack frames falling inside a
-  post-mode-switch blind window (~45 s / 250 frames).
-- A stated verdict with its limits: **blind-window-explained**, **partially explained**, or
-  **unexplained** — and if unexplained, what else differs between the runs.
-- A recommended instance count for Sprint 29, justified by the observed spread rather than
-  assumed. "3, because that is what we had" is acceptable only if the evidence says so.
-- ⚠ Note in the write-up that adding instances adds folds, and **min-over-more-folds is a
-  stricter bar**.
-- **Cross-check against `AINOS3-96`:** if a class's fold spread coincides with a script that
-  STIX flags as mislabelled, that is a shared root cause and both tickets should say so.
+**Why it runs this sprint.** The answer sizes Sprint 29's collection, which is why a
+2-hour desk spike runs a sprint ahead of the ~15 h of wall-clock it governs. Sequenced
+after `AINOS3-97`, which produces the artifact→corpus dependency map it needs to know
+which collection each LOIO instance came from.
 
 ### AINOS3-97 — Separate live corpus data from superseded · `Task` · Medium · E 3 · T 0.75 (~6h)
 
-Body as scoped in [`SPRINT_27_PLAN.md`](SPRINT_27_PLAN.md). It stays in this sprint even
+Definition, ACs and results: [`tickets/AINOS3-97.md`](tickets/AINOS3-97.md). It stays in this sprint even
 though the rebuild moved out, for two reasons: it produces the **artifact → corpus dependency
 map** that `fold-variance-triage` needs to know which collection each LOIO instance came
 from, and Sprint 29's collection must land in a clean estate rather than into 30 GB of
