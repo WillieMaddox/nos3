@@ -37,10 +37,32 @@ corpus is built headless, so headless is the surface that counts.
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` Decide and record: add `cam-sim` to the headless launch, or declare the imagery payload out of scope and remove the app from the headless startup script so it stops loading inert.
-- [ ] `AC2` The same decision made explicitly for `syn` — either a simulator is written, or the app is declared unmodelled and dropped from the headless build.
-- [ ] `AC3` A documented statement of any REMAINING difference between the headless and GUI telemetry surfaces, so future coverage claims name which stack they were verified on.
-- [ ] `AC4` If `cam-sim` is added headless, `CAM_HK` is re-subscribed and verified to arrive; `SPARTA_LOGGING_GAP.md` payload rows move back from `NEEDS_FSW`.
+⚠ **`AC1` and `AC4` rewritten 2026-08-25.** They originally read "add `cam-sim` to the headless
+launch, or declare the payload out of scope" and "if `cam-sim` is added, re-subscribe
+`CAM_HK`" — both of which presumed that starting the simulator would yield useful telemetry.
+That was never tested, and static inspection says it would not: see `AC1`.
+
+- [ ] `AC1` Establish whether an imagery payload is **modelled at all here, or only shelled**.
+      The evidence to date says shelled, and the ticket should confirm or overturn it rather
+      than assume: `CAM_Hk_tlm_t` is **two `uint8` counters** (`CommandCount`,
+      `CommandErrorCount`) carrying no simulator data; the scheduler issues **zero** camera
+      commands, so both sit at 0 in nominal ops indefinitely; and `CAM_EXP` `0x08C9` — the only
+      packet with imagery-ish content (`msg_count`, `length`) — is initialised but **never
+      transmitted**. If that holds, starting `cam-sim` headless changes nothing worth having.
+- [ ] `AC2` The same question answered for `syn`, which is the clearer case — it has **no
+      simulator anywhere** (absent from `launch.sh` and `nos3-simulator.xml`). Either one is
+      written, or the app is declared unmodelled and dropped from the headless build so it
+      stops loading inert.
+- [ ] `AC3` A documented statement of any REMAINING difference between the headless and GUI
+      telemetry surfaces, so future coverage claims name which stack they were verified on.
+      ⚠ This is the criterion with lasting value: the two stacks not being equivalent is what
+      let a coverage claim be verified on the wrong one.
+- [ ] `AC4` A recorded **decision on whether `CAM_HK` is worth a schema slot**, on the evidence
+      from `AC1` rather than on the fact that it is currently absent. **A documented "not worth
+      it" is the expected outcome**, and is a complete answer — the payload rows in
+      `SPARTA_LOGGING_GAP.md` then stay `NEEDS_FSW` permanently rather than provisionally.
+- [ ] `AC5` If, contrary to `AC1`, the payload does turn out to be modelled: `CAM_HK`
+      re-subscribed and **verified arriving live**, not assumed from the launch config.
 
 ## Log
 
