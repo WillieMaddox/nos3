@@ -86,6 +86,12 @@ UPDATED = {
     # readout (AINOS3-76, delivered 2026-08-23). Add entries as this sprint changes
     # coverage assessments.
     # --- AINOS3-95 (2026-08-25) ---
+    "EXF-0003.02": "rule-gate R16 added — a CFDP transfer command is now a second, "
+                   "independent exfiltration signal alongside R12/R13 (live-validated)",
+    "EX-0010.01": "rule-gate R16 added — CFDP file-operation faults corroborate R11's "
+                  "FM command burst",
+    "EX-0010.02": "rule-gate R16 added — CFDP file-operation faults corroborate R11's "
+                  "FM command burst",
     "EX-0012.12": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), "
                   "live-validated against a real SET_TIME injection",
     "EX-0014.01": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), "
@@ -125,9 +131,9 @@ GATE_DETECTED = {
     "DE-0010":    (None, "Overflow audit log",              "rule-gate R2 (EVS send-rate) → DE-0010 incident"),
     "PER-0001":   (None, "Memory compromise",               "rule-gate R9 (CFE_TBL command) → PER-0001 incident"),
     "LM-0002":    (None, "Exploit lack of bus segregation", "rule-gate R10 bus-sweep meta (R6+R7+R8+R9) → LM-0002 incident"),
-    "EX-0010.01": (None, "Ransomware (mass file encryption)", "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
-    "EX-0010.02": (None, "Wiper (mass file destruction)",    "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
-    "EXF-0003.02": (None, "Downlink exfiltration",           "rule-gate R12 (TO command) + R13 (downlink route-mask change) → EXF-0003.02 incident"),
+    "EX-0010.01": (None, "Ransomware (mass file encryption)", "rule-gate R11 (FM command) + R16 (CFDP file-operation faults) → EX-0010 file-op-burst incident"),
+    "EX-0010.02": (None, "Wiper (mass file destruction)",    "rule-gate R11 (FM command) + R16 (CFDP file-operation faults) → EX-0010 file-op-burst incident"),
+    "EXF-0003.02": (None, "Downlink exfiltration",           "rule-gate R12 (TO command) + R13 (downlink route-mask change) + R16 (CFDP transfer command) → EXF-0003.02 incident; R16 live-validated 2026-08-25"),
     "EX-0012.12": (0.57, "System clock",                     "rule-gate R15 (GPS-vs-FSW clock divergence) → EX-0014.01 incident; live-validated 2026-08-25 against a real SET_TIME"),
     "EX-0014.01": (0.26, "Time spoof",                        "rule-gate R15 (GPS-vs-FSW clock divergence); live-validated 2026-08-25 — fired on the attack frame, 0 fires in 2,152 nominal frames"),
     "DE-0001":    (None, "Disable fault management",         "rule-gate R5 (LC state → DISABLED) — shared LC-disable footprint with EX-0011/DE-0005 (AINOS3-73)"),

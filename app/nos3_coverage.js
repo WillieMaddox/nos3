@@ -14,11 +14,14 @@ window.NOS3_COVERAGE_META = {
     "DE-0003.11",
     "EX-0001.01",
     "EX-0006",
+    "EX-0010.01",
+    "EX-0010.02",
     "EX-0012.01",
     "EX-0012.11",
     "EX-0012.12",
     "EX-0012.13",
     "EX-0014.01",
+    "EXF-0003.02",
     "PER-0004"
   ],
   "provenance": {
@@ -749,12 +752,12 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
-    "updated": null,
-    "updated_sprint": null,
+    "updated": "rule-gate R16 added \u2014 CFDP file-operation faults corroborate R11's FM command burst",
+    "updated_sprint": "Sprint 28",
     "cluster": null,
     "explanation": "",
-    "review": "Caught by rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
-    "gate": "rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident"
+    "review": "Caught by rule-gate R11 (FM command) + R16 (CFDP file-operation faults) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
+    "gate": "rule-gate R11 (FM command) + R16 (CFDP file-operation faults) \u2192 EX-0010 file-op-burst incident"
   },
   "EX-0010.02": {
     "name": "Wiper (mass file destruction)",
@@ -765,12 +768,12 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
-    "updated": null,
-    "updated_sprint": null,
+    "updated": "rule-gate R16 added \u2014 CFDP file-operation faults corroborate R11's FM command burst",
+    "updated_sprint": "Sprint 28",
     "cluster": null,
     "explanation": "",
-    "review": "Caught by rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
-    "gate": "rule-gate R11 (FM command) \u2192 EX-0010 file-op-burst incident"
+    "review": "Caught by rule-gate R11 (FM command) + R16 (CFDP file-operation faults) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
+    "gate": "rule-gate R11 (FM command) + R16 (CFDP file-operation faults) \u2192 EX-0010 file-op-burst incident"
   },
   "EXF-0003.02": {
     "name": "Downlink exfiltration",
@@ -781,12 +784,12 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
-    "updated": null,
-    "updated_sprint": null,
+    "updated": "rule-gate R16 added \u2014 a CFDP transfer command is now a second, independent exfiltration signal alongside R12/R13 (live-validated)",
+    "updated_sprint": "Sprint 28",
     "cluster": null,
     "explanation": "",
-    "review": "Caught by rule-gate R12 (TO command) + R13 (downlink route-mask change) \u2192 EXF-0003.02 incident (dynamics-IF blind by design).",
-    "gate": "rule-gate R12 (TO command) + R13 (downlink route-mask change) \u2192 EXF-0003.02 incident"
+    "review": "Caught by rule-gate R12 (TO command) + R13 (downlink route-mask change) + R16 (CFDP transfer command) \u2192 EXF-0003.02 incident; R16 live-validated 2026-08-25 (dynamics-IF blind by design).",
+    "gate": "rule-gate R12 (TO command) + R13 (downlink route-mask change) + R16 (CFDP transfer command) \u2192 EXF-0003.02 incident; R16 live-validated 2026-08-25"
   },
   "DE-0001": {
     "name": "Disable fault management",
