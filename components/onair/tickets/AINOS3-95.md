@@ -488,3 +488,22 @@ clock field, and later while a torn read could latch it on. Three separate times
 check was the only thing that caught the error.
 
 **Status: DONE.** ACs 1-11 satisfied.
+
+### 2026-08-25 · ⚠ correction to the AC9 entry above — `cam-sim` is not GUI-only
+
+The stage-2b entry above attributes CAM's silence to *"`cam-sim` launches only via the GUI
+`make launch` (`launch.sh:124`)"*. **That is wrong**, and `AINOS3-102` established why: the
+headless path runs `scripts/fsw/launch_sat_quiet.sh`, not `launch.sh`, and it **does** start
+`cam-sim` (line 136). The sim starts, reads `nos3-simulator.xml`, finds
+**`<active>false</active>`** for `camsim`, and exits; `DFLAGS` carries `--rm`, so the container
+is auto-removed leaving no trace and no logs.
+
+Left above rather than edited, since this log is append-only and the wrong inference is part
+of the record. **The AC9 conclusion is unaffected** — CAM and SYN were correctly removed from
+the schema, and remain so: `AINOS3-102` decided against subscribing `CAM_HK` on the separate
+and still-valid ground that it carries two `uint8` counters with zero scheduled commands, and
+that `CAM_EXP` has no publish path at all.
+
+⚠ The generalisation in that entry — *scheduled + downlinked + transmitted in source does not
+mean arriving at OnAIR* — stands, and is if anything stronger: the sim was launched and still
+produced nothing. Full detail in [`AINOS3-102`](AINOS3-102.md).

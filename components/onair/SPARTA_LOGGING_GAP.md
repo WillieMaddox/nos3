@@ -75,28 +75,43 @@ the ticket's "expect the 5 Payload sheets to be not modelled" prediction was wro
 them, because this build loads an imagery payload (`arducam`) and a data-processing payload
 (`syn`) whose MIDs are scheduled and downlinked.
 
-Both were subscribed and **delivered 0 packets in 90 s** on the live stack. The apps load; the
-telemetry never comes. Root cause:
+Both were subscribed and **delivered 0 packets in 90 s** on the live stack, and the payload
+rows were reverted to `NEEDS_FSW`. `AINOS3-102` then traced why, and **corrected this section
+a second time** — the first explanation was also wrong:
 
-- **`cam-sim` launches only under the GUI `make launch`** (`launch.sh:124`, via
-  `gnome-terminal`) — **never** under headless `make launch-quiet`, which is the mode every
-  soak and every corpus collection uses. The arducam app has no simulator to talk to and
-  emits nothing.
-- **`syn` has no simulator at all** — absent from both `launch.sh` and `nos3-simulator.xml`.
-  The app is permanently inert.
+- **`cam-sim` is not GUI-only.** `make launch-quiet` runs
+  `scripts/fsw/launch_sat_quiet.sh` (not `launch.sh`), which *does* start `cam-sim`, in a form
+  identical to the sims that work. It starts, reads `nos3-simulator.xml`, finds
+  **`<active>false</active>`** for `camsim`, and exits. `DFLAGS` carries `--rm`, so the
+  container is auto-removed — leaving nothing in `docker ps -a` and no logs, which is exactly
+  what made it look like it was never launched.
+- **`syn` has no simulator entry at all**, consistent with needing none: SYNOPSIS is an
+  on-board library and `libsynopsis.so` is built and present. Its failure to initialise is
+  still unexplained.
+- **Neither payload packet has a publish path**, independent of any of the above. `CAM_EXP`
+  `0x08C9` is filled by `CAM_read_prep` and **never transmitted** (`CAM_PUBLISH_CC` is defined
+  with no handler); `SYN_DEV` `0x08FD` has its `CFE_MSG_Init` commented out (`syn_app.c:172`).
 
-Two further candidate carriers were already dead in source: `CAM_EXP` `0x08C9` is initialised
-but never transmitted, and `SYN_DEV` `0x08FD` has its transmit commented out
-(`syn_app.c:172`).
+So the ticket's original prediction stands — **all five payload sheets are effectively not
+modelled** — but the reason is a config flag plus missing FSW plumbing, not a launch-mode
+choice. `AINOS3-102` decided **not** to subscribe `CAM_HK`: it carries two `uint8` counters
+with zero scheduled camera commands, and the packet that would carry real payload signal
+cannot be subscribed at any price until someone writes a publish path.
 
-So the ticket's original prediction stands: **all five payload sheets are effectively not
-modelled** in the pipeline that matters. Whether `cam-sim` should be added to the headless
-launch is a real question and is ticketed separately (`headless-sim-coverage-gap`); until then
-the payload rows are `NEEDS_FSW`, not `SUBSCRIBABLE_NOW`.
+⚠ **The general lesson, which cost this document two retractions:** *scheduled, downlinked and
+transmitted in the source does not mean arriving at OnAIR.* Verify live before claiming
+coverage — and when a component is silent, confirm **why** before concluding what. A simulator
+that refuses to run and one that was never started are indistinguishable under `--rm`.
 
-⚠ **The general lesson, which cost this document a retraction:** *scheduled + downlinked +
-transmitted in the source does not mean arriving at OnAIR.* The simulator has to exist in the
-launch mode you actually run. Verify subscriptions live before claiming coverage.
+### Which stack a coverage claim was verified on
+
+**Assume `make launch-quiet` unless the claim says otherwise.** It is the mode every soak,
+every corpus collection and every attack validation uses, so it is the surface that counts.
+
+Any claim verified on a different stack — `make launch`, a hand-started simulator, a modified
+`nos3-simulator.xml` — **must name that stack explicitly**, because the two are not guaranteed
+equivalent. An unqualified claim in this document, in a ticket, or in the coverage overlay
+means `launch-quiet` and may be read as such.
 
 ## `AC2` — the gap table
 
