@@ -264,3 +264,46 @@ The three-layer picture is now empirically confirmed rather than inferred:
    `CFE_MSG_Init` commented out.
 
 `AC4`'s decision is unaffected and stands: do not subscribe `CAM_HK`.
+
+### 2026-08-25 · LEVER TESTED — activating `camsim` was necessary but not sufficient; the apps are *disabled by config*
+
+Flipped `camsim` to `<active>true</active>` in both the deployed
+(`sims/build/bin/nos3-simulator.xml`) and source config, and relaunched headless.
+
+| check | result |
+|---|---|
+| `sc01-cam-sim` container survives | ✅ **yes** — previously died in ~20 s, now `Up`, actively running (`CamHardwareModel::run`, `CamDataProvider::get_data_point` looping) |
+| `CAM` app emits an EVS init event | ❌ **no** — still 0 |
+| `SYN` app init | ❌ no (expected — no sim entry at all) |
+| apps emitting EVS init | **30, unchanged** |
+
+⚠ **My prediction was wrong.** I expected the sim to be the blocker for app startup. It is
+not: the sim is now healthy and producing data, and the app still never starts.
+
+**The actual cause — `cfe_es_startup.scr` has an end-of-file terminator.** cFS stops parsing
+at the first `!`, on line 33, and the file continues to line 91:
+
+- **25 apps above the `!`** — all 25 load.
+- **20 entries below it are duplicates** of apps also listed above. They load *from the entry
+  above*, which is what made the terminator look inoperative on first inspection.
+- **7 apps appear only below it** — `arducam`, `syn`, `cs`, `hk`, `hs`, `md`, `mm` — and **all
+  seven emit zero init events.** No exceptions in either direction.
+
+The script says so itself: *"In NOS3, these are moved as part of the `make config` process
+depending on what is enabled."* The below-`!` block is the **catalogue of disabled apps**, not
+dead weight. So `camsim active=false` and `arducam` being below the terminator are two halves
+of the same deliberate configuration: **the imagery and data-processing payloads are switched
+off in this NOS3 build.**
+
+⚠ This also re-explains the `cs`/`hs`/`md`/`mm` gap from `AINOS3-95`. Those apps are not merely
+"loaded in the startup script with no `.so`" — they are **below the terminator, so not loaded
+at all**, *and* not built. `build-cs-app` and its siblings therefore need **two** changes:
+build the `.so` **and** move the entry above the `!`. That is a correction to those tickets'
+stated premise.
+
+**Config restored** to `active=false` in both copies — activating it changes every soak
+baseline for a payload that still cannot publish (`CAM_EXP` has no `TransmitMsg`).
+
+**Enabling the payload properly** would require: move `arducam` above the `!`, set `camsim`
+active, **and** write the missing publish path. The first two are config; the third is FSW
+work. `AC4`'s decision is unchanged — do not subscribe `CAM_HK`.
