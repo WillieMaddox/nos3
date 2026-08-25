@@ -18,8 +18,9 @@ origin: AINOS3-95 (sparta-logging-gap-analysis)
 
 AINOS3-74 ruled `EX-0012.11` (modify watchdog) and `DE-0003.11` (watchdog state for evasion)
 out of scope because no watchdog or health telemetry exists. AINOS3-95 sharpened that: the
-finding is true of the **build**, not the design. `cfe_es_startup.scr` **does** load `hs` and
-the scheduler **does** request `HS_SEND_HK_MID` — there is simply no `hs.so`.
+finding is true of the **build**, not the design. the scheduler **does** request `HS_SEND_HK_MID`, and `hs` is listed in
+`cfe_es_startup.scr` — but below its `!` terminator, so it is never loaded, and there is no
+`hs.so` either.
 
 HS monitors application liveness (are apps checking in), CPU utilisation, event-message rates,
 and **services the watchdog**, acting on failure via app restart or processor reset. Its HK is
@@ -31,6 +32,21 @@ currently unanswered.
 ⚠ The PSP watchdog on pc-linux is a no-op stub, so HS will service a timer that does nothing.
 Whether HS's *own* monitor state is still a useful observable — independent of a functioning
 timer — must be established rather than assumed.
+
+⚠ **Premise corrected 2026-08-25 (via `AINOS3-102`).** An earlier revision said these apps are
+"loaded in `cfe_es_startup.scr` and simply have no `.so`". **Both halves were wrong about the
+loading.** `cfe_es_startup.scr` has an end-of-file terminator — cFS stops parsing at the first
+`!`, on line 33 of 91 — and `cs`, `hk`, `hs`, `md`, `mm` (with `arducam` and `syn`) appear
+**only below it**, so they are **not loaded at all**. Verified: all seven emit zero EVS init
+events, while every app above the `!` loads. Entries below the `!` that *do* run are duplicates
+of ones listed above.
+
+The script states the design: *"In NOS3, these are moved as part of the `make config` process
+depending on what is enabled."* The below-`!` block is the **catalogue of disabled apps**.
+
+**So enabling one needs TWO changes, not one:** build the `.so` **and** move its entry above
+the `!` (or make `make config` do so). Budget accordingly — the second half was invisible in
+the original scoping.
 
 ## Acceptance criteria
 

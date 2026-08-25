@@ -23,7 +23,7 @@ with time tag"*, appearing on **12 of the 13 subsystem sheets**. We answer it to
 MM (Memory Manager) executes commanded peeks, pokes, loads and dumps and reports the last
 address, action and byte count; MD (Memory Dwell) periodically samples commanded addresses and
 telemeters them. Together they are the standard cFS carrier for that recommendation, and both
-are already in the startup script with scheduled HK and no `.so`.
+are listed in the startup script's disabled block, with scheduled HK and no `.so`.
 
 Unblocks re-assessment of `EX-0012.01` (registers).
 
@@ -33,6 +33,21 @@ why `EX-0012.03` (memory writes) is a SPARTA technique in the first place. Build
 observability and attack surface together. That is defensible for a security testbed, and
 arguably increases fidelity to real spacecraft, but it should be an explicit decision with the
 reasoning recorded.
+
+⚠ **Premise corrected 2026-08-25 (via `AINOS3-102`).** An earlier revision said these apps are
+"loaded in `cfe_es_startup.scr` and simply have no `.so`". **Both halves were wrong about the
+loading.** `cfe_es_startup.scr` has an end-of-file terminator — cFS stops parsing at the first
+`!`, on line 33 of 91 — and `cs`, `hk`, `hs`, `md`, `mm` (with `arducam` and `syn`) appear
+**only below it**, so they are **not loaded at all**. Verified: all seven emit zero EVS init
+events, while every app above the `!` loads. Entries below the `!` that *do* run are duplicates
+of ones listed above.
+
+The script states the design: *"In NOS3, these are moved as part of the `make config` process
+depending on what is enabled."* The below-`!` block is the **catalogue of disabled apps**.
+
+**So enabling one needs TWO changes, not one:** build the `.so` **and** move its entry above
+the `!` (or make `make config` do so). Budget accordingly — the second half was invisible in
+the original scoping.
 
 ## Acceptance criteria
 
