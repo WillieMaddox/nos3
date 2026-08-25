@@ -85,6 +85,23 @@ UPDATED = {
     # Cleared at Sprint 28 kickoff (2026-08-23). Sprint 27 markers served their
     # readout (AINOS3-76, delivered 2026-08-23). Add entries as this sprint changes
     # coverage assessments.
+    # --- AINOS3-95 (2026-08-25) ---
+    "EX-0012.12": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), "
+                  "live-validated against a real SET_TIME injection",
+    "EX-0014.01": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), "
+                  "live-validated against a real SET_TIME injection",
+    "EX-0001.01": "Out-of-scope rationale corrected — SPARTA's logging workbook proposes "
+                  "ground/spacecraft command-counter reconciliation, which we have not tried",
+    "EX-0006":    "Out-of-scope rationale corrected — the workbook asks for the bypass "
+                  "COMMAND, not the CryptoLib state; re-openable as a rule candidate",
+    "PER-0004":   "Out-of-scope rationale corrected — the workbook asks for the key-change "
+                  "COMMAND, not the key material",
+    "EX-0012.11": "Rationale sharpened — the HS app is a BUILD gap (loaded + scheduled, no "
+                  ".so), not a design limit; re-openable once built",
+    "DE-0003.11": "Rationale sharpened — same HS build gap as EX-0012.11",
+    "EX-0012.01": "Rationale sharpened — MM/MD are in the same not-built cluster",
+    "EX-0012.13": "Narrowed — the workbook's live control (training-data drift) is a "
+                  "corpus-integrity item, not an FSW observability gap",
 }
 
 # ── Section-A gate-detected techniques (coverage-validation campaign, AINOS3-50…62,
@@ -111,6 +128,8 @@ GATE_DETECTED = {
     "EX-0010.01": (None, "Ransomware (mass file encryption)", "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
     "EX-0010.02": (None, "Wiper (mass file destruction)",    "rule-gate R11 (FM command) → EX-0010 file-op-burst incident"),
     "EXF-0003.02": (None, "Downlink exfiltration",           "rule-gate R12 (TO command) + R13 (downlink route-mask change) → EXF-0003.02 incident"),
+    "EX-0012.12": (0.57, "System clock",                     "rule-gate R15 (GPS-vs-FSW clock divergence) → EX-0014.01 incident; live-validated 2026-08-25 against a real SET_TIME"),
+    "EX-0014.01": (0.26, "Time spoof",                        "rule-gate R15 (GPS-vs-FSW clock divergence); live-validated 2026-08-25 — fired on the attack frame, 0 fires in 2,152 nominal frames"),
     "DE-0001":    (None, "Disable fault management",         "rule-gate R5 (LC state → DISABLED) — shared LC-disable footprint with EX-0011/DE-0005 (AINOS3-73)"),
     "DE-0006":    (None, "Modify whitelist",                 "rule-gate R8 (CFE_ES cmd) + R9 (CFE_TBL cmd) — presents as command activity; NOOP-only script activates no table (AINOS3-75)"),
 }
@@ -129,28 +148,28 @@ REVIEW = {
                   "establish whether the switch toggle appears in any recorded EPS field; if yes an "
                   "R1/R6-style rule, if no reclassify as UNSUBSCRIBED. Ticketed `detect-eps-switch`.",
     # -- already in the scored corpus (ENRICH) as OUT-OF-SCOPE --
-    "EX-0001.01": "Replayed valid commands are byte-identical to legitimate ones — no telemetry field separates them. Needs: command anti-replay (CryptoLib SDLS ARSN) surfaced as telemetry; not on the bus.",
+    "EX-0001.01": "⚠ Rationale corrected 2026-08-25 (AINOS3-95). Previously: 'byte-identical, no telemetry field separates them'. SPARTA's logging workbook (C&DH row 13) does not propose separating the bytes — it proposes RECONCILING the spacecraft command counter against the ground's own count, i.e. a mismatch rather than a signature. We already record every spacecraft-side counter (CI.usCmdCnt, TO.usCmdCnt, all five CFE_*.CommandCounter); the missing half is a join to COSMOS's ground-side count, not a MID. Re-openable — ticket `ground-counter-reconciliation`.",
     "EX-0009.01": "The exploit act itself emits no telemetry; only its downstream effect does (as a separate EX technique). Needs: in-FSW control-flow / memory-safety instrumentation — unmodeled.",
     "IMP-0004":   "Gradual sub-threshold degradation stays inside nominal envelopes, leaving no discrete residual. Needs: multi-day trend/degradation baselining, beyond current per-frame + short-window features.",
     "DE-0003.04": "Command-receiver RSSI is an RF-analog value the NOS3 radio sim doesn't model or telemeter. Needs: RSSI added to RADIO device telemetry (would become UNSUBSCRIBED, not conceptual).",
     "DE-0003.05": "Receiver carrier/lock state is an RF-layer state absent from the software bus. Needs: lock state exposed in RADIO device telemetry.",
     "DE-0003.07": "Crypto state lives only in CryptoLib process memory (a CFE_LIB with zero Software Bus telemetry). Needs: a CryptoLib SA-state HK packet — none exists in this build.",
-    "DE-0003.11": "No subscribable watchdog/health telemetry packet exists in this build (AINOS3-74): the pc-linux PSP watchdog is a stub (a single in-memory global, all Service/Enable/Disable calls are no-ops), there is no HS (Health & Safety) app, and LC's 'WDT' is the Watchpoint Definition Table, not a timer. Structurally unobservable — not recoverable by subscribing a MID.",
-    "EX-0012.11": "Modifying the watchdog timer has no telemetry footprint for the same reason as DE-0003.11 (AINOS3-74): the pc-linux PSP watchdog is a no-op stub with no MID, no HS app, and LC's 'WDT' is a config table, not a timer. Needs a watchdog/health telemetry packet that does not exist in this build.",
+    "DE-0003.11": "⚠ Sharpened 2026-08-25 (AINOS3-95). AINOS3-74 was right about the BUILD, and the reason is more specific than 'there is no HS app': cfe_es_startup.scr DOES load `hs` and sch_def_msgtbl.c DOES request HS_SEND_HK_MID — there is simply no hs.so in fsw/build/exe/cpu1/cf/ (nor cs/mm/md/hk). The workbook (C&DH row 4) rates watchdog-service logging Medium and names exactly what to log. So this is out-of-scope for the build, NOT out-of-scope by design: re-openable if and only if the app is built — ticket `build-hs-app`, then `retest-reopened-verdicts`.",
+    "EX-0012.11": "⚠ Sharpened 2026-08-25 (AINOS3-95) — see DE-0003.11. The PSP watchdog is a no-op stub, but the missing HS app is a BUILD gap (loaded in the startup script and scheduled, no .so) rather than a design limit. Re-openable once `build-hs-app` lands.",
     "EX-0001.02": "Internal SBN bus replay has no external injection path in stock NOS3 (AINOS3-75): SBN over UDP is telemetry-OUT only, and the :5012 bridge injects CCSDS commands (EX-0001.01 / EX-0014.02), not raw bus messages. The foothold prerequisite is a malicious in-partition app (EX-0010). Structurally unexercisable from outside the container.",
     "DE-0003.12": "Poisoning corrupts an offline training dataset, not a live telemetry event. Needs: training-data provenance/integrity checks in the ML pipeline.",
     # -- reviewed but NOT scripted/scored (added via REVIEW_ADD below) --
     "EX-0003":    "Authentication runs inside CryptoLib (CFE_LIB, no SB telemetry); auth-process changes leave no HK footprint. Needs: a CryptoLib auth/SA-state HK packet.",
-    "EX-0006":    "Encryption enable state (SA est flag) is internal to CryptoLib; no SB packet carries it. Needs: CryptoLib SA-state HK, or a weak RADIO frame-error proxy when bad frames are rejected downstream.",
+    "EX-0006":    "⚠ Rationale corrected 2026-08-25 (AINOS3-95). The encryptor STATE is indeed internal to CryptoLib — but the workbook (TT&C rows 22/24) asks for the COMMAND, not the state: 'any received bypass commands / disable encryptor — log and alert under all circumstances'. A command arriving at CI is exactly the static-in-nominal counter signal rules R6-R13 exploit. Re-openable as a RULE candidate, not a subscription — ticket `test-encryption-bypass-observability`.",
     "EX-0009.02": "Exploiting the host Linux OS operates below the cFS application layer OnAIR observes. Needs: host-OS security monitoring (auditd/EDR) — a separate sensor from cFS telemetry.",
     "EX-0009.03": "A library-CVE exploit has no cFS-telemetry signature until it causes a downstream effect (a separate technique). Needs: SBOM/vulnerability scanning, off-board.",
     "EX-0010.03": "A rootkit's purpose is to hide from the host it infects, suppressing its own footprint; NOS3 models no kernel/rootkit layer. Needs: host-level file/memory integrity attestation, off the cFS bus.",
     "EX-0010.04": "A bootkit runs before the FSW/OS boots and persists beneath it — no running-FSW telemetry at that layer. Needs: measured-boot / TPM attestation, unmodeled.",
-    "EX-0012.01": "CPU/peripheral register writes are not exposed in any cFS HK packet. Needs: a low-level register-monitoring agent — not present.",
-    "EX-0012.13": "Corrupts an offline training dataset rather than emitting a live telemetry event. Needs: ML-pipeline training-data integrity/provenance.",
+    "EX-0012.01": "⚠ Sharpened 2026-08-25 (AINOS3-95). True of this build, but the standard cFS answer exists and is in the same not-built cluster as the watchdog: MM (Memory Manager) and MD (Memory Dwell) are loaded in cfe_es_startup.scr and their HK is scheduled, with no .so present. The workbook asks for 'log the memory register and the new value' on 12 of 13 subsystem sheets. Re-openable once `build-mm-md-apps` lands. ⚠ Note that building MM also hands an attacker a supported memory-write path.",
+    "EX-0012.13": "⚠ Narrowed 2026-08-25 (AINOS3-95). Still largely offline, but the workbook (C&DH row 25) adds a live control we had not considered: 'input data drift from the distribution of training data should also be monitored'. The ML service in question is OURS, so this is a corpus-integrity item (epic AINOS3-98), not an FSW observability gap.",
     "PER-0002.01":"A covert hardware path has no software telemetry and is invisible from the FSW. Needs: supply-chain hardware assurance / side-channel analysis, off-board.",
     "PER-0002.02":"A dormant software backdoor emits no distinguishing telemetry until triggered (then it acts as another EX technique). Needs: static/binary analysis of the FSW image, off-board.",
-    "PER-0004":   "Key material (ekid/akid) is internal to CryptoLib's SADB; a key swap is invisible on the SB. Needs: CryptoLib key-index HK, or ground-side downlink-auth-failure detection.",
+    "PER-0004":   "⚠ Rationale corrected 2026-08-25 (AINOS3-95). Key material is internal to CryptoLib's SADB, but the workbook (TT&C row 23) asks for 'any received key change commands' — the command, not the material. Same re-open shape as EX-0006; ticket `test-encryption-bypass-observability`.",
     "DE-0004":    "By design the malicious action mimics legitimate telemetry. Needs: cryptographic command provenance (CryptoLib, un-telemetered) or finer behavioral baselining than current features.",
     "DE-0007":    "Same as the rootkit case (EX-0010.03): the rootkit hides the evasion and NOS3 has no host-integrity sensor. Needs: file/memory attestation off the cFS bus.",
     "DE-0008":    "Same as the bootkit case (EX-0010.04): sub-OS persistence with no running-FSW telemetry. Needs: measured-boot attestation.",
@@ -236,6 +255,17 @@ def main():
     # named in the review column. These do NOT come from the classifier incident-rescore.
     for tid, (frame_rate, label, detector) in GATE_DETECTED.items():
         if tid in coverage:
+            # Already classifier-scored via ENRICH. A technique can be BOTH scored and
+            # gate-detected — before 2026-08-25 this loop dropped the gate silently, so
+            # R15's catch of EX-0012.12 / EX-0014.01 would never have surfaced. Attach
+            # the gate to the existing entry instead of discarding it.
+            coverage[tid]["gate"] = detector
+            existing = coverage[tid].get("review") or ""
+            note = "Also caught by " + detector + "."
+            coverage[tid]["review"] = (existing + " " + note).strip() if existing else note
+            if tid in UPDATED:
+                coverage[tid]["updated"] = UPDATED[tid]
+                coverage[tid]["updated_sprint"] = UPDATED_SPRINT
             continue
         coverage[tid] = {
             "name": label, "tier": "RULE-GATE", "signal": "ON_BOARD",
