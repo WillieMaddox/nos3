@@ -231,3 +231,36 @@ lifetime or re-run it by hand.
 every soak baseline, for a payload whose only subscribable packet is two constant counters. It
 belongs to whoever picks up payload coverage, with `AC4`'s decision as the standing default:
 do not subscribe.
+
+### 2026-08-25 · GUI stack tested — launch mode is confirmed NOT the variable
+
+The `<active>false</active>` correction above was reasoned from source. Tested directly on a
+fresh `make stop; make launch` GUI stack, and the two launch modes are indistinguishable on
+this question:
+
+| | `make launch-quiet` | `make launch` (GUI) |
+|---|---|---|
+| `cam-sim` container | absent | **absent** |
+| apps emitting EVS init | 30 | **the same 30** |
+| `CAM` / `SYN` init events | 0 | **0** |
+| any CAM / arducam / SYNOPSIS log output | 0 | **0** |
+
+So *"`cam-sim` is GUI-launch only"* is now a **measured negative**, not merely a corrected
+inference — the obvious hypothesis was tested and eliminated.
+
+⚠ **And a trap worth recording.** The simulator runs with `-w $SIM_BIN -f nos3-simulator.xml`,
+so the file it actually reads is **`sims/build/bin/nos3-simulator.xml`** — the *deployed* copy.
+Every check before this one was against `cfg/build/sims/nos3-simulator.xml`, the source copy.
+They happen to agree (`camsim active=false` in both), so no conclusion was harmed — but had
+they diverged, this question would have been answered wrongly for a third time. **The deployed
+copy under `sims/build/bin/` is the authority.**
+
+The three-layer picture is now empirically confirmed rather than inferred:
+
+1. `camsim` is deactivated in the config the sim reads → no sim container, under **either**
+   launch mode;
+2. `arducam` and `syn` never initialise;
+3. even if they did, `CAM_EXP` `0x08C9` has no publish path and `SYN_DEV` `0x08FD` has its
+   `CFE_MSG_Init` commented out.
+
+`AC4`'s decision is unaffected and stands: do not subscribe `CAM_HK`.
