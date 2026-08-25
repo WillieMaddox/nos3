@@ -58,3 +58,25 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
 
+### 2026-08-25 · ready to start — workbook verified readable, inventory taken
+
+`openpyxl` 3.1.5 opens `data/sparta/Space_Vehicle_Logging_Best_Practices-Distro_A.xlsx`
+(warns harmlessly about print-area defined names). Verified inventory, so the read can be
+planned rather than discovered:
+
+| sheet | rows × cols | note |
+|---|---|---|
+| `Index & Acronyms` | 52 × 23 | reference |
+| `Content of Log Records` | 10 × 5 | reference — what a log record should contain |
+| Propulsion · ADCS · EPS · GN&C | 11 / 15 / 15 / 15 × 10 | **`EPS` feeds AINOS3-87; `ADCS`+`GN&C` feed AINOS3-86** |
+| C&DH · TT&C | 38 / 31 × 10 | largest subsystem sheets |
+| SMS · TCS | 12 / 12 × 10 | |
+| Payload — Imagery/RF/OCT/Data Processing/Hosted | 21/34/21/14/14 × 10 | expect **not modelled by NOS3**; read and record that verdict |
+| `SPARTA_Mapping` | 79 × 8 | **the technique ↔ log-source index — the point of the artifact** |
+| `SPARTA_Mapping_Abstract`, `REF_Info`, `Change_Log` | 6 / 8 / 4 | metadata |
+
+~393 rows across 19 sheets. The read is half a day; the work is cross-referencing against our
+382-column schema. `AC4` — techniques currently marked out-of-scope / UNSUBSCRIBED that the
+workbook says *are* loggable — is the one criterion that can turn a red cell green, so treat
+it as the headline rather than an afterthought.
+

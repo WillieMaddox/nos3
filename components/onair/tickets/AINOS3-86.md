@@ -108,3 +108,23 @@ in its manifest.
 
 **Also resolves `AINOS3-91`** — the corpus-wide inert `ST_DEV` fields have the same root cause.
 
+### 2026-08-25 · PAUSED — attack-side A/B deferred, machine in use
+
+`AC3` and `AC4` remain unmet and the fix stays **undeployed**. The blocker is not
+technical: an unrelated benchmark is running on this machine, and bringing the NOS3 stack up
+would perturb its wall-clock timings. Resume when the machine is free.
+
+**What resuming looks like** — a 12-run matched A/B against the existing
+`batch_steadyflight_replication` INERTIAL arm, which is the control because it ran the same
+4 attacks × 3 reps with the star tracker **off**:
+
+- ~3.3 h unattended (12 × 910 s + ~11 resets at ~55 s), ~2 h attended for analysis.
+- Requires a tooling change first: `run_attack_batch.py` / `single_mode_hold_INERTIAL` do
+  **not** enable the star tracker, so without it the "after" arm would silently reproduce the
+  "before" condition. ~45 min including a dry-run.
+- ⚠ Read the floor before reading the result. The control arm has little detection to lose —
+  `EX-0012.07` mean lift +0.445 with spread `[-0.07, 0.67, 0.73]`; the other three ≤ +0.09. A
+  loss is only measurable on `EX-0012.07`; for the rest the honest outcome is a null.
+- The more interesting question is whether controlled INERTIAL **gains** detection, which the
+  same 12 runs answer at no extra cost.
+
