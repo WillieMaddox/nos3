@@ -55,24 +55,3 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
 
-### 2026-08-23 · from Sprint 28
-
-**Carried into Sprint 28.**
-
-The **only confirmed coverage
-gap** on the board and the most direct available answer to "more green": measured across 3
-independent runs in held SUNSAFE, IF lift **−0.4 ± 0.1** and **no rule-gate rule fired in any
-run**, against a published **99 %** catch rate.
-
-Both outcomes are wins and the ticket must not be written as though only one is:
-
-- **A recorded field moves** → a cheap R1/R5/R6-style rule, sibling of R6–R14.
-- **Nothing moves** → reclassified **UNSUBSCRIBED**, correcting a 99 % claim to an honest
-  "structurally invisible", and naming the MID that would close it.
-
-**Sequencing change:** run it **after `AINOS3-95`**, not before. The workbook's EPS sheet
-turns the negative branch from "we could not find an observable" into "here is the
-authoritative list of what should be observable, and here is which of it we do not
-subscribe" — a materially stronger result for the same effort.
-
----

@@ -30,6 +30,11 @@ Quarantine, not delete, at least initially: a sibling `data/onair/csv_stale/` wi
 per moved collection saying what it was, why it is superseded, and what (if anything) still
 cites it. Deletion can follow once nothing references it for a sprint.
 
+⚠ **Dependency mapping comes first, and it is the whole risk.** `csv_corpus_v3stage` is
+frozen and **still load-bearing** — the deployed classifier's LOIO, `cluster_taxonomy.json`,
+`explanation_catalog.json` and the newly-derived `classifier_tiers.json` all trace to it.
+"Pre-correction" does **not** mean "safe to move". Quarantine, not delete.
+
 ## Acceptance criteria
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
@@ -47,19 +52,3 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
 
-### 2026-08-23 · from Sprint 28
-
-**Carried into Sprint 28.**
-
-It stays in this sprint even
-though the rebuild moved out, for two reasons: it produces the **artifact → corpus dependency
-map** that `fold-variance-triage` needs to know which collection each LOIO instance came
-from, and Sprint 29's collection must land in a clean estate rather than into 30 GB of
-ambiguity.
-
-⚠ **Dependency mapping comes first, and it is the whole risk.** `csv_corpus_v3stage` is
-frozen and **still load-bearing** — the deployed classifier's LOIO, `cluster_taxonomy.json`,
-`explanation_catalog.json` and the newly-derived `classifier_tiers.json` all trace to it.
-"Pre-correction" does **not** mean "safe to move". Quarantine, not delete.
-
----

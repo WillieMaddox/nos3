@@ -43,6 +43,11 @@ explain 33.6 %, so there is a second factor. Candidates, in rough order of suspi
 3. **Genuinely long settling.** The mode may need far more than 10 min, in which case the
    250-frame (~45 s) warmup is wrong for INERTIAL specifically.
 
+⚠ **Do not fix by tightening the threshold alone.** The ROC sweep showed tightening
+INERTIAL to a 0.1 % target drives its false alarms to 0.00 % but **collapses its attack
+detection 60×** (12.4 % → 0.2 %). Any threshold change must be paired with an
+attack-detection measurement.
+
 ## Acceptance criteria
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
@@ -58,43 +63,6 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 ## Log
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
-
-### 2026-08-23 · from Sprint 28
-
-**Carried into Sprint 28.**
-
-— the escalating history
-(0.00 % published → 0.54 % operational / 7.5 % raw at 60 min → **33.6 %** at a 600 s hold,
-range 21.1–48.5 %), the three candidate causes, and the ⚠ **do not fix by tightening the
-threshold alone** warning (tightening to a 0.1 % target drives false alarms to 0.00 % but
-**collapses attack detection 60×**, 12.4 % → 0.2 %).
-
-**Why it is affordable this sprint and was not in the first draft.** Its cost is dominated by
-two ≥ 2 h **unattended** INERTIAL soaks. With the corpus rebuild deferred, the stack is idle
-from day 1 — the soaks cost calendar, not attention. This is the single best use of that
-idle time on the board.
-
-**Why it is worth doing before Sprint 29's rebuild, specifically.** The deferred rebuild was
-scoped **SUNSAFE-only**, because making mode a first-class axis while INERTIAL's own noise
-floor sits at 33.6 % builds a column of noise
-([`COVERAGE_TABLE_REDESIGN.md`](COVERAGE_TABLE_REDESIGN.md) §6). Fix INERTIAL now and Sprint
-29's collection can be **per-mode** instead — which also un-gates `AINOS3-94` stages 3–5. The
-deferral becomes a strict upgrade rather than a slip.
-
-⚠ **Bounded commitment, stated so it cannot balloon.** The committed deliverable is the
-**diagnosis** — distinguishing (1) training gap, (2) missing commanded target quaternion,
-(3) genuinely long settling. Whether the *fix* lands this sprint depends on which one it is:
-
-| cause | fix lands this sprint? |
-|---|---|
-| (2) missing `GENERIC_ADCS_INERTIAL_QUATERNION_CC` | **Yes** — command it, fix the scenario tooling, re-soak |
-| (3) settling longer than the 250-frame warmup | **Yes** — set an INERTIAL-specific warmup from the measured settling time |
-| (1) training gap (19,641 rows, one 116-min session) | **No** — the fix needs fresh nominal INERTIAL collection, which is Sprint 29 corpus work. Say so and carry it |
-
-⚠ **Any change that suppresses alarms needs an attack-side check before deployment.** The
-sun-acquisition suppression rule nearly shipped on a clean nominal correlation and would have
-cost **66.8 %** of all detections. Validate on the data where it has to be *safe*, not only
-where it looks good.
 
 ### 2026-08-24 · ROOT CAUSE FOUND — none of the three candidates; INERTIAL never ran closed-loop
 

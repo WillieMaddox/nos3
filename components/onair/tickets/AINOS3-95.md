@@ -31,6 +31,14 @@ the IOB page). Two distinct payoffs, and they should not be conflated:
 Every sheet must be read. A partial pass would most likely miss the sheets that matter,
 since the useful content is the technique↔log-source mapping, not the prose.
 
+**The artifact, measured** (2026-08-23) — `data/sparta/Space_Vehicle_Logging_Best_Practices-Distro_A.xlsx` is **19 sheets but only ~330 data
+rows**: 13 subsystem sheets (Propulsion, ADCS, EPS, GN&C, C&DH, TT&C, SMS, TCS, Payload ×5)
+at 11–38 rows × 10 cols each, plus `SPARTA_Mapping` — the technique ↔ log-source index —
+at 78 rows × 7 cols, and five reference/metadata sheets. Reading it is half a day; the work
+is cross-referencing against our 382-column schema. Expect the 5 Payload sheets to be **not
+modelled by NOS3**; read them anyway and record that verdict, because "not modelled" is a
+legitimate and reusable answer.
+
 ## Acceptance criteria
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
@@ -50,36 +58,3 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
 
-### 2026-08-23 · from Sprint 28
-
-**Carried into Sprint 28.**
-
-with the estimate **revised down from E 5 / T 1.5** on measurement rather than assumption.
-
-**Re-sizing, with the evidence.** The ticket was written against "a ~20-sheet workbook" and sized for a multi-day read. 
-Inspecting `data/sparta/Space_Vehicle_Logging_Best_Practices-Distro_A.xlsx` directly:
-
-| Sheets | Shape |
-|---|---|
-| 13 subsystem sheets (Propulsion, ADCS, EPS, GN&C, C&DH, TT&C, SMS, TCS, Payload ×5) | 11–38 rows × 10 cols each |
-| `SPARTA_Mapping` — the technique ↔ log-source index | 78 rows × 7 cols |
-| `Index & Acronyms`, `Content of Log Records`, `SPARTA_Mapping_Abstract`, `REF_Info`, `Change_Log` | reference / metadata |
-
-**~330 data rows in total.** The reading is half a day; the work is cross-referencing against
-our 382-column schema. The Sprint-27 AC "every sheet must be read" is now cheap to honour in
-full, and it stays — a partial pass would most likely miss `SPARTA_Mapping`, which is the
-point of the artifact.
-
-**Two things this sprint specifically wants from it:**
-
-1. **The `EPS` sheet feeds `AINOS3-87` directly.** That ticket forks on "if nothing moves,
-   name the MID that would close it". A 15-row authoritative list of what an EPS subsystem
-   should log is the answer to that AC, sourced externally instead of inferred.
-2. **The `ADCS` and `GN&C` sheets feed `AINOS3-86`** — INERTIAL's 33.6 % false-alarm floor
-   is an attitude-control problem, and the workbook may name state we are not recording.
-
-Expect the 5 Payload sheets to be **not modelled by NOS3**; read them anyway and record that
-verdict, because "not modelled" is a legitimate and reusable answer.
-
-⚠ **Day-1 setup:** `openpyxl` is **not installed** in the dev venv — required to open the
-workbook at all. `pip install openpyxl`.

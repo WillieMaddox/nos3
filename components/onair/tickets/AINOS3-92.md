@@ -36,51 +36,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
 
-### 2026-08-23 · from Sprint 28
-
-**Carried into Sprint 28.**
-
-**Now on the critical path:**
-`AINOS3-86`'s soaks are read by this tool, and it mislabels every uptime bin by ~33 %
-(hardcoded 4.2 Hz vs a true ~5.6). Fix it **before** the first soak, not after. Derive the
-rate from the data; keep `--hz` as an override; warn on > 10 % disagreement.
-
-**Result:** ✅ DONE (2026-08-23) — **fixed, and the error was larger than the ticket said.**
-
-**The rate is now derived, not assumed.** The side-file carries no clock at all — only
-`frame_idx` — so `derive_hz()` reads `CFE_TIME.SecondsMET` from the `csv_out_*` log of the
-same session, paired by `(pid, nearest timestamp)`; OnAIR opens the two ~0.5 s apart, so the
-pairing is unambiguous. Two properties of that clock drove the implementation: MET is only
-~0.25 Hz-granular in the HK packet, so per-sample diffs are useless (median `dt` = 4.0 s →
-0.25 Hz) and only the endpoints over a long span are informative; and MET is **non-monotonic**
-across the OnAIR double buffer, so the span is `max − min`, not `last − first`.
-
-**Measured, across four 2026-08-15 sessions:** 5.551 · 5.460 · 5.100 · 4.783 Hz. The
-hardcoded 4.2 was **24 % low against 5.551**, and the effect on the tool's own output is
-worse than the ticket's ~33 %: the same 86.9 h soak reports **5,229 min at the derived rate
-and 6,911 min at 4.2** — every uptime bin overstated by **32 %**.
-
-**Guards, because a derived number can be wrong too:** rates outside 1–20 Hz are rejected, as
-are MET spans under 60 s (startup jitter dominates) and sessions with no pair or no
-`SecondsMET` column. When derivation fails and no `--hz` is given the tool warns on stderr and
-falls back to a named `FALLBACK_HZ = 5.5` rather than a silent constant. `--hz` remains an
-override and always wins, but is now checked: a > 10 % disagreement prints
-`WARNING: --hz 4.2 disagrees with the derived rate 5.551 Hz by 24%`. The resolved rate and its
-provenance print in the header and are recorded in the `--json` dump, so any future soak
-result carries its own rate.
-
-**Verification:** 10 tests in `training/test_soak_drift.py` covering derive, sub-second pair
-skew, no-pair, short-span, missing column, insane rate, loud fallback, and both override
-branches — all passing; plus all three paths exercised against the real 1.74 M-frame soak.
-
-⚠ **Every soak number published before today used 4.2 Hz.** Their FP *rates* are unaffected
-(a ratio of frame counts), but their **uptime axis is stretched ~32 %** — any claim of the
-form "FP was flat through T+6 h" was really measuring T+4.5 h. Re-run `--json` on any archived
-side-file before citing its bins.
-
----
-
-### 2026-08-23 · from Sprint 28
+### 2026-08-23 · AC1–AC3 DONE — rate derived from MET; the old 4.2 Hz stretched every bin 32 %
 
 **Result:** ✅ DONE (2026-08-23) — **fixed, and the error was larger than the ticket said.**
 
