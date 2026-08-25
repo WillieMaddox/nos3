@@ -129,6 +129,10 @@ class CFE_SB_SubEntries_t(Structure):
         ("Spare",  c_uint8),
     ]
 
+# ⚠ UNSUBSCRIBED 2026-08-25 (AINOS3-108). MID 0x080D is command-produced
+# (CFE_SB_SEND_PREV_SUBS_CC) with 0 scheduler entries, so it never transmits and read
+# [0] for the life of the subscription. Scheduling it is possible but belongs with the
+# other command-produced diagnostic packets, not here.
 class CFE_SB_AllSubscriptionsTlm_t(Structure):
     """CFE_SB_ALLSUBS_TLM_MID 0x080D
     Full subscription snapshot — baseline at startup, delta-detect eavesdropping.
@@ -148,6 +152,13 @@ class CFE_SB_AllSubscriptionsTlm_t(Structure):
 # 4.  SBN — Module Status                              MID 0x08DC
 # ===========================================================================
 
+# ⚠ UNSUBSCRIBED 2026-08-25 (AINOS3-108). MID 0x08DC is command-produced with 0
+# scheduler entries. ⚠⚠ DO NOT simply schedule it to "fix" the silence: that one MID
+# carries FIVE different payload structs chosen by which command was sent —
+# SBN_HK_LEN, SBN_HKNET_LEN, SBN_HKPEER_LEN, SBN_HKMYSUBS_LEN, SBN_HKPEERSUBS_LEN
+# (fsw/apps/sbn/fsw/src/sbn_cmds.c:257-491). This struct models only the first, so four
+# of the five variants would be silently mis-parsed — an intermittent byte
+# misalignment, far harder to spot than a fixed one. Model the variants first.
 class SBN_ModuleStatusTlm_t(Structure):
     """SBN_TLM_MID 0x08DC
     SBN peer connection status (response to SBN_HK_CC commands).
@@ -421,6 +432,12 @@ class GENERIC_RADIO_Hk_tlm_t(Structure):
 # 13. Generic Radio — Device Telemetry                 MID 0x0931
 # ===========================================================================
 
+# ⚠ UNSUBSCRIBED 2026-08-25 (AINOS3-108). Kept for reference; do not re-add without
+# reading this. MID 0x0931 is fully REDUNDANT — GENERIC_RADIO_Device_HK_tlm_t, embedded
+# in RADIO_HK 0x0930 as `DeviceHK`, carries the identical three fields, and that one
+# arrives. 0x0931 itself has 0 scheduler entries and 0 TO routes: the radio app only
+# publishes it opportunistically from its proxy task (generic_radio_app.c:537), so it
+# was measured silent across 21,269 frames.
 class GENERIC_RADIO_Device_tlm_t(Structure):
     """GENERIC_RADIO_DEVICE_TLM_MID 0x0931
     RF-layer device telemetry.

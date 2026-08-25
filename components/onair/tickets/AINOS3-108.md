@@ -3,7 +3,7 @@ key: AINOS3-108
 slug: subscription-hygiene
 type: Task
 epic: AINOS3-41 (coverage-expansion)
-status: Open
+status: Blocked
 priority: Medium
 estimate: E 2 / T 0.5
 opened: 2026-08-25
@@ -70,3 +70,46 @@ Written as "drop 4 dead MIDs"; corrected on review when each production path was
 source. One of the four must not be dropped, one is a judgement call, and one carries a
 payload-overloading hazard that makes the obvious "just schedule it" fix actively dangerous.
 The net cap relief drops from 4 slots to 2-3, which does not change the plan it feeds.
+
+### 2026-08-25 · ⚠ BLOCKED — dropping any column breaks the deployed IF model
+
+`AC1` and `AC3` are answered (below). `AC2` was attempted and **reverted**: the three drops
+deploy cleanly and then kill OnAIR on the first frame.
+
+```
+ValueError: X has 876 features, but IsolationForest is expecting 894 features as input.
+```
+
+**Root cause.** All nine dropped columns are in the deployed model's own feature set —
+`iforest_per_mode_v5_invariant_bolstered.pkl` → `schema.scalar_columns` contains every one of
+`CFE_SB_SUBS.{PktSegment,TotalSegments,Entries,Entry}`, `RADIO_DEV.{DeviceCounter,DeviceConfig,
+ProxSignal}` and `SBN.{ProtocolIdx,ModuleStatus}`. Nine columns × 2 derived features = the 18
+missing. The model binds by column **name**, which is why AINOS3-95 could *add* 92 columns
+across stages 2a/2b without incident — **adding is safe, removing is a breaking change.**
+
+⚠ The wider rule, which was not written down anywhere before this: **the deployed detector
+pins the schema.** Column removal is a model-retrain operation, not a config edit. That
+applies to `AINOS3-109` (`csv-prune-integrity-fields`) too if it ever removes rather than
+restores, and it is why this had to be found by running rather than by review.
+
+**Service impact:** OnAIR crash-looped from deploy until revert (~4 min). Reverted with
+`git checkout nos3_security_tlm.json`; verified recovered at 451 columns, writing normally.
+
+**Findings that stand regardless (AC1, AC3):**
+
+| MID | Why silent | Disposition |
+|---|---|---|
+| `CFE_SB_SUBS` `0x080D` | command-produced (`CFE_SB_SEND_PREV_SUBS_CC`), **0 scheduler entries** | drop — at a retrain |
+| `SBN` `0x08DC` | command-produced, **0 scheduler entries** | drop — at a retrain. ⚠ never "fix" by scheduling: one MID, **five** payload structs (`sbn_cmds.c:257-491`), so four variants would mis-parse |
+| `RADIO_DEV` `0x0931` | 0 scheduler entries, 0 TO routes; published only opportunistically from the radio proxy task (`generic_radio_app.c:537`) | drop — and it is **fully redundant**: `GENERIC_RADIO_Device_HK_tlm_t` inside `RADIO_HK` `0x0930` carries the identical three fields and **does** arrive (measured `0` vs `RADIO_DEV`'s `[0]` sentinel across 21,269 frames) |
+| `ST_DEV` `0x0936` | star tracker **disabled by default** (`ST.DeviceEnabled = 0`) | **keep** — configuration, owned by `AINOS3-86`/`AINOS3-91` |
+
+The three structs are annotated `⚠ UNSUBSCRIBED … do not re-add without reading this` in
+`message_headers.py`, carrying the SBN five-variant hazard next to the code, so the analysis
+is not lost by the revert.
+
+**Recommended re-scope.** Fold the removals into `AINOS3-101` (`retrain-clean-corpus`), which
+rebuilds the model anyway — dropping nine constant columns costs nothing there and is
+impossible here. This ticket then becomes the *analysis of record* plus a one-line change to
+the retrain's column list. ⚠ Net cap relief was never the point: it is 3 slots, and the
+arithmetic already showed the remaining MID work fits at 45/48 without them.
