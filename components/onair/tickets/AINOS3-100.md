@@ -11,11 +11,18 @@ sprints: [28]
 
 # AINOS3-100 — Recollect the classified attack set under the steady-flight protocol
 
-**Summary:** 
+**Summary:** Recollect the classified attack set under the steady-flight protocol, replacing the AINOS3-45 collection whose mode cycling put 83 % of attack frames inside the detector's blind window.
 
 ## Description
 
+This ticket exists because `AINOS3-45` (`corpus-instance-4`, *"4th corpus instance"*) was
+scoped against the collection protocol found defective in Sprint 27 — mode cycling every 60 s
+against a ~45 s detector warmup, leaving **83 % of attack frames inside the blind window**.
+Executing it as written would have added a fourth LOIO fold built from unusable data, which is
+worse than not collecting at all, because the tier rule takes the **minimum** across folds.
 
+`AINOS3-45` was closed as superseded rather than re-scoped, per the crosswalk's immutability
+rule; the binding decision is recorded there.
 
 ## Acceptance criteria
 

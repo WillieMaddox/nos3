@@ -72,3 +72,21 @@ form "FP was flat through T+6 h" was really measuring T+4.5 h. Re-run `--json` o
 side-file before citing its bins.
 
 ---
+
+### 2026-08-25 · ⚠ the 5.6 Hz figure is schema-dependent and is now stale (via AINOS3-95)
+
+This ticket's derived **5.6 Hz** was correct for the schema in place when it was measured. It
+is not a constant of the system.
+
+Re-derived by AINOS3-95 stage 4 on the settled schema (359 → 451 CSV columns):
+**5.87 Hz** from MET, 6.06 /s wall-clock.
+
+⚠ Do **not** attribute the change to the schema. `AINOS3-95` established that OnAIR's loop is
+**compute-bound, not arrival-bound** (~23 msg/s in, ~6 frames/s out, no rate limiter in
+`sim.py`), so frame rate moves with host load and stack uptime as well as column count, and the
+two measurements were taken at different uptimes.
+
+**What to do with this:** treat any published Hz as a measurement with a date and a schema, not
+an inherited constant. `components/onair/training/measure_frame_rate.py` (built by AINOS3-95)
+re-derives it in ~2 minutes; run it rather than citing 5.6 or 5.87. The uptime-axis correction
+this ticket delivered stands — only the constant moved.

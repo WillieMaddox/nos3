@@ -128,3 +128,56 @@ would perturb its wall-clock timings. Resume when the machine is free.
 - The more interesting question is whether controlled INERTIAL **gains** detection, which the
   same 12 runs answer at no extra cost.
 
+### 2026-08-25 · ⚠ Possible configuration artifact — read before any tuning (via AINOS3-95)
+
+Found while validating the AINOS3-95 stage-2a subscription of `GENERIC_ADCS_AC_MID`
+(`0x0944`), which carries the INERTIAL controller's own gains and error state. Full detail in
+[`AINOS3-95`](AINOS3-95.md).
+
+**This ticket's plan already requires enabling the star tracker.** What follows is the
+*mechanism* for why, and it raises a prior question the plan does not ask.
+
+`AC_inertial()` is wrapped in `if (GNC->qValid)` (`generic_adcs_adac.c:338`), so the chain is
+
+`ST.DeviceEnabled=0` → `ADCS_DI.Payload.St.valid=0` → `ADCS_GNC.qValid=0` →
+**the INERTIAL control law never executes at all.**
+
+Measured on the deployed stack: 124 INERTIAL frames with the star tracker disabled, and every
+one of `Inertial.therr / sumtherr / qErr / werr / Tcmd` constant zero. Enable the star tracker
+and they come alive.
+
+**⚠ The prior question.** If earlier INERTIAL soaks ran with `qValid = 0`, the vehicle was in
+"INERTIAL mode" with **no control law running** — free drift, not a controlled inertial hold.
+A **33.6 %** false-alarm rate against uncontrolled drift is very plausibly a **configuration
+artifact rather than a detector problem**, and tuning a detector against it would be tuning
+against a misconfigured plant.
+
+**And enabling the star tracker is necessary but not sufficient.** With it enabled and the
+control law running, the controller **does not converge**:
+
+| quantity | behaviour over the run |
+|---|---|
+| `\|therr\|` | 1.9944 → 1.9978 — pinned near maximum, not decreasing |
+| `qErr[3]` | +0.0749 → +0.0402 — error angle *growing* toward 180° |
+| `\|sumtherr\|` | 1.99 → 9.98 — linear, unbounded integrator wind-up |
+| `\|Tcmd\|` | 0.0869 → 0.0836 |
+
+Two causes, both configuration rather than control design:
+
+- **`qbn_cmd = [0.5, 0.5, 0.5, 0.5]`** — the default target attitude from `Inp_ADAC.txt`,
+  never commanded to anything meaningful (`GENERIC_ADCS_INERTIAL_QUATERNION_CC = 9` exists and
+  is unused). The controller is chasing an arbitrary attitude it never reaches.
+- **`Ki = [0, 0, 0]`** — the integral gain is zero, so `sumtherr` winds up without ever
+  affecting `Tcmd`. The wind-up is recorded but inert.
+
+⚠ `qValid` is also true in only **56 of 80** frames even with the star tracker enabled, so the
+control law runs **intermittently**. See [`AINOS3-91`](AINOS3-91.md).
+
+**Recommended sequencing change:** before the 12-run A/B, establish what a *correctly
+configured* INERTIAL hold looks like — star tracker enabled, a real commanded quaternion, and
+`qValid` steady. Measure the false-alarm rate against that. If it drops, this ticket's premise
+changes from "the detector is wrong in INERTIAL" to "INERTIAL was never configured to be
+held", which is a different and much cheaper fix.
+
+⚠ Nothing here is a reason to close this ticket — the 33.6 % measurement stands as measured.
+It is a reason not to spend the A/B until the plant configuration is settled.

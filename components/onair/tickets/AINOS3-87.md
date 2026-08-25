@@ -55,3 +55,27 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
 
+### 2026-08-25 · AC3's negative branch is already answered — this ticket got cheaper (via AINOS3-95)
+
+`AC3` forks on "if nothing moves, reclassify UNSUBSCRIBED and name the MID that would be
+needed". SPARTA's logging workbook answers the naming half from an external authority, so that
+branch no longer needs an investigation.
+
+The workbook's `EPS` sheet names **change in power consumption** as the EPS detection signal,
+baselined BOL/EOL with upper and lower limits (row 11, Medium). Measured against our schema:
+`GENERIC_EPS_Hk_tlm_t` carries **five voltages and zero currents** —
+`BatteryVoltage`, `Bus3p3Voltage`, `Bus5p0Voltage`, `Bus12Voltage`, `SolarArrayVoltage`, plus
+three temperatures and the `Switch` bitfield.
+
+So a switch toggle **cannot** move a consumption feature, because the schema has none. That
+turns the measured **IF lift −0.4 ± 0.1** from "we could not find an observable" into a
+structural explanation, and makes the UNSUBSCRIBED branch the well-evidenced one rather than a
+fallback.
+
+⚠ This does **not** close the ticket: `AC1`/`AC2` still require checking whether the toggle
+appears in any *recorded* field (`EPS.DeviceHK.Switch` and `EPS.CommandCount` are both
+recorded), and `AC4` still requires correcting the published 99 % catch rate. What is removed
+is the open-ended search for an observable that the schema cannot contain.
+
+**Named missing field, for AC3:** per-switch load or current telemetry in
+`GENERIC_EPS_Hk_tlm_t` — an FSW change to the EPS sim, not a subscription.

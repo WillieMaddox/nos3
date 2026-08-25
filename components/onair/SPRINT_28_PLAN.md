@@ -72,9 +72,13 @@ assigned** — the four new slugs got keys on 2026-08-23 (`AINOS3-98`–`AINOS3-
 | AINOS3-98 | corpus-integrity | Epic | — | — | — | **NEW** — the corpus as a first-class, versioned artifact |
 | AINOS3-99 | fold-variance-triage | Spike | Medium | 1 | 0.25 | Why does one instance score 0.00 and another 0.80? Sizes Sprint 29's collection |
 | AINOS3-97 | quarantine-stale-corpus | Task | Medium | 3 | 0.75 | Inventory 30 GB / 1,465 entries; dependency-map **first**, then quarantine |
+| AINOS3-108 | subscription-hygiene | Task | Medium | 2 | 0.5 | **Added 08-25.** Four silent MIDs, four different causes — resolve each, reclaim cap slots |
+| AINOS3-102 | headless-sim-coverage-gap | Bug | High | 2 | 0.5 | **Added 08-25.** Payload sims absent from the headless launch — coverage verified on the wrong stack |
+| AINOS3-109 | csv-prune-integrity-fields | Spike | Medium | 2 | 0.5 | **Added 08-25.** The CSV prune drops `CFECoreChecksum` *because* it is static — which is the signal |
+| AINOS3-103 | detect-cf-file-faults | Story | High | 2 | 0.5 | **Added 08-25.** R-rule on CF file-op faults — the sprint's second shipped detector |
 
-**Committed set:** E = **20** · T = **5.75**. See the [capacity note](#capacity-note) — this
-is above the nominal 16 and the reasoning is stated there rather than hidden in the estimates.
+**Committed set:** E = **28** · T = **7.75** (was E 20 / T 5.75 at kickoff; **+8 E added
+mid-sprint 2026-08-25** — see below). See the [capacity note](#capacity-note).
 
 **Stretch set:** E = **7**.
 
@@ -83,6 +87,44 @@ is above the nominal 16 and the reasoning is stated there rather than hidden in 
 | AINOS3-93 | overlay-column-scope-mismatch | Bug | 2 | 0.5 | Presentational; cheapest if the coverage generator is already open |
 | AINOS3-94 | coverage-table-schema | Spike | 3 | 0.75 | **Stages 1–2 only** (cell contract + migrate derived columns). Natural companion to `AINOS3-96`'s STIX-as-build-source decision. Stages 3–5 stay gated on `AINOS3-86` |
 | AINOS3-91 | startracker-inert-fields | Spike | 2 | 0.5 | Cheaper alongside `AINOS3-86`'s soaks than standing up its own stack |
+
+---
+
+## Mid-sprint addition, 2026-08-25 — four tickets out of `AINOS3-95`
+
+`AINOS3-95` closed early and produced 15 follow-on tickets. Four were pulled into this sprint;
+eleven were left for Sprint 29+. The selection rule was **not** value — it was *ordering*.
+
+**Sprint 29 is the corpus rebuild** (`AINOS3-100`/`AINOS3-101`). Anything that changes the
+**recorded schema** has to land before collection starts, or the new corpus is obsolete at the
+schema level on arrival. That is the same argument that moved `AINOS3-95` and `AINOS3-96` ahead
+of the rebuild at kickoff, applied to their own output. Three of the four are schema-gating on
+exactly that basis:
+
+- **`AINOS3-108`** drops columns (four subscribed MIDs that never transmit)
+- **`AINOS3-102`** may add columns back (whether `cam-sim` joins the headless launch)
+- **`AINOS3-109`** may restore columns (whether pruned integrity fields reach the CSV)
+
+They run in that order because each constrains the next: 108 frees subscription-cap slots that
+102 may need, and 109 settles the prune rule before any later work produces more integrity
+columns to prune.
+
+**`AINOS3-103` is the exception** and is here for a different reason: it is the cheapest
+remaining *detection* win — CF telemetry is already subscribed, so it is a rule, not a
+subscription — and it runs last, on a settled schema.
+
+**On the capacity note's worry.** This plan warned at kickoff that the committed half would
+produce *"documents, not detections — a second consecutive sprint without a shipped detector"*.
+That is no longer the outcome: `AINOS3-95` shipped **rule-gate R15**, live-validated against a
+real `SET_TIME` injection, and turned two matrix cells green. `AINOS3-103` would make it two
+detectors.
+
+⚠ **What makes +8 E affordable, stated rather than hidden.** Two committed items shrank:
+`AINOS3-86`'s conclusion half is **held** pending a configuration question `AINOS3-95` raised
+(INERTIAL may have been running with no closed-loop control at all), and `AINOS3-87` got
+materially cheaper because the workbook's EPS sheet answered its negative branch. If either
+assumption fails, `AINOS3-103` is the first thing to drop — it is the only one of the four that
+is not schema-gating.
 
 ---
 
