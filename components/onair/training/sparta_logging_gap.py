@@ -214,13 +214,16 @@ RECS = [
       "Four of the five named signals are recorded (mode change, unusual commands, "
       "telemetry-rate change via the staleness gate, memory). CPU utilisation is the miss.", label="Exploiting code flaws or backdoors (off-nominal behaviour)"),
     R("CDH-GOLDEN", "Changes to or corruption of default (golden)", "NO", "NEEDS_FSW",
-      [],
-      "CS (Checksum) app — requested by the scheduler (CS_SEND_HK_MID), absent from the build",
-      "⚠ Downgraded PARTIAL → NO 2026-08-25, and this is the sharpest correction in the "
-      "table. `CFE_ES.CFECoreChecksum` is subscribed but PRUNED from the CSV, so the "
-      "recorded corpus contains **no integrity data of any kind** — not one checksum. The "
-      "workbook asks for actual-vs-expected hashes on six separate High-rated rows. This "
-      "is the strongest single argument for building the CS app.", label="Corruption of golden software/firmware images"),
+      [], "CS (Checksum) app — requested by the scheduler, absent from the build AND below "
+      "the startup script's `!` terminator",
+      "⚠ Reason corrected 2026-08-25 (AINOS3-109). An earlier revision said the corpus holds "
+      "no integrity data because `CFE_ES.CFECoreChecksum` is PRUNED from the CSV. True, but "
+      "the deeper fact is that restoring it would buy nothing: it is computed once in "
+      "`CFE_ES_TaskInit` (`cfe_es_task.c:366`) and **never recomputed**, so it cannot move "
+      "within a session even if an attacker corrupts the cFE text segment at runtime. The gap "
+      "is not a pruned column — it is that **nothing recomputes integrity at runtime at all**. "
+      "That is precisely the capability the CS app provides, which makes `build-cs-app` a "
+      "stronger case than the earlier framing implied, not a weaker one.", label="Corruption of golden software/firmware images"),
     R("CDH-AUTHZ", "Changes to user/application authentication", "NO", "NOT_MODELLED",
       [], "CryptoLib is a CFE_LIB with zero Software Bus telemetry",
       "DE-0004 / DE-0006 / EX-0003. Consistent with our published rationale.", label="Changes to authentication/authorization policies, whitelists"),

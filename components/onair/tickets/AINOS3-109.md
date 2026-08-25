@@ -3,10 +3,11 @@ key: AINOS3-109
 slug: csv-prune-integrity-fields
 type: Spike
 epic: AINOS3-98 (corpus-integrity)
-status: Open
+status: Done
 priority: Medium
 estimate: E 2 / T 0.5
 opened: 2026-08-25
+closed: 2026-08-25
 sprints: [28]
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
@@ -42,13 +43,69 @@ static-therefore-prunable reasoning would discard them.
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` Every entry in `ExcludeColumns` classified as: non-numeric (correct), static-and-uninformative (correct), or static-BUT-security-relevant (wrong).
-- [ ] `AC2` `CFE_ES.CFECoreChecksum` restored to the CSV, or a documented reason it should not be.
-- [ ] `AC3` Whether the AINOS3-30 derived `CFE_TBL` change-detect columns actually substitute for the pruned name fields — they were measured constant-0, which suggests not.
-- [ ] `AC4` A stated rule for future columns, so `build-cs-app`'s output is not pruned by the same reasoning.
-- [ ] `AC5` `SPARTA_LOGGING_GAP.md` `CDH-GOLDEN` re-assessed if the checksum returns.
+- [x] `AC1` Every entry in `ExcludeColumns` classified as: non-numeric (correct), static-and-uninformative (correct), or static-BUT-security-relevant (wrong).
+- [x] `AC2` `CFE_ES.CFECoreChecksum` restored to the CSV, or a documented reason it should not be.
+- [x] `AC3` Whether the AINOS3-30 derived `CFE_TBL` change-detect columns actually substitute for the pruned name fields — they were measured constant-0, which suggests not.
+- [x] `AC4` A stated rule for future columns, so `build-cs-app`'s output is not pruned by the same reasoning.
+- [x] `AC5` `SPARTA_LOGGING_GAP.md` `CDH-GOLDEN` re-assessed if the checksum returns.
 
 ## Log
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`.
 Results live here, not in a sprint plan.
+
+### 2026-08-25 · DONE — one column wrongly pruned, and the prune list is a detection decision
+
+**`AC1` — all 23 classified.** The "non-numeric" justification covers only **7** of them
+(`CFE_EVS.Message`, `PacketID.AppName`, and the five `CFE_TBL` name fields). The other **16
+are numeric**, excluded for being static. Traced to source, that splits cleanly:
+
+| class | n | verdict |
+|---|--:|---|
+| non-numeric (`c_char` arrays) | 7 | correctly excluded |
+| **static BY CONSTRUCTION** — set once in `CFE_ES_TaskInit`, never recomputed | 15 | correctly excluded |
+| **static only in appearance** | **1** | ⚠ **wrongly excluded** |
+
+**`AC2` — `CFECoreChecksum` should NOT be restored, and the reason matters more than the
+verdict.** It is computed once in `CFE_ES_TaskInit` (`cfe_es_task.c:366`) and **never
+recomputed**. So it cannot move within a session *even if an attacker corrupts the cFE text
+segment at runtime*. Restoring it would add a guaranteed-constant column.
+
+⚠ This corrects `AINOS3-95`. That ticket concluded "the corpus holds no integrity data because
+the checksum is pruned" — right in conclusion, wrong in reason. Un-pruning it would change
+nothing. The real gap is that **nothing recomputes integrity at runtime at all**, which is
+exactly the capability the CS app provides. `build-cs-app` is a **stronger** case than the
+earlier framing implied, not a weaker one.
+
+**The one wrongly-excluded column: `CFE_ES.BootSource` — removed from the list.** It is
+refreshed **every housekeeping cycle** in `CFE_ES_HousekeepingCmd` (`cfe_es_task.c:476`), in
+the same block as `ResetType`, `ResetSubtype`, `ProcessorResets` and `MaxProcessorResets` —
+**all four of which we already record**. It was grouped with the version constants and
+excluded as if it were one. It changes if the vehicle boots from a different source, which is
+the `EX-0004` / `PER-0001` persistence signal. Verified live: CSV **451 → 452 columns**,
+`CFE_ES.BootSource = 1` alongside `ResetType = 2`, OnAIR healthy.
+
+**`AC3` — the derived `CFE_TBL` columns do NOT substitute for the pruned name fields.** All
+six are constant `0` across 21,269 nominal rows. ⚠ But that is *expected*: they fire on a
+table-name change, which nominal ops never produce. `AINOS3-30` found them constant in the
+attack corpus too and concluded the source fields are static-after-boot. So they are dormant
+rather than broken, and confirming the derivation actually works needs an attack that really
+loads a table (`PER-0001`) — **not done here, and not assumed.**
+
+**`AC4` — the rule, now written into `nos3_security.ini` beside the list.** The finding that
+justifies it: **none of the 23 excluded columns appear in the deployed model's
+`scalar_columns`.** Training reads the CSV, so **a column pruned here is excluded from every
+future model as well.** `ExcludeColumns` is not a cosmetic corpus setting — it is a
+detection-capability decision, made once and invisibly. The rule recorded:
+
+> Prune only what can never carry signal, and state which reason applies: **(a)** non-numeric,
+> or **(b)** static by construction — set once at init and never recomputed. ⚠ *"Looks static
+> in the data"* is **not** sufficient; that is exactly how `BootSource` was lost.
+
+This also protects `build-cs-app`: CS emits per-area checksums that will look static in
+nominal, and reason (b) does not apply to them — they are recomputed every cycle, which is
+their entire point.
+
+**`AC5` — `CDH-GOLDEN` re-assessed: stays `NO`**, with the reason corrected in
+`SPARTA_LOGGING_GAP.md` from "the checksum is pruned" to "the only checksum is computed once
+at boot and can never move; there is no runtime integrity recomputation at all."
