@@ -63,8 +63,10 @@ are numeric**, excluded for being static. Traced to source, that splits cleanly:
 | class | n | verdict |
 |---|--:|---|
 | non-numeric (`c_char` arrays) | 7 | correctly excluded |
-| **static BY CONSTRUCTION** — set once in `CFE_ES_TaskInit`, never recomputed | 15 | correctly excluded |
-| **static only in appearance** | **1** | ⚠ **wrongly excluded** |
+| **static BY CONSTRUCTION** — the value cannot vary on this build | **16** | correctly excluded |
+
+⚠ **Corrected below** — an earlier revision of this entry split the second row 15/1 and called
+`CFE_ES.BootSource` "wrongly excluded". That was itself wrong. All 23 exclusions are correct.
 
 **`AC2` — `CFECoreChecksum` should NOT be restored, and the reason matters more than the
 verdict.** It is computed once in `CFE_ES_TaskInit` (`cfe_es_task.c:366`) and **never
@@ -109,3 +111,44 @@ their entire point.
 **`AC5` — `CDH-GOLDEN` re-assessed: stays `NO`**, with the reason corrected in
 `SPARTA_LOGGING_GAP.md` from "the checksum is pruned" to "the only checksum is computed once
 at boot and can never move; there is no runtime integrity recomputation at all."
+
+### 2026-08-25 · ⚠ SELF-CORRECTION — `BootSource` was NOT wrongly pruned; reverted
+
+The entry above claimed `CFE_ES.BootSource` was the one genuinely mis-pruned column, on the
+grounds that `CFE_ES_HousekeepingCmd` **refreshes it every cycle** (`cfe_es_task.c:476`),
+unlike the version constants set once in `TaskInit`. It was un-pruned and verified live
+(CSV 451 → 452, `BootSource = 1`).
+
+**That reasoning was wrong, and the value can never move.** `BootSource` is the `ModeId`
+argument to `CFE_ES_Main`, and the nos-linux PSP that NOS3 runs passes a **hardcoded literal**:
+
+```c
+CFE_PSP_MAIN_FUNCTION(reset_type, reset_subtype, 1, CFE_PSP_NONVOL_STARTUP_FILE);
+                                   /* cfe_psp_start.c:445 */
+```
+
+So `BootSource ≡ 1` on this platform. Being *refreshed* each cycle is not the same as being
+*able to change* — it is re-read every cycle from a variable assigned once from a constant. It
+belongs in the static-by-construction bucket with the other 15. **Reverted to the prune list;
+all 23 exclusions are correct.**
+
+⚠ **The instructive part is the shape of the mistake.** `AC4`'s rule says *"looks static in the
+data" is not sufficient to prune*. I applied its mirror image — treating *"the code refreshes
+it"* as sufficient to **un**-prune — without checking whether the source value can vary. Same
+failure mode, opposite direction: reasoning from **mechanism** instead of from whether the
+**value** can actually move. `AC4` is amended accordingly, in the ini and here:
+
+> The test is whether the **value** can vary on this build — not whether the code touches it
+> each cycle, and not whether it happens to look constant in one corpus. Both are proxies, and
+> both mislead.
+
+⚠ It also nearly cost something real. `AINOS3-108` established the same day that columns are
+**commitments**: adding one is safe, removing it later is a **retrain**. An inert column shipped
+here would have been cheap to revert today and expensive after the next retrain.
+
+**Unaffected:** the `CFECoreChecksum` finding (`AC2`), the discovery that pruning silently gates
+every future model (`AC4`), the derived-`CFE_TBL` result (`AC3`), and `CDH-GOLDEN` staying `NO`
+(`AC5`). Those stand.
+
+**One forward note, now in the ini:** on a PSP with real boot banks (e.g. `mcp750-vxworks`)
+`BootSource` becomes a genuine `EX-0004` / `PER-0001` signal. Revisit if NOS3 ever targets one.
