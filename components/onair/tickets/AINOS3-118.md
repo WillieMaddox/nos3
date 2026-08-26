@@ -42,7 +42,7 @@ an epic seed, not one change.
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
 - [ ] `AC1` A prioritised list of buildable missing vectors (arguments that map to recorded observables), distinct from those needing observability work first.
-- [ ] `AC2` The EX-0014.01 repair as the first slice and exemplar: a script spoofing the NOVATEL GPS time input (via the `ci_lab` republish path), producing a GPS-time-anomaly footprint EX-0012.12 cannot — live-validated, confirming R15 actually catches it (closing the `AINOS3-96` 'recorded ≠ works' caveat).
+- [x] `AC2` The EX-0014.01 repair as the first slice and exemplar: a script spoofing the NOVATEL GPS time input (via the `ci_lab` republish path), producing a GPS-time-anomaly footprint EX-0012.12 cannot — live-validated, confirming R15 actually catches it (closing the `AINOS3-96` 'recorded ≠ works' caveat).
 - [ ] `AC3` Each repaired/new script live-validated via `/sparta-attack-test`; paper-only matches do not count.
 - [ ] `AC4` For scripts that cannot produce their pattern's footprint, a recorded reason (observability gap vs not-modelled), feeding `AINOS3-117`.
 - [ ] `AC5` Sliced into reviewable per-technique units.
@@ -99,3 +99,51 @@ limitations recorded there. The parser is the right substrate for the whole STIX
 
 **No stack state changed** — the injected packets never reached the SB, and no SET_TIME was
 fired.
+
+### 2026-08-26 · Slice 1 (EX-0014.01) — UNBLOCKED, AC2 DONE (clean live TP)
+
+The block above was wrong on two points, both now fixed. The mechanism works; **AC2 is met.**
+
+**The two root-cause bugs in the earlier attempt:**
+
+1. **Wrong telemetry-header size.** This NOS3 build uses a **16-byte** cFS telemetry
+   header (6 B CCSDS primary + 10 B secondary), so the CCSDS length field is `total-7`.
+   The first attempt used a 12-byte header (`\x00*6`) and length `payload+secondary-1` —
+   the packet was malformed and CI_LAB/SBN dropped it silently. Verified against the live
+   stream: `Message Header ... StreamID: 0x871 ... Length: 0x53` (= 83 = 90-7), and against
+   the demonstrated `GENERIC_IMU_Hk` spoof format ([[project_ex0014_02_bus_spoof]]).
+2. **A verification artefact, not a real failure.** `sbn_adapter.py:246` prints each
+   message's fields, but for NOVATEL the *nested* `Novatel_oem615` struct prints as an
+   object repr — `Weeks:` **never appears in stdout**. Grepping stdout for the spoofed
+   value could not have found it regardless of success. The correct check is the recorded
+   **CSV column**, which expands the nested field.
+
+**Clean, provenance-valid live TP (the actual repaired script, fresh stack):**
+
+- Reset stack (`make stop` + `launch-quiet`); confirmed R15 **= 0** through frame 265.
+- Ran `ex_0014_01_time_spoof.py --mechanism gps-spoof --offset 86400` (forge NOVATEL
+  0x0871 GPS time +1 day via CI_LAB :5012, flood 120/s to beat R15's median-5).
+- **R15 fired at the injection edge**: frame 266 `,0,0` → **267 `R15:gps-time-divergence,1,1`**
+  (rising edge) → sustained 183 frames. R15's label maps to **EX-0014.01** (plugin line ~272).
+- The spoofed `SecondsIntoWeek=236830` **dominated** the recorded NOVATEL column (111 rows,
+  the top value) vs the real ~150324 — the forged GPS time is what OnAIR records.
+
+This is the footprint **EX-0012.12 cannot produce**: `SET_TIME` moves STCF (the FSW clock)
+and leaves the NOVATEL receiver untouched; this moves the GPS input itself (the GNTM-5/9/10
+IOBs), and the FSW clock is never commanded. Closes the `AINOS3-96` "recorded ≠ works" caveat
+for the GPS-time observable — R15 provably catches a real forged-GPS attack.
+
+**The repair, committed:** `ex_0014_01_time_spoof.py` gains a `--mechanism {set-time,gps-spoof}`
+switch. `set-time` is the old EX-0012.12-identical path; `gps-spoof` is the new IOB-faithful
+mechanism with `build_novatel_device_tlm()` (16-byte header, 74-byte little-endian payload
+mirroring `NOVATEL_OEM615_Device_Data_tlm_t`). Self-heals — the real receiver overwrites the
+spoof once flooding stops, so no cleanup phase.
+
+**Incident-label note (honest):** R15's running-max envelope stays **latched** after a forward
+spoof (by design — the max never comes down), which keeps the incident **open**, so the
+aggregator does not flush an `EX-0014.01` incident row without a stack reset. The detector catch
+is unambiguous; the incident-flush-under-latch is a separate incident-layer behavior, not part
+of this AC.
+
+**AC3** partially satisfied for this one script (live-validated). AC1/AC4/AC5 and the other 17
+repairs remain — this slice is the exemplar the rest follow.
