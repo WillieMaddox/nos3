@@ -453,14 +453,6 @@ further work.
   2a/2b **subscribed** them. `GEN-CTRLLOGIC` moves to **YES** — the ADCS gains are recorded —
   with the honest caveat that **nothing rules on them yet**.
 
-**Remaining work: 15 tickets in `tickets/pending/`**, in execution order —
-`AINOS3-102`, `AINOS3-103`, `AINOS3-104`,
-`AINOS3-105`, `AINOS3-106`, `AINOS3-107`,
-`AINOS3-108`, `AINOS3-109`, `AINOS3-110` (epic) +
-`AINOS3-111` / `AINOS3-112` / `AINOS3-113`, `AINOS3-120`,
-`AINOS3-119`, `AINOS3-114`. **E ≈ 45 · T ≈ 12.5.** Run
-`check_ticket_docs.py --pending` for the Jira-creation queue.
-
 **Related tickets updated:** `AINOS3-86` (INERTIAL may be a configuration artifact),
 `AINOS3-91` (ST_DEV silent because the device is disabled), `AINOS3-87` (negative branch
 answered; missing field named), `AINOS3-92` (5.6 Hz stale → 5.87, and schema-dependent).
