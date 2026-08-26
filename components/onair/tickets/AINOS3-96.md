@@ -229,3 +229,41 @@ authoritative enough to have caught 5 deprecated classes and 18 intent/observabl
 argues *for* using it as the label authority — but it defines intent, not footprint, so it
 cannot be the sole source for a *telemetry* classifier's class names. That tension is the
 decision AC4 has to record. Deferred to a focused pass.
+
+### 2026-08-26 · ⚠ CORRECTION — EX-0014.01 is NOT collapsible into EX-0012.12; the IOB patterns break the degeneracy
+
+The 2026-08-26 verdict entry called EX-0014.01 ≡ EX-0012.12 "confirmed at the byte level (both
+`SET_TIME`) → collapsible". **That was footprint-only reasoning and it is wrong.** Their STIX
+IOB patterns differ, which means SPARTA treats them as distinguishable in principle — the
+degeneracy is an artifact of our two scripts, not of the techniques.
+
+Pulled from the local bundle (`indicates` relationships):
+
+| | EX-0012.12 System Clock | EX-0014.01 Time Spoof |
+|---|---|---|
+| shared IOBs | GNTM-6 (time delta), GNTM-7 (`adjust_time` command) | same two |
+| **unique IOBs** | — | **GNTM-5** `gps_time` timestamp ≠ expected · **GNTM-9** GNSS `delta_time < 0` · **GNTM-10** `gps_time rewind_detected` |
+
+Both scripts send `CFE_TIME SET_TIME`, which exercises only the **shared** IOBs (the internal
+time-controller path) — hence the identical footprint. EX-0014.01's three **unique** IOBs are
+all about the **GPS time input** disagreeing with system time, a different observable a real
+spoof would produce and a `SET_TIME` never can.
+
+⚠ **And we already record the distinguishing observable — R15 uses it.** R15 (GPS-vs-FSW clock
+divergence, incl. rewind) *is* GNTM-5/9/10. So a correct EX-0014.01 would spoof the NOVATEL GPS
+time input — feasible via the `ci_lab` republish mechanism the EX-0014.02 bus-spoof work proved
+— giving a GPS-time-anomaly footprint EX-0012.12 cannot generate, and one R15 can see.
+
+**Consequences:**
+
+- **`label_remap.json`: EX-0014.01 is a SCRIPT-FIX candidate, not a merge.** Removed from the
+  "collapse" set; moved to the new-attack backlog (spoof GPS time, not set system time).
+- **This is the exemplar for why the 18 "partial" verdicts must be pattern-verified, not
+  prose-judged (see the 2026-08-26 Q1 note).** My footprint-based call would have permanently
+  merged two genuinely distinct techniques and hidden a real, buildable, *already-observable*
+  attack. The IOB pattern caught it; my reading did not.
+- **Contrast with EX-0012.03/04/05:** that cluster is *also* distinct-techniques /
+  identical-footprint, but its distinguishing observables (which table's contents changed) are
+  largely **not recorded** — so it stays an observability gap. EX-0014.01 is the *tractable*
+  version: the separating observable already exists. Pattern analysis tells the two situations
+  apart; footprint analysis cannot.
