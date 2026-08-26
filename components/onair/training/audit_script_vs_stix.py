@@ -83,15 +83,67 @@ def behaviour(path):
     return acts, mids, hexm
 
 
+
+def _footprint(txt):
+    """The objective on-wire signature: the set of (MID-token, FC-token) sent."""
+    return frozenset((m.group(1), m.group(2)) for m in re.finditer(
+        r"build_ccsds_cmd\(\s*([A-Za-z_0-9\[\]\"\'.]+)\s*,\s*([A-Za-z_0-9]+)", txt))
+
+
+def structural(defs, byid):
+    """Machine facts only — deliberately NO implements/partial judgement, because
+    that half proved subjective (see AINOS3-96) and belongs to pattern analysis."""
+    import collections
+    src = {}
+    for cid, ps in byid.items():
+        for p in ps:
+            if not p.endswith("_cosmos.py"):
+                src[cid] = p
+                break
+        else:
+            src[cid] = ps[0]
+
+    dep = sorted(c for c in src if "[DEPRECATED]" in (defs.get(c, ("", ))[0]))
+    notin = sorted(c for c in src if c not in defs)
+    sigs = collections.defaultdict(set)
+    probe = []
+    for cid, p in src.items():
+        txt = open(p, errors="replace").read()
+        sig = _footprint(txt)
+        if sig:
+            sigs[sig].add(cid)
+        fcs = {fc for _, fc in sig}
+        if fcs and all("NOOP" in fc.upper() or fc == "0" for fc in fcs):
+            probe.append(cid)
+    deg = [ids for ids in sigs.values() if len(ids) > 1]
+
+    print(f"{len(src)} source scripts (cosmos duplicates folded)\n")
+    print(f"[deprecated in STIX v4.0] {len(dep)}: {', '.join(dep) or 'none'}")
+    print(f"[claimed id not in v4.0]  {len(notin)}: {', '.join(notin) or 'none'}")
+    print(f"[probe-only (NOOP-only)]  {len(probe)}: {', '.join(sorted(probe)) or 'none'}")
+    print(f"\n[identical-footprint groups spanning >1 technique] {len(deg)} "
+          f"(distinct techniques, same commands -> IOB patterns decide if genuinely "
+          f"distinct or degenerate):")
+    for ids in sorted(deg, key=lambda x: (-len(x), sorted(x))):
+        allprobe = all(i in probe for i in ids)
+        print(f"    {sorted(ids)}{'  [all probe-only, trivial]' if allprobe else ''}")
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("ids", nargs="*", help="technique ids; default = classifier classes")
     ap.add_argument("--all", action="store_true", help="every claimed id, not just classes")
+    ap.add_argument("--structural", action="store_true",
+                    help="objective corpus-wide facts (deprecated / not-in-v4 / "
+                         "identical-footprint degeneracy / probe-only), no verdicts")
     args = ap.parse_args(argv)
 
     defs = stix_defs()
     byid = scripts_by_id()
+    if args.structural:
+        return structural(defs, byid)
     if args.ids:
         ids = args.ids
     elif args.all:

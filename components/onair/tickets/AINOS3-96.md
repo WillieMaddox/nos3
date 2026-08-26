@@ -278,3 +278,54 @@ were constant-0. So the claim is really: *the observable and a rule that reads i
 whether a **GPS-time spoof** actually moves the NOVATEL fields in a way R15 catches must be
 LIVE-verified against a real spoofed-GPS attack, not assumed. That live check is exactly the
 work a corrected EX-0014.01 script would provide, so it is the validation, not a precondition.
+
+### 2026-08-26 · Phase 2 — objective structural pass over all 157 scripts (subjective grading deferred by design)
+
+Phase 1 hand-graded the 24 classifier classes and produced a finding I flagged as subjective:
+prose-vs-`_send` reading of "does it implement the intent". ⚠ **I deliberately did NOT repeat
+that for the remaining ~133 scripts.** Hand-grading 133 with a method I just showed to be
+unreliable (it merged EX-0014.01/EX-0012.12 wrongly) would manufacture 133 more unverified
+verdicts. The rigorous per-script grading is the job of `stix-iob-pattern-index` +
+`mid-stix-observable-map`, and phase 2 waits for them.
+
+What phase 2 *can* deliver now, and did, is the **objective** layer — machine facts requiring no
+judgement — via `audit_script_vs_stix.py --structural` (added, repeatable):
+
+**[1] The entire IMP "Impact" family is SPARTA-deprecated** — all six (IMP-0001…0006), not just
+the five that are classes. IMP-0004 (Degradation) is the non-class addition. SPARTA v4.0 retired
+the whole Impact tactic. Confirms and completes the phase-1 finding.
+
+**[2] Every claimed id resolves in STIX v4.0** — 0 scripts claim a non-existent technique. The
+label *space* is clean; only the label *meaning* (phase-1 partials) and the deprecations are at
+issue.
+
+**[3] 13 probe-only scripts** send nothing but NOOPs — objectively demonstrating connectivity and
+nothing else: `EX-0001.01, IA-0001.01/.02/.03, IA-0009.03, IMP-0003/0004/0005, LM-0004/0005/0006/0006.01,
+RD-0003.01`. These cluster on techniques inherently hard-or-impossible to implement in NOS3 —
+supply chain (`IA-0001.x`), physical/visiting-vehicle interfaces (`LM-0004/6`), virtualization
+escape (`LM-0005`), user-segment (`IA-0009.03`). A NOOP probe is an honest placeholder for
+"can't realise this here", but it means these classes/leaves carry no learnable footprint — the
+same status as IMP-0005 in phase 1. ⚠ For any that are *classes* or corpus members, this is a
+drop/annotate signal for the retrain; for the rest it feeds `coverage-triage-stix-v4`.
+
+**[4] 10 identical-footprint groups spanning >1 technique** — the corpus-wide degeneracy map.
+Each is distinct techniques sharing one command signature; per the EX-0014.01 lesson, **only the
+IOB patterns can say whether each is a genuine degeneracy or a script limitation**, so these are
+*flagged, not judged*:
+
+- `['IA-0001.01','IA-0001.03','IMP-0005','LM-0006.01']` — all probe-only, trivial (they only NOOP)
+- `['DE-0006','DE-0007','DE-0012','PER-0002.01']`
+- `['DE-0004','DE-0011','PER-0003']`
+- `['EX-0012.03','EX-0012.04','EX-0012.05']` — the known table-load cluster
+- `['DE-0008','EXF-0007']`, `['DE-0002.01','DE-0002.03']`, `['IA-0005.02','IA-0010']`,
+  `['EX-0001.01','IA-0009.03']`, `['EX-0010.01','EX-0010.02']`
+- `['EX-0012.12','EX-0014.01']` — already shown (patterns differ → script limitation, not degeneracy)
+
+⚠ **This list is the concrete work-queue for `stix-iob-pattern-index`**: for each group, compare
+the members' unique IOB patterns to decide degeneracy-vs-script-limitation, exactly as done by
+hand for the last pair.
+
+**Phase-2 status:** objective structural facts complete for all 157; subjective per-script
+verdicts deferred to the pattern tooling. `AC2`/`AC5` are therefore **done for their honest
+scope** — the classes are graded, the corpus is structurally mapped, and the remaining
+per-script judgement is correctly a tooling job, not a hand-grade.
