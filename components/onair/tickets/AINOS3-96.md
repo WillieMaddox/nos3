@@ -267,3 +267,14 @@ time input — feasible via the `ci_lab` republish mechanism the EX-0014.02 bus-
   largely **not recorded** — so it stays an observability gap. EX-0014.01 is the *tractable*
   version: the separating observable already exists. Pattern analysis tells the two situations
   apart; footprint analysis cannot.
+
+### 2026-08-26 · ⚠ caveat on the EX-0014.01 correction — "recorded" is not "works"
+
+The correction above says R15 already sees the EX-0014.01 distinguishing observable (GPS-vs-FSW
+divergence = GNTM-5/9/10). ⚠ **Recorded and touched-by-a-rule is not the same as verified
+correct**, and this session has three reminders in a row: R15 itself first watched the wrong
+clock field (MET not MET+STCF); CAM/SYN were "subscribed" but dead; the derived CFE_TBL columns
+were constant-0. So the claim is really: *the observable and a rule that reads it both exist* —
+whether a **GPS-time spoof** actually moves the NOVATEL fields in a way R15 catches must be
+LIVE-verified against a real spoofed-GPS attack, not assumed. That live check is exactly the
+work a corrected EX-0014.01 script would provide, so it is the validation, not a precondition.
