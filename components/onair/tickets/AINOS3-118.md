@@ -223,3 +223,39 @@ is the buildable-vs-detectable filter AC1 needs, now grounded in three live data
 
 **AC3:** 3 scripts live-validated (.01/.03/.04). **AC5:** 3 slices done. AC1 groundwork above;
 the other ~15 partial-script repairs remain.
+
+### 2026-08-26 · Slice 4 (EX-0012.03/04/05 table-load family) — TRIAGE to AC4 (footprint limit, not a script defect)
+
+Investigated the CFE_TBL LOAD/ACTIVATE partials (EX-0012.03 memory-write, .04 subscriber-remap,
+.05 scheduler-edit) — the next apparent repairable family. Result: they are **AC4
+footprint-limits**, not repairable script defects, and the detection is already covered.
+
+**What I found (live):**
+
+- Real staged `.tbl` files exist (`/cf/cf_def_config.tbl`, `/cf/sc_rts004.tbl`, …) with real
+  registered names (`CF.config_table`, `SC.RTS_TBL004`; convention from `cfs_sc.dox`).
+- Pointing the LOAD at a real file, the LOAD **is accepted** (CFE_TBL.CommandCounter increments)
+  — but **ACTIVATE always errors** (CommandErrorCounter++), `ValidationCounter` stays 0, and the
+  table's `LastUpdateTime` never moves. Same result for an RTS table and the CF config table,
+  and with an explicit LOAD→VALIDATE(inactive)→ACTIVATE sequence (exact payloads from
+  `cfe_tbl_msgstruct.h`). The externally-injected LOAD is counted but leaves **no committable
+  pending buffer**, so nothing swaps. This is a cFE table-load-handshake limitation of external
+  UDP injection, not a script bug — three approaches, all the same.
+- **Detection is unaffected and already present.** R9 (CFE_TBL-command, PER-0001) fires on
+  `CFE_TBL.CommandCounter` — which the scripts' phase-1 CFE_TBL **NOOP** already increments, and
+  the accepted LOAD/VALIDATE increment further. R9 fired (13 frames) in every run. So the
+  detectable footprint the classifier needs is produced regardless of whether the table commits.
+
+**Reclassification (feeds AC4 + AC1).** These three are not "write a more faithful script"
+repairs like EX-0014.x were; the command path and its detection are faithful already, and the
+missing piece — a *committed* on-board table change — is not reproducible via external command
+injection in NOS3. Recorded as a **footprint limit**: detection covered (R9), full effect not
+injectable. The same limit applies to every partial whose "faithful" version depends on a
+successful table load — **EX-0012.08** (ADCS gains = gain-table load) and **EX-0008.01/.02**
+(time-bombs = ATS/RTS-table load) — so they inherit this classification rather than needing
+individual investigation.
+
+This sharpens the AINOS3-96 "18 partials": a chunk of them are **command-path-faithful +
+detection-covered, effect-not-injectable** (AC4), distinct from the genuinely-repairable
+telemetry-spoof family (EX-0014.x, done). The DE-0003 "conceal activity" seven remain their own
+category (intent has near-zero observable by design).
