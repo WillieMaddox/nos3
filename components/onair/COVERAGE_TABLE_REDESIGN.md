@@ -1,6 +1,6 @@
 # Coverage table — redesign proposal
 
-**Jira:** AINOS3-94 · **Slug:** `coverage-table-schema` · **Component:** `OnAIR-Security`
+**Jira:** AINOS3-94 · **Slug:** `AINOS3-94` · **Component:** `OnAIR-Security`
 · **Written:** 2026-08-23 · **Status:** proposal, not accepted
 
 Design note for the per-technique coverage table that drives
@@ -165,8 +165,8 @@ a table whose most prominent new column is noise. Stages 1–2 can proceed regar
 
 Related tickets, and the boundaries between them:
 
-- **AINOS3-89** `catch-rate-provenance-gap` — whether the `Catch` *values* are right. Stage 3
+- **AINOS3-89** `AINOS3-89` — whether the `Catch` *values* are right. Stage 3
   subsumes it; do not run both.
 - **AINOS3-93** — the immediate presentational fix for C1 on the
   current schema. Worth doing now as a stopgap; superseded by stage 5.
-- **AINOS3-90** `verify-nominal-incident-filter` — independent.
+- **AINOS3-90** `AINOS3-90` — independent.

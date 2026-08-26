@@ -1,6 +1,6 @@
 # Signal-adding feasibility: **NO-GO (documented NULL)** 📉
 
-**Ticket:** `AINOS3-88` (`signal-feasibility`) — split out of `AINOS3-30` on 2026-08-19, which belongs to `extra-mids` and remains open · **Sprint:** 27 · **Date:** 2026-08-11 · **Type:** Story (spike-shaped)
+**Ticket:** `AINOS3-88` (`AINOS3-88`) — split out of `AINOS3-30` on 2026-08-19, which belongs to `AINOS3-30` and remains open · **Sprint:** 27 · **Date:** 2026-08-11 · **Type:** Story (spike-shaped)
 
 **Question:** before committing to a retrain, does any recorded-but-unused Section-B MID
 add discrimination for the weak-label classes?

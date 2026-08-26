@@ -1,6 +1,6 @@
 # Coverage Validation Backlog — Section A (in-scope-now techniques)
 
-**Epic:** `coverage-expansion` (AINOS3-41) · **Created:** 2026-07-15
+**Epic:** `AINOS3-41` (AINOS3-41) · **Created:** 2026-07-15
 
 **Source:** [`SPARTA_COVERAGE_TRIAGE.md`](SPARTA_COVERAGE_TRIAGE.md) Section A.
 

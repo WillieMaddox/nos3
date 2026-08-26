@@ -117,7 +117,7 @@ classifier scores **F1 = 0.000** on. That is not a contradiction — see §5.
 
 ## 4. Evaluation-honesty cross-check (the experiment)
 
-This is the acceptance criterion that ties to `metric-provenance-audit` (AINOS3-80): do
+This is the acceptance criterion that ties to `AINOS3-80` (AINOS3-80): do
 they split so as to avoid the sliding-window leakage they themselves warn about?
 
 **Their README is admirably explicit** — "**Do NOT use random splits.** Telemetry data is

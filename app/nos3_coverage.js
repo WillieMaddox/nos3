@@ -163,7 +163,7 @@ window.NOS3_COVERAGE = {
     "label_ok": 0,
     "cluster": "EX-0012.09",
     "explanation": "EPS.DeviceCount:40%|CFE_EVS_HK.MessageSendCounter:27%|RW.CommandCounter:13%|ADCS_GNC.bvb:8%|RW.DeviceCount_RW2:4%|ADCS_DI.Payload.Rw.HwhlB:1%",
-    "review": "CONFIRMED GAP (2026-08-17). The published 99% came from transient-dominated data. In steady flight a 24-run replication found NOTHING detects it: IF lift -0.4 +/- 0.1 (0.00% of attack frames) and no rule-gate rule fired in 0/3 reps. The attack sends EPS_FC_SWITCH \u2014 a discrete state change the dynamics IF is blind to by design \u2014 but unlike its siblings (EX-0012.08 -> R14, EX-0014.04 -> R1) no rule covers it. Needs: establish whether the switch toggle appears in any recorded EPS field; if yes an R1/R6-style rule, if no reclassify as UNSUBSCRIBED. Ticketed `detect-eps-switch`."
+    "review": "CONFIRMED GAP (2026-08-17). The published 99% came from transient-dominated data. In steady flight a 24-run replication found NOTHING detects it: IF lift -0.4 +/- 0.1 (0.00% of attack frames) and no rule-gate rule fired in 0/3 reps. The attack sends EPS_FC_SWITCH \u2014 a discrete state change the dynamics IF is blind to by design \u2014 but unlike its siblings (EX-0012.08 -> R14, EX-0014.04 -> R1) no rule covers it. Needs: establish whether the switch toggle appears in any recorded EPS field; if yes an R1/R6-style rule, if no reclassify as UNSUBSCRIBED. Ticketed `AINOS3-87`."
   },
   "EX-0012.12": {
     "name": "System clock",
@@ -437,7 +437,7 @@ window.NOS3_COVERAGE = {
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
-    "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). Previously: 'byte-identical, no telemetry field separates them'. SPARTA's logging workbook (C&DH row 13) does not propose separating the bytes \u2014 it proposes RECONCILING the spacecraft command counter against the ground's own count, i.e. a mismatch rather than a signature. We already record every spacecraft-side counter (CI.usCmdCnt, TO.usCmdCnt, all five CFE_*.CommandCounter); the missing half is a join to COSMOS's ground-side count, not a MID. Re-openable \u2014 ticket `ground-counter-reconciliation`."
+    "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). Previously: 'byte-identical, no telemetry field separates them'. SPARTA's logging workbook (C&DH row 13) does not propose separating the bytes \u2014 it proposes RECONCILING the spacecraft command counter against the ground's own count, i.e. a mismatch rather than a signature. We already record every spacecraft-side counter (CI.usCmdCnt, TO.usCmdCnt, all five CFE_*.CommandCounter); the missing half is a join to COSMOS's ground-side count, not a MID. Re-openable \u2014 ticket `AINOS3-114`."
   },
   "EX-0009.01": {
     "name": "Flight software",
@@ -849,7 +849,7 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). The encryptor STATE is indeed internal to CryptoLib \u2014 but the workbook (TT&C rows 22/24) asks for the COMMAND, not the state: 'any received bypass commands / disable encryptor \u2014 log and alert under all circumstances'. A command arriving at CI is exactly the static-in-nominal counter signal rules R6-R13 exploit. Re-openable as a RULE candidate, not a subscription \u2014 ticket `test-encryption-bypass-observability`.",
+    "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). The encryptor STATE is indeed internal to CryptoLib \u2014 but the workbook (TT&C rows 22/24) asks for the COMMAND, not the state: 'any received bypass commands / disable encryptor \u2014 log and alert under all circumstances'. A command arriving at CI is exactly the static-in-nominal counter signal rules R6-R13 exploit. Re-openable as a RULE candidate, not a subscription \u2014 ticket `AINOS3-105`.",
     "updated": "Out-of-scope rationale corrected \u2014 the workbook asks for the bypass COMMAND, not the CryptoLib state; re-openable as a rule candidate",
     "updated_sprint": "Sprint 28"
   },
@@ -924,7 +924,7 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95). True of this build, but the standard cFS answer exists and is in the same not-built cluster as the watchdog: MM (Memory Manager) and MD (Memory Dwell) are loaded in cfe_es_startup.scr and their HK is scheduled, with no .so present. The workbook asks for 'log the memory register and the new value' on 12 of 13 subsystem sheets. Re-openable once `build-mm-md-apps` lands. \u26a0 Note that building MM also hands an attacker a supported memory-write path.",
+    "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95). True of this build, but the standard cFS answer exists and is in the same not-built cluster as the watchdog: MM (Memory Manager) and MD (Memory Dwell) are loaded in cfe_es_startup.scr and their HK is scheduled, with no .so present. The workbook asks for 'log the memory register and the new value' on 12 of 13 subsystem sheets. Re-openable once `AINOS3-113` lands. \u26a0 Note that building MM also hands an attacker a supported memory-write path.",
     "updated": "Rationale sharpened \u2014 MM/MD are in the same not-built cluster",
     "updated_sprint": "Sprint 28"
   },
@@ -984,7 +984,7 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). Key material is internal to CryptoLib's SADB, but the workbook (TT&C row 23) asks for 'any received key change commands' \u2014 the command, not the material. Same re-open shape as EX-0006; ticket `test-encryption-bypass-observability`.",
+    "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). Key material is internal to CryptoLib's SADB, but the workbook (TT&C row 23) asks for 'any received key change commands' \u2014 the command, not the material. Same re-open shape as EX-0006; ticket `AINOS3-105`.",
     "updated": "Out-of-scope rationale corrected \u2014 the workbook asks for the key-change COMMAND, not the key material",
     "updated_sprint": "Sprint 28"
   },
@@ -1074,7 +1074,7 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95) \u2014 see DE-0003.11. The PSP watchdog is a no-op stub, but the missing HS app is a BUILD gap (loaded in the startup script and scheduled, no .so) rather than a design limit. Re-openable once `build-hs-app` lands.",
+    "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95) \u2014 see DE-0003.11. The PSP watchdog is a no-op stub, but the missing HS app is a BUILD gap (loaded in the startup script and scheduled, no .so) rather than a design limit. Re-openable once `AINOS3-112` lands.",
     "updated": "Rationale sharpened \u2014 the HS app is a BUILD gap (loaded + scheduled, no .so), not a design limit; re-openable once built",
     "updated_sprint": "Sprint 28"
   },
@@ -1089,7 +1089,7 @@ window.NOS3_COVERAGE = {
     "label_ok": null,
     "cluster": null,
     "explanation": "",
-    "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95). AINOS3-74 was right about the BUILD, and the reason is more specific than 'there is no HS app': cfe_es_startup.scr DOES load `hs` and sch_def_msgtbl.c DOES request HS_SEND_HK_MID \u2014 there is simply no hs.so in fsw/build/exe/cpu1/cf/ (nor cs/mm/md/hk). The workbook (C&DH row 4) rates watchdog-service logging Medium and names exactly what to log. So this is out-of-scope for the build, NOT out-of-scope by design: re-openable if and only if the app is built \u2014 ticket `build-hs-app`, then `retest-reopened-verdicts`.",
+    "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95). AINOS3-74 was right about the BUILD, and the reason is more specific than 'there is no HS app': cfe_es_startup.scr DOES load `hs` and sch_def_msgtbl.c DOES request HS_SEND_HK_MID \u2014 there is simply no hs.so in fsw/build/exe/cpu1/cf/ (nor cs/mm/md/hk). The workbook (C&DH row 4) rates watchdog-service logging Medium and names exactly what to log. So this is out-of-scope for the build, NOT out-of-scope by design: re-openable if and only if the app is built \u2014 ticket `AINOS3-112`, then `AINOS3-119`.",
     "updated": "Rationale sharpened \u2014 same HS build gap as EX-0012.11",
     "updated_sprint": "Sprint 28"
   },
