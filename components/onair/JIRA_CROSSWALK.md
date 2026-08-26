@@ -19,9 +19,6 @@ How to use it:
   2026-08-19 — so re-sync it whenever tickets move columns, and never infer a
   ticket's status from a sprint-plan document (that misreading is what let
   `AINOS3-30` be reused; see the note at the foot of this file).
-- **Slugs go in planning docs; Jira keys go in Jira.** Never paste a slug or an
-  old `NOS3-###` draft ID into a Jira summary/description/attachment — use the
-  real Jira key there.
 - **Recurring work:** the epic slug is stable (`stakeholder-rollout`); each
   occurrence is a new row tagged with the Jira sprint number (`rollout-s24`,
   `rollout-s25`, …), never an arbitrary counter.
@@ -140,30 +137,13 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-112 | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app |  |
 | AINOS3-113 | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps |  |
 | AINOS3-114 | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters |  |
-| AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments |  |
+| AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments | ✅ Done |
 | AINOS3-116 | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph |  |
 | AINOS3-117 | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix |  |
 | AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns |  |
 | AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock |  |
 | AINOS3-120 | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets |  |
 | — | sunsafe-pivot | Spike | — | SUNSAFE-only pivot decision | ✅ Resolved |
-
-### Retired `NOS3-###` draft IDs
-
-Early planning used a `NOS3-###` numbering that Jira never issued. Those IDs are
-**retired**; the table below is the full map so a stale reference in old code or
-docs can be resolved without re-deriving it from work descriptions. Anything
-still carrying a `NOS3-###` is a bug — replace it with the key here.
-
-| Retired draft ID | Real Jira key | Work |
-| `NOS3-301` | **AINOS3-33** | Mode-aware classifier (closed, negative result) |
-| `NOS3-302` | **AINOS3-34** | Out-of-fold incident-label accuracy |
-| `NOS3-311` | **AINOS3-38** | Per-incident SHAP attribution (offline) |
-| `NOS3-312` | **AINOS3-40** | Surface explanations in the incident record + demo |
-
-`NOS3-211` (the coverage-overlay generator) predates the crosswalk and has no
-Jira key; it survives only as a provenance comment in `app/gen_nos3_coverage.py`
-and `app/nos3_overlay.js`.
 
 ## Sprint 28 (planning)
 
