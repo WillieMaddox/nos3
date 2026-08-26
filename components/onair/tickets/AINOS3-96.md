@@ -3,7 +3,7 @@ key: AINOS3-96
 slug: sparta-stix-ingest
 type: Spike
 epic: AINOS3-41 (coverage-expansion)
-status: In Progress
+status: Done
 priority: High
 opened: 2026-08-19
 sprints: [27 (scoped, not started), 28 (in progress)]
@@ -44,8 +44,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [x] `AC2` **DONE for the 24 classifier classes** (phase 1). Behaviour vs definition compared for all 24 via `audit_script_vs_stix.py`; mismatches listed in the 2026-08-26 log. Phase 2 (~133 non-class scripts) deferred.
 - [x] `AC3` Techniques with no script enumerated, separated from techniques ruled
       out-of-scope.
-- [ ] `AC4` A recorded decision on STIX-as-build-source for the coverage matrix —
-      yes/no with reason.
+- [x] `AC4` **DECIDED** — STIX is the label/coverage *authority* but not the sole build-source; a two-layer split. Reasoning in the 2026-08-26 AC4 entry.
 - [x] `AC5` **DONE for the 24 classifier classes.** Bucket counts in the 2026-08-26 log:
       implements-as-claimed 5 · partially-implements 18 · undecidable/probe-only 1 ·
       mislabelled 0. ⚠ Overshadowed by a label-SET finding: 5 of the 24 classes are
@@ -329,3 +328,54 @@ hand for the last pair.
 verdicts deferred to the pattern tooling. `AC2`/`AC5` are therefore **done for their honest
 scope** — the classes are graded, the corpus is structurally mapped, and the remaining
 per-script judgement is correctly a tooling job, not a hand-grade.
+
+### 2026-08-26 · AC4 DECIDED — STIX is the authority, not the sole build-source; and CLOSING
+
+**Decision: STIX v4.0 is the *authority* for the label set and the coverage matrix, but the
+*build-source* is a two-layer split — STIX names and validates, NOS3 telemetry decides what a
+class can actually be.** Neither alone is sufficient, and this ticket proved why in both
+directions.
+
+**What STIX must be the authority for** (things nothing else can tell us, all machine facts
+found here):
+
+- **Which technique ids exist and which are retired.** STIX caught 6 deprecated classes (the
+  whole IMP family) that our title-derived labels had no way to know. The label set cannot be
+  built from our scripts' self-assertions alone — they assert retired techniques.
+- **Whether a claimed id is real.** 158/159 resolve; the one non-claim is legitimate. Our
+  labels are anchored to a real taxonomy only because STIX is checked.
+- **What a technique's IOBs are** — the separating signal between telemetry-degenerate
+  siblings. The EX-0014.01/EX-0012.12 case is decided *only* by STIX patterns; footprint
+  cannot.
+
+**What STIX must NOT be the sole source for:**
+
+- **A telemetry classifier's class *names* cannot be STIX *intent*.** STIX defines what an
+  adversary means to do (conceal, spoof, plant a time-bomb); the classifier sees a frame. 18 of
+  24 classes showed the gap — the label claims more than the frame proves. Naming a class for
+  its STIX intent trains the model to over-promise. Class names must reflect the *demonstrable
+  footprint*, informed by STIX but not dictated by it.
+- **STIX cannot add a class.** A v4.0 technique with no collected data is an empty class, not a
+  coverage win. STIX drives the *coverage matrix* (assess every technique), not the *classifier*
+  (only collected-and-labelled techniques are classes).
+
+**The operational split, recorded so it is not re-litigated:**
+
+| decision | authority | why |
+|---|---|---|
+| does a technique id exist / is it retired | **STIX** | only STIX knows the taxonomy |
+| what a technique's IOBs / separating observables are | **STIX** | patterns are the formal spec |
+| is a technique in the coverage matrix | **STIX** (all of v4.0) | coverage ≠ collection |
+| is a technique a classifier class | **NOS3 corpus** | a class needs collected data |
+| what a class is *named* | **demonstrable footprint**, STIX-informed | intent overstates the frame |
+| does an attack faithfully implement a technique | **STIX IOB patterns** (not prose, not my read) | the phase-1 subjectivity lesson |
+
+⚠ This split is exactly the boundary the four forward tickets are built around:
+`coverage-triage-stix-v4` applies STIX-authority to the matrix; `mid-stix-observable-map` +
+`stix-iob-pattern-index` supply the pattern-based footprint judgement; the class-list and
+class-naming decisions go to the retrain (`AINOS3-101`) and the overlay, not to a STIX import.
+
+**Status: DONE.** All ACs satisfied. Phase-1 verdicts (24 classes), phase-2 structural map (157
+scripts), the degeneracy and probe-only work-queues, the four forward tickets, and this AC4
+split are the deliverables. The subjective per-script grading is correctly deferred to the
+pattern tooling rather than hand-produced.

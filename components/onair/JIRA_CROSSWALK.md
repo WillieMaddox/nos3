@@ -121,7 +121,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | `Catch` and `Incidents` are not comparable | Sprint 28 · ○ Stretch |
 | AINOS3-94 | coverage-table-schema | Spike | detector-rigor | Redesign the coverage-table schema | Backlog |
 | AINOS3-95 | sparta-logging-gap-analysis | Spike | coverage-expansion | SPARTA logging best practices vs what we record | Sprint 28 · ✅ Done |
-| AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Use the SPARTA STIX 2.1 dataset as ground truth | Sprint 28 · ◑ Committed (re-prioritised to High ✅ 2026-08-23) |
+| AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Use the SPARTA STIX 2.1 dataset as ground truth | Sprint 28 · ✅ Done |
 | AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Separate live corpus data from superseded | Sprint 28 · ◑ Committed (reparented from detector-rigor ✅ 2026-08-23) |
 | AINOS3-98 | corpus-integrity | Epic | — | Corpus integrity — the corpus as a first-class, versioned artifact | — |
 | AINOS3-99 | fold-variance-triage | Spike | corpus-integrity | Explain the per-instance F1 spread holding the tier column down | Sprint 28 · ◑ Committed |
