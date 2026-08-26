@@ -185,3 +185,41 @@ named observability/detector gap, which is exactly the AC4 output.
 
 **Provenance caveat:** measured in SUNSAFE on one stack; the retrain analysis should confirm the
 torn-read hypothesis and check the other three per-mode heads.
+
+### 2026-08-26 · Slice 3 (EX-0014.03 Sensor Data) — repaired; MARGINAL IF catch; completes the EX-0014 contrast
+
+Third slice. Repaired EX-0014.03 from sensor-*disable* to a real IMU data fabrication
+(`--mechanism sensor-spoof`: inject 0x0926 with an out-of-range `AngularAcc` via CI_LAB :5012,
+the DISE-9/11 / SMSR-1 footprint), overturning its "full data fabrication is out of scope" note.
+
+**Propagation confirmed.** The ADCS app copies IMU `AngularAcc` straight into
+`ADCS_DI.Payload.Imu.wbn` 1:1 (verified: the two are byte-identical at baseline). `wbn` **is** a
+v5 IF feature, so — unlike a masked NOVATEL position — a forged IMU rate reaches the IF. The
+spoofed value took `wbn` in 63/300 rows during the ad-hoc probe.
+
+**Marginal but real IF catch — honestly characterised, not oversold.** Baseline 0% anomalies;
+during injection the IF score dips clearly negative (−0.0130 to −0.0169, below the −0.000025
+threshold) and flags anomaly frames — but only **1–7 frames (~0.6–1.8%)**, a contiguous burst,
+not a sustained alert. Cause: the double-buffer flicker means the spoofed `wbn` holds for only a
+fraction of frames, so the IF sees brief discontinuities rather than a sustained regime shift.
+The dynamics IF is tuned for *sustained* physics perturbations (a thruster firing, a real
+tumble), and an injected-telemetry flicker only marginally crosses its threshold. A defensible
+TP by provenance (clean baseline, score demonstrably anomalous during the window), but weak.
+
+**The EX-0014 family now tells one coherent detector-coverage story** (all three sub-techniques
+repaired + live-validated):
+
+| technique | spoof target | reaches a detector? | result |
+|---|---|---|---|
+| EX-0014.01 | GPS **time** | rule-gate R15 (time-divergence) | **strong TP** (latched) |
+| EX-0014.03 | IMU **rate** (dynamics) | IF via `ADCS_DI.Imu.wbn` | **marginal TP** (1–7 frames) |
+| EX-0014.04 | GPS **position** (masked) | none | **gap** (AINOS3-97 AC6) |
+
+**Organising principle for AC1:** a telemetry spoof is IF-detectable only if its target
+propagates to a **non-masked, non-desensitised model feature** the IF weights in that mode —
+and even then, flicker caps the strength. Directly-recorded-but-non-feature MIDs (IMU_DEV
+itself, 0 features) only matter if they propagate (IMU→wbn does; position stays masked). This
+is the buildable-vs-detectable filter AC1 needs, now grounded in three live data points.
+
+**AC3:** 3 scripts live-validated (.01/.03/.04). **AC5:** 3 slices done. AC1 groundwork above;
+the other ~15 partial-script repairs remain.
