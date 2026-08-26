@@ -279,3 +279,31 @@ slice 3 (IMU) was caught and slice 2 (GPS position) was a gap. The backlog gives
 Prioritised by leverage over the retrain/coverage destination, per the standing direction.
 AC1/AC2/AC4 done; AC3 = 3 scripts validated; AC5 = 4 slices. The remaining repair work is Tier 1
 (sensor/actuator family) — no longer blocked on analysis.
+
+### 2026-08-26 · Slice 5 (EX-0014.03 MAG) — propagates to a feature but IF-BLIND; corrects the AC1 assumption
+
+Started the Tier-1 sensor-spoof family (MAG) and it produced a **self-correcting** result that
+refines AC1.
+
+**Propagation confirmed, richer than IMU.** A forged MAG device packet (0x092B, 3×int32
+intensity) propagates to `ADCS_DI.Payload.Mag.bvb` (a feature) and onward to `ADCS_GNC.bvb`
+(also features). The spoofed field landed in `bvb` (`[0.05, …]` = 50 mT) at good occupancy.
+
+**But the IF does NOT catch it — validated, not assumed.** Two runs: 2 mT (100× Earth field,
+23% `bvb` occupancy) and 50 mT (1000×, higher occupancy). Both: **0 IF anomalies**, score never
+left the normal band. High occupancy + absurd magnitude rules out the flicker/occupancy
+explanation — it is genuine IF insensitivity to `bvb`.
+
+**Why, and the AC1 correction.** `bvb` is the body-frame magnetic-field vector — it **naturally
+sweeps its full range** as the vehicle moves through Earth's field, so the IF learned a
+high-variance distribution and a large spoof is absorbed. IMU angular *rate* (`wbn`) is
+low-variance in a stable attitude, so its spoof marginally isolates. **"Reaches a model feature"
+is necessary but NOT sufficient** — the feature must also be **low-variance / discriminable** for
+a spoof to score anomalous. This corrects the Tier-1 premise in the AC1 backlog (fixed there):
+attitude sensors are NOT uniformly IF-detectable; it is per-feature.
+
+**Consequence for the family:** CSS / FSS / ST must be **tested, not assumed** — each depends on
+whether its derived feature is rate-like (low-variance, catchable) or field/attitude-like
+(high-variance, absorbed). MAG joins EX-0014.04 as a **buildable-but-undetected** (Tier-2) vector,
+not a Tier-1 win. Faithful MAG spoof mechanism is validated; the detector, not the script, is the
+limit.
