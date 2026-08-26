@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-114
 slug: ground-counter-reconciliation
 type: Story
 epic: AINOS3-41 (coverage-expansion)
-status: Pending Jira key
+status: Open
 priority: Low
 estimate: E 5 / T 1.5
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
-# ground-counter-reconciliation — Reconcile ground and spacecraft command counters
+# AINOS3-114 — Reconcile ground and spacecraft command counters
 
 **Summary:** EX-0001.01 was ruled out for the wrong reason: the workbook proposes reconciling spacecraft and ground command counters, not separating replayed bytes.
 

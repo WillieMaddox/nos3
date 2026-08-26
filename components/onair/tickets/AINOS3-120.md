@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-120
 slug: schedule-cfe-diag-packets
 type: Story
 epic: AINOS3-41 (coverage-expansion)
-status: Pending Jira key
+status: Open
 priority: Low
 estimate: E 3 / T 1.0
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
-# schedule-cfe-diag-packets — Schedule the silent cFE diagnostic packets
+# AINOS3-120 — Schedule the silent cFE diagnostic packets
 
 **Summary:** Four cFE diagnostic packets are routed but never scheduled, so they never transmit; scheduling them needs FSW table work and index-walking logic.
 
@@ -34,7 +34,7 @@ not a single scheduled command. That is the real cost here.
   an activity proxy for `EX-0009` code exploitation). ⚠ It is *not* CPU utilisation, which an
   earlier AINOS3-95 draft wrongly claimed.
 - `0x080A` `SB_STATS` — per-pipe depths; largely redundant with R6 plus the staleness gate.
-- `0x080C` `TBL_REG` — per-table CRC; likely **superseded by `build-cs-app`**, which is why
+- `0x080C` `TBL_REG` — per-table CRC; likely **superseded by `AINOS3-111`**, which is why
   this ticket is sequenced after it.
 - `0x080E` `SB_ONESUB` — poor bet: its sibling `0x080D` `ALLSUBS` is already subscribed and
   measured **silent**.
@@ -47,7 +47,7 @@ already record. Expect low classification lift.
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` Re-assess whether each of the four is still worth scheduling AFTER `build-cs-app` lands — dropping `TBL_REG` as superseded is an acceptable outcome.
+- [ ] `AC1` Re-assess whether each of the four is still worth scheduling AFTER `AINOS3-111` lands — dropping `TBL_REG` as superseded is an acceptable outcome.
 - [ ] `AC2` Scheduler-table entries added and the FSW tables rebuilt for whichever survive AC1.
 - [ ] `AC3` Index-walking logic for `ES_APP` / `TBL_REG` so more than one app/table is ever observed.
 - [ ] `AC4` Packets verified arriving at OnAIR live, and columns validated non-constant.

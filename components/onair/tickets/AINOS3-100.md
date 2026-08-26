@@ -15,7 +15,7 @@ sprints: [28]
 
 ## Description
 
-This ticket exists because `AINOS3-45` (`corpus-instance-4`, *"4th corpus instance"*) was
+This ticket exists because `AINOS3-45` (`AINOS3-45`, *"4th corpus instance"*) was
 scoped against the collection protocol found defective in Sprint 27 — mode cycling every 60 s
 against a ~45 s detector warmup, leaving **83 % of attack frames inside the blind window**.
 Executing it as written would have added a fourth LOIO fold built from unusable data, which is

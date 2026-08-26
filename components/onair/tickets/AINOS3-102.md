@@ -297,7 +297,7 @@ off in this NOS3 build.**
 
 ⚠ This also re-explains the `cs`/`hs`/`md`/`mm` gap from `AINOS3-95`. Those apps are not merely
 "loaded in the startup script with no `.so`" — they are **below the terminator, so not loaded
-at all**, *and* not built. `build-cs-app` and its siblings therefore need **two** changes:
+at all**, *and* not built. `AINOS3-111` and its siblings therefore need **two** changes:
 build the `.so` **and** move the entry above the `!`. That is a correction to those tickets'
 stated premise.
 

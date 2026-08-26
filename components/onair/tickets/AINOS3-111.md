@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-111
 slug: build-cs-app
 type: Story
-epic: build-missing-cfs-apps
-status: Pending Jira key
+epic: AINOS3-110 (build-missing-cfs-apps)
+status: Open
 priority: High
 estimate: E 5 / T 2.0
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
-# build-cs-app — Build the CS checksum app
+# AINOS3-111 — Build the CS checksum app
 
 **Summary:** Build the CS (Checksum) app — the recorded corpus currently contains no integrity data of any kind.
 
@@ -23,7 +23,7 @@ key-value pairs, and boot mechanisms.
 
 Against that, the recorded corpus contains **zero integrity data**. The only checksum we
 subscribe, `CFE_ES.CFECoreChecksum`, is pruned from the CSV before it reaches disk (see
-`csv-prune-integrity-fields`).
+`AINOS3-109`).
 
 CS computes CRCs over the cFE core image, the OS image, app code segments, tables and
 user-defined memory, and telemeters per-area state with miscompare counters plus EVS events on

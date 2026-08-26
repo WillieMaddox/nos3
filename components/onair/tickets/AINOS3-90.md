@@ -21,7 +21,7 @@ them in a single hour of INERTIAL — all labelled `cluster=nominal`. If the ove
 view filters those out, the impact is confined to log volume. If it does not, the monitor
 cries wolf roughly once a minute in that mode, which would dominate any stakeholder
 impression of reliability. **We have not checked.** Cheap to answer and it re-prioritises
-`inertial-false-alarms` (AINOS3-86) either way.
+`AINOS3-86` (AINOS3-86) either way.
 
 ## Acceptance criteria
 

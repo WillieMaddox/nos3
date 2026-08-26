@@ -454,11 +454,11 @@ further work.
   with the honest caveat that **nothing rules on them yet**.
 
 **Remaining work: 15 tickets in `tickets/pending/`**, in execution order —
-`headless-sim-coverage-gap`, `detect-cf-file-faults`, `detect-adcs-gain-change`,
-`test-encryption-bypass-observability`, `r15-latch-policy`, `frame-aliasing-semantics`,
-`subscription-hygiene`, `csv-prune-integrity-fields`, `build-missing-cfs-apps` (epic) +
-`build-cs-app` / `build-hs-app` / `build-mm-md-apps`, `schedule-cfe-diag-packets`,
-`retest-reopened-verdicts`, `ground-counter-reconciliation`. **E ≈ 45 · T ≈ 12.5.** Run
+`AINOS3-102`, `AINOS3-103`, `AINOS3-104`,
+`AINOS3-105`, `AINOS3-106`, `AINOS3-107`,
+`AINOS3-108`, `AINOS3-109`, `AINOS3-110` (epic) +
+`AINOS3-111` / `AINOS3-112` / `AINOS3-113`, `AINOS3-120`,
+`AINOS3-119`, `AINOS3-114`. **E ≈ 45 · T ≈ 12.5.** Run
 `check_ticket_docs.py --pending` for the Jira-creation queue.
 
 **Related tickets updated:** `AINOS3-86` (INERTIAL may be a configuration artifact),

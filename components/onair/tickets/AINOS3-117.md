@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-117
 slug: coverage-triage-stix-v4
 type: Spike
 epic: AINOS3-41 (coverage-expansion)
-status: Pending Jira key
+status: Open
 priority: Medium
 estimate: E 3 / T 1.0
 opened: 2026-08-26
 origin: AINOS3-96 (sparta-stix-ingest)
 ---
 
-# coverage-triage-stix-v4 — Triage the SPARTA v4.0 techniques absent from our v3 matrix
+# AINOS3-117 — Triage the SPARTA v4.0 techniques absent from our v3 matrix
 
 **Summary:** Assess the ~93 v4.0 techniques (incl. the new 44-technique SV tactic) our v3-indexed coverage matrix has never seen, and decide whether to re-index to v4.0.
 

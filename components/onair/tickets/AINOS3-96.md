@@ -284,8 +284,8 @@ Phase 1 hand-graded the 24 classifier classes and produced a finding I flagged a
 prose-vs-`_send` reading of "does it implement the intent". ⚠ **I deliberately did NOT repeat
 that for the remaining ~133 scripts.** Hand-grading 133 with a method I just showed to be
 unreliable (it merged EX-0014.01/EX-0012.12 wrongly) would manufacture 133 more unverified
-verdicts. The rigorous per-script grading is the job of `stix-iob-pattern-index` +
-`mid-stix-observable-map`, and phase 2 waits for them.
+verdicts. The rigorous per-script grading is the job of `AINOS3-116` +
+`AINOS3-115`, and phase 2 waits for them.
 
 What phase 2 *can* deliver now, and did, is the **objective** layer — machine facts requiring no
 judgement — via `audit_script_vs_stix.py --structural` (added, repeatable):
@@ -305,7 +305,7 @@ supply chain (`IA-0001.x`), physical/visiting-vehicle interfaces (`LM-0004/6`), 
 escape (`LM-0005`), user-segment (`IA-0009.03`). A NOOP probe is an honest placeholder for
 "can't realise this here", but it means these classes/leaves carry no learnable footprint — the
 same status as IMP-0005 in phase 1. ⚠ For any that are *classes* or corpus members, this is a
-drop/annotate signal for the retrain; for the rest it feeds `coverage-triage-stix-v4`.
+drop/annotate signal for the retrain; for the rest it feeds `AINOS3-117`.
 
 **[4] 10 identical-footprint groups spanning >1 technique** — the corpus-wide degeneracy map.
 Each is distinct techniques sharing one command signature; per the EX-0014.01 lesson, **only the
@@ -320,7 +320,7 @@ IOB patterns can say whether each is a genuine degeneracy or a script limitation
   `['EX-0001.01','IA-0009.03']`, `['EX-0010.01','EX-0010.02']`
 - `['EX-0012.12','EX-0014.01']` — already shown (patterns differ → script limitation, not degeneracy)
 
-⚠ **This list is the concrete work-queue for `stix-iob-pattern-index`**: for each group, compare
+⚠ **This list is the concrete work-queue for `AINOS3-116`**: for each group, compare
 the members' unique IOB patterns to decide degeneracy-vs-script-limitation, exactly as done by
 hand for the last pair.
 
@@ -371,8 +371,8 @@ found here):
 | does an attack faithfully implement a technique | **STIX IOB patterns** (not prose, not my read) | the phase-1 subjectivity lesson |
 
 ⚠ This split is exactly the boundary the four forward tickets are built around:
-`coverage-triage-stix-v4` applies STIX-authority to the matrix; `mid-stix-observable-map` +
-`stix-iob-pattern-index` supply the pattern-based footprint judgement; the class-list and
+`AINOS3-117` applies STIX-authority to the matrix; `AINOS3-115` +
+`AINOS3-116` supply the pattern-based footprint judgement; the class-list and
 class-naming decisions go to the retrain (`AINOS3-101`) and the overlay, not to a STIX import.
 
 **Status: DONE.** All ACs satisfied. Phase-1 verdicts (24 classes), phase-2 structural map (157

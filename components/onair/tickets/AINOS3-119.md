@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-119
 slug: retest-reopened-verdicts
 type: Task
 epic: AINOS3-41 (coverage-expansion)
-status: Pending Jira key
+status: Open
 priority: Medium
 estimate: E 2 / T 0.5
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
-# retest-reopened-verdicts — Re-test the verdicts the missing apps unblock
+# AINOS3-119 — Re-test the verdicts the missing apps unblock
 
 **Summary:** Live-retest the three out-of-scope verdicts that become re-openable once the missing cFS apps are built.
 
@@ -20,7 +20,7 @@ AINOS3-95 `AC4` established that `EX-0012.11`, `DE-0003.11` and `EX-0012.01` are
 for the **build**, not by design — the telemetry the workbook asks for is produced by stock
 cFS apps that are loaded in the startup script and simply absent from the build.
 
-Once `build-hs-app` and `build-mm-md-apps` land, each verdict must be **re-tested live**, not
+Once `AINOS3-112` and `AINOS3-113` land, each verdict must be **re-tested live**, not
 flipped on the assumption that the app makes it observable.
 
 ⚠ Per this project's evaluation-provenance rule, a verdict may not turn green on the strength
@@ -46,4 +46,4 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`.
 Results live here, not in a sprint plan.
 
-⚠ **Gated on** `build-hs-app` (EX-0012.11, DE-0003.11) and `build-mm-md-apps` (EX-0012.01).
+⚠ **Gated on** `AINOS3-112` (EX-0012.11, DE-0003.11) and `AINOS3-113` (EX-0012.01).

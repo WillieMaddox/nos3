@@ -36,7 +36,7 @@ Also in scope: the `CFE_TBL.Last*` name fields, pruned as non-numeric. The AINOS
 change-detect columns exist to replace them and were measured constant-0, so the substitution
 may not be working.
 
-⚠ Interacts with `build-cs-app`: CS will produce many integrity columns, and the same
+⚠ Interacts with `AINOS3-111`: CS will produce many integrity columns, and the same
 static-therefore-prunable reasoning would discard them.
 
 ## Acceptance criteria
@@ -46,7 +46,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [x] `AC1` Every entry in `ExcludeColumns` classified as: non-numeric (correct), static-and-uninformative (correct), or static-BUT-security-relevant (wrong).
 - [x] `AC2` `CFE_ES.CFECoreChecksum` restored to the CSV, or a documented reason it should not be.
 - [x] `AC3` Whether the AINOS3-30 derived `CFE_TBL` change-detect columns actually substitute for the pruned name fields — they were measured constant-0, which suggests not.
-- [x] `AC4` A stated rule for future columns, so `build-cs-app`'s output is not pruned by the same reasoning.
+- [x] `AC4` A stated rule for future columns, so `AINOS3-111`'s output is not pruned by the same reasoning.
 - [x] `AC5` `SPARTA_LOGGING_GAP.md` `CDH-GOLDEN` re-assessed if the checksum returns.
 
 ## Log
@@ -76,7 +76,7 @@ segment at runtime*. Restoring it would add a guaranteed-constant column.
 ⚠ This corrects `AINOS3-95`. That ticket concluded "the corpus holds no integrity data because
 the checksum is pruned" — right in conclusion, wrong in reason. Un-pruning it would change
 nothing. The real gap is that **nothing recomputes integrity at runtime at all**, which is
-exactly the capability the CS app provides. `build-cs-app` is a **stronger** case than the
+exactly the capability the CS app provides. `AINOS3-111` is a **stronger** case than the
 earlier framing implied, not a weaker one.
 
 **The one wrongly-excluded column: `CFE_ES.BootSource` — removed from the list.** It is
@@ -104,7 +104,7 @@ detection-capability decision, made once and invisibly. The rule recorded:
 > or **(b)** static by construction — set once at init and never recomputed. ⚠ *"Looks static
 > in the data"* is **not** sufficient; that is exactly how `BootSource` was lost.
 
-This also protects `build-cs-app`: CS emits per-area checksums that will look static in
+This also protects `AINOS3-111`: CS emits per-area checksums that will look static in
 nominal, and reason (b) does not apply to them — they are recomputed every cycle, which is
 their entire point.
 

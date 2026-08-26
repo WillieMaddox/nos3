@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-112
 slug: build-hs-app
 type: Story
-epic: build-missing-cfs-apps
-status: Pending Jira key
+epic: AINOS3-110 (build-missing-cfs-apps)
+status: Open
 priority: Medium
 estimate: E 5 / T 2.0
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
-# build-hs-app — Build the HS health and safety app
+# AINOS3-112 — Build the HS health and safety app
 
 **Summary:** Build the HS (Health & Safety) app — the missing piece behind the EX-0012.11 / DE-0003.11 watchdog verdicts.
 
@@ -56,7 +56,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC2` Application-monitor and event-monitor tables authored for NOS3's app set.
 - [ ] `AC3` Established whether HS monitor state is meaningful given the PSP watchdog stub — a documented negative is a valid outcome.
 - [ ] `AC4` Columns subscribed and validated non-constant.
-- [ ] `AC5` Feeds `retest-reopened-verdicts` for EX-0012.11 / DE-0003.11.
+- [ ] `AC5` Feeds `AINOS3-119` for EX-0012.11 / DE-0003.11.
 
 ## Log
 

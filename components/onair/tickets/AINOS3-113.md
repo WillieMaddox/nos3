@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-113
 slug: build-mm-md-apps
 type: Story
-epic: build-missing-cfs-apps
-status: Pending Jira key
+epic: AINOS3-110 (build-missing-cfs-apps)
+status: Open
 priority: Medium
 estimate: E 5 / T 2.0
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
-# build-mm-md-apps — Build the MM and MD memory apps
+# AINOS3-113 — Build the MM and MD memory apps
 
 **Summary:** Build MM and MD — the standard cFS answer to 'log the memory register and the new value', which 12 of 13 workbook sheets ask for.
 
@@ -57,7 +57,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC2` `mm` and `md` vendored, built, loading, HK arriving — verified live.
 - [ ] `AC3` Dwell tables authored for addresses that are actually security-relevant, not a stock example.
 - [ ] `AC4` Columns subscribed and validated non-constant.
-- [ ] `AC5` `EX-0012.01` re-assessed; feeds `retest-reopened-verdicts`.
+- [ ] `AC5` `EX-0012.01` re-assessed; feeds `AINOS3-119`.
 - [ ] `AC6` If MM is built, the new attack path is itself added to the attack corpus so we detect what we just enabled.
 
 ## Log

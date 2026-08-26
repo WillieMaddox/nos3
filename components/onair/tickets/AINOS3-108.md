@@ -56,7 +56,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC2` `CFE_SB_SUBS` and `SBN` resolved: unsubscribed and their columns removed from the schema, or scheduled. If `SBN` is scheduled instead of dropped, the five-variant payload problem MUST be modelled first.
 - [ ] `AC3` `RADIO_DEV` decided on its merits — kept as an event-driven prox-link indicator, or dropped — with the reason recorded.
 - [ ] `AC4` `ST_DEV` explicitly left alone here and its resolution deferred to the star-tracker configuration decision (`AINOS3-86` / `AINOS3-91`).
-- [ ] `AC5` Post-change subscription count recorded against the 48 cap, with the headroom available to `build-missing-cfs-apps` and `schedule-cfe-diag-packets` stated.
+- [ ] `AC5` Post-change subscription count recorded against the 48 cap, with the headroom available to `AINOS3-110` and `AINOS3-120` stated.
 - [ ] `AC6` A live check that no *surviving* subscription became silent as a side effect.
 
 ## Log
@@ -89,7 +89,7 @@ across stages 2a/2b without incident — **adding is safe, removing is a breakin
 
 ⚠ The wider rule, which was not written down anywhere before this: **the deployed detector
 pins the schema.** Column removal is a model-retrain operation, not a config edit. That
-applies to `AINOS3-109` (`csv-prune-integrity-fields`) too if it ever removes rather than
+applies to `AINOS3-109` (`AINOS3-109`) too if it ever removes rather than
 restores, and it is why this had to be found by running rather than by review.
 
 **Service impact:** OnAIR crash-looped from deploy until revert (~4 min). Reverted with
@@ -108,7 +108,7 @@ The three structs are annotated `⚠ UNSUBSCRIBED … do not re-add without read
 `message_headers.py`, carrying the SBN five-variant hazard next to the code, so the analysis
 is not lost by the revert.
 
-**Recommended re-scope.** Fold the removals into `AINOS3-101` (`retrain-clean-corpus`), which
+**Recommended re-scope.** Fold the removals into `AINOS3-101` (`AINOS3-101`), which
 rebuilds the model anyway — dropping nine constant columns costs nothing there and is
 impossible here. This ticket then becomes the *analysis of record* plus a one-line change to
 the retrain's column list. ⚠ Net cap relief was never the point: it is 3 slots, and the

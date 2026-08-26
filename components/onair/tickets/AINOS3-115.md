@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-115
 slug: mid-stix-observable-map
 type: Spike
 epic: AINOS3-41 (coverage-expansion)
-status: Pending Jira key
+status: Open
 priority: High
 estimate: E 5 / T 1.5
 opened: 2026-08-26
 origin: AINOS3-96 (sparta-stix-ingest)
 ---
 
-# mid-stix-observable-map — Map NOS3/OnAIR MIDs to STIX pattern arguments
+# AINOS3-115 — Map NOS3/OnAIR MIDs to STIX pattern arguments
 
 **Summary:** Build a growable, verified/unverified lookup from STIX IOB pattern arguments to NOS3 telemetry fields — the keystone every other STIX use depends on.
 

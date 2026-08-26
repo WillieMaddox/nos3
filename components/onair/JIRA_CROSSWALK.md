@@ -135,17 +135,17 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-107 | frame-aliasing-semantics | Spike | detector-rigor | Frame aliasing and per-frame threshold meaning | Backlog |
 | AINOS3-108 | subscription-hygiene | Task | coverage-expansion | Resolve four silent MID subscriptions | Sprint 28 · ⛔ Blocked (schema removal needs a retrain — fold into AINOS3-101) |
 | AINOS3-109 | csv-prune-integrity-fields | Spike | corpus-integrity | The CSV prune drops security-relevant fields | Sprint 28 · ✅ Done |
-| — | build-missing-cfs-apps | Epic | — | Build the missing stock cFS apps |  |
-| — | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app |  |
-| — | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app |  |
-| — | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps |  |
-| — | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters |  |
-| — | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments |  |
-| — | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph |  |
-| — | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix |  |
-| — | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns |  |
-| — | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock |  |
-| — | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets |  |
+| AINOS3-110 | build-missing-cfs-apps | Epic | — | Build the missing stock cFS apps |  |
+| AINOS3-111 | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app |  |
+| AINOS3-112 | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app |  |
+| AINOS3-113 | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps |  |
+| AINOS3-114 | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters |  |
+| AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments |  |
+| AINOS3-116 | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph |  |
+| AINOS3-117 | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix |  |
+| AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns |  |
+| AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock |  |
+| AINOS3-120 | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets |  |
 | — | sunsafe-pivot | Spike | — | SUNSAFE-only pivot decision | ✅ Resolved |
 
 ### Retired `NOS3-###` draft IDs

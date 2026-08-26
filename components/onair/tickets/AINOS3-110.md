@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-110
 slug: build-missing-cfs-apps
 type: Epic
 epic: —
-status: Pending Jira key
+status: Open
 priority: Medium
 estimate: E 0 / T 0.0
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
-# build-missing-cfs-apps — Build the missing stock cFS apps
+# AINOS3-110 — Build the missing stock cFS apps
 
 **Summary:** Build the five stock cFS apps that NOS3 lists as available but neither loads nor builds.
 

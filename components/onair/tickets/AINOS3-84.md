@@ -2,7 +2,7 @@
 key: AINOS3-84
 slug: drop-bus-activity-retrain
 type: Task
-epic: classification-trust
+epic: AINOS3-31 (classification-trust)
 status: Open
 priority: Backlog
 opened: 2026-08-11
@@ -20,7 +20,7 @@ overall, but a few *pure bus-activity* features MASK real signal — dropping `C
 and the global EVS rate raised EX-0014.04 (PNT) F1 and helped IMP-0003 (denial) / IMP-0006
 (theft). This is a scoped, low-risk retrain: remove only the demonstrably-harmful pure
 bus-activity features (not the genuine per-app streams), retrain, and confirm LOIO shows no
-regression elsewhere before any deploy. Best folded into a `signal-feasibility` retrain if that clears,
+regression elsewhere before any deploy. Best folded into a `AINOS3-88` retrain if that clears,
 to avoid a redundant retrain/deploy cycle.
 
 ## Acceptance criteria
