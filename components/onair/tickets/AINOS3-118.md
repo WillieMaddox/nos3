@@ -147,3 +147,41 @@ of this AC.
 
 **AC3** partially satisfied for this one script (live-validated). AC1/AC4/AC5 and the other 17
 repairs remain — this slice is the exemplar the rest follow.
+
+### 2026-08-26 · Slice 2 (EX-0014.04 PNT) — repaired to a real position spoof; DETECTOR GAP found (AC4)
+
+Second slice, and a more valuable result than a clean catch: a validated **gap**.
+
+**The repair.** EX-0014.04 previously only *disabled* the receiver (the old "NOS3 can't do RF
+GNSS" premise, now overturned by slice 1). Added `--mechanism {disable, pnt-spoof}`: `pnt-spoof`
+forges the NOVATEL navigation solution (0x0871 via CI_LAB :5012) with an ECEF offset, the
+faithful **GNTM-11** footprint (`gnss:delta_position > expected`). Reuses the slice-1 builder.
+
+**Live-validated that it lands.** Fresh stack (SUNSAFE). The spoofed position dominated the
+recorded column — `ECEFX = 2884000` (= 2384000 + 500 km) in **179 of the last 400 rows**. The
+injection works exactly like the time spoof.
+
+**But the deployed v5 IF does NOT catch it — validated, not assumed.**
+
+- Static +500 km spoof (20 s, 120/s): **0 IF anomalies**; score 0.057–0.123, all normal
+  (threshold −0.000025).
+- Continuous walk-off ramp (ECEFX 2.38 M → 4.68 M, +50 km/packet sawtooth → a large delta
+  *every* frame): **0 IF anomalies**; score 0.058–0.122.
+- No rule-gate rule covers position (R15 is time-only); consistency-check is monotonic-counter
+  only. **All four gates miss it.**
+
+This directly contradicts the `features.py` design intent ("PNT spoof jumps out as a large
+delta"). NOVATEL ECEF/Vel are delta-only-kept precisely to catch this, yet a 400× nominal
+position delta does not move the score. Leading hypothesis: the training corpus carries torn
+NOVATEL reads (the same double-buffer tears that pin R15 as an FP), so large ECEF deltas were
+learned as "normal" and the feature is desensitized. Alternatives: near-zero position-delta
+importance in the SUNSAFE per-mode head, or a normalization that clips the delta.
+
+**Recorded for AC4 / feeds AINOS3-117 + the Sprint-29 retrain:** EX-0014.04 is *buildable and
+injectable* but *undetected*. The fix is a retrain action, not an attack-script fix — either
+exclude torn NOVATEL reads from training so position-delta stays sensitive, or add a dedicated
+position-consistency primitive (per-sample delta_position > physical bound). This is a concrete,
+named observability/detector gap, which is exactly the AC4 output.
+
+**Provenance caveat:** measured in SUNSAFE on one stack; the retrain analysis should confirm the
+torn-read hypothesis and check the other three per-mode heads.

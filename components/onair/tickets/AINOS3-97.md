@@ -47,8 +47,23 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC4` Nothing that a live artifact depends on is moved — verified by regenerating at least one
       dependent artifact after the move and diffing to zero.
 - [ ] `AC5` Space reclaimed recorded, and a note on whether deletion is now safe.
+- [ ] `AC6` **Torn-read filter for training** (from AINOS3-118 slice 2). Sparse double-buffer torn
+      reads on NOVATEL columns (the same tears that false-positive rule-gate R15) appear to
+      desensitize the v5 IF's position-delta feature: a live +500 km PNT spoof AND a continuous
+      walk-off ramp both score **0 anomalies**, though the spoof dominates the recorded column.
+      Define and apply a torn-read row/value filter to the training corpus so PNT position-delta
+      stays sensitive, then confirm EX-0014.04 (`--mechanism pnt-spoof`) becomes detectable after
+      a retrain — across all four per-mode heads, not just SUNSAFE.
 
 ## Log
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
 
+### 2026-08-26 · AC6 added — torn-read desensitization (origin: AINOS3-118 slice 2)
+
+AINOS3-118's EX-0014.04 repair surfaced a corpus-integrity defect that belongs here: torn
+NOVATEL reads scattered through the training corpus (row-level, not a whole superseded
+collection) appear to teach the v5 IF that large ECEF/position deltas are normal, so a real PNT
+position spoof is undetected (0 anomalies, static and ramping, in SUNSAFE). Filed as `AC6` — a
+retrain-time row filter, distinct from the collection-level quarantine of AC1–AC5. See the
+AINOS3-118 log + `project_ainos3_118_gps_spoof` for the validation detail.
