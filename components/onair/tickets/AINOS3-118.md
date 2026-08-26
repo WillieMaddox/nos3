@@ -3,7 +3,7 @@ key: AINOS3-118
 slug: stix-guided-attack-generation
 type: Story
 epic: AINOS3-41 (coverage-expansion)
-status: Open
+status: In Progress
 priority: Medium
 estimate: E 5 / T 2.0
 opened: 2026-08-26
@@ -53,3 +53,49 @@ Dated, append-only. Starts at the first real event — creation is implied by `o
 Results live here, not in a sprint plan.
 
 ⚠ **Depends on** `AINOS3-116` and `AINOS3-115`. AC2 (EX-0014.01) is buildable earlier — its observables are already known.
+
+### 2026-08-26 · Slice 1 (EX-0014.01) — spec derived, mechanism confirmed, LIVE INJECTION BLOCKED
+
+Progress on the first slice, and an honest blocker. ⚠ **AC2 is NOT met** — no live TP claimed.
+
+**Delivered:**
+
+- **The exact spec, parser-derived.** Using the `stix2patterns` library (available; the owner
+  flagged it) instead of regex, EX-0014.01's unique IOBs parse to precise comparisons:
+  GNTM-5 `sensor-data:timestamp != expected AND time:delta_value != expected`, GNTM-9
+  `gnss:delta_time < 0`, GNTM-10 `sensor-data:rewind_detected = true`. The parser cleanly
+  separates **selectors** (`=` on a literal, e.g. `sensor_type='gps_time'`) from **measures**
+  (`!=`/`<`), which is exactly the AINOS3-116 limitation. So the repair target is unambiguous:
+  **move the NOVATEL GPS time itself** (a rewind/discrepancy), NOT the FSW clock — a footprint
+  EX-0012.12's `SET_TIME` (which moves STCF, leaving NOVATEL untouched) cannot produce.
+- **Mechanism confirmed in source.** `ci_lab_app.c:342-348`: CI_LAB reads any UDP packet on
+  :5012 and calls `CFE_SB_TransmitBuffer` — it republishes whatever StreamId it receives. This
+  overturns the stale `ex_0014_02_bus_traffic_spoofing.md` ("out of scope"), consistent with
+  the AINOS3-95 finding. Confirmed live: a command (CFE_ES NOOP, 0x1806) sent to :5012 IS
+  republished and processed.
+
+**⚠ The blocker — CI_LAB republishes commands but injected TELEMETRY does not reach OnAIR.**
+Built a byte-exact spoofed NOVATEL device packet (0x0871, 12B tlm header + 74B payload, time
+moved forward), flooded it at ~25/s to beat R15's median-5 filter. Decisive test: in an 8 s
+window **88 real 0x0871 packets reached OnAIR and the spoofed `Weeks=999` value appeared 0
+times** — the injected packet is not forwarded to OnAIR, with no CI_LAB ingest/send error
+logged. The command path (0x1806) works via the same port, so CI_LAB is alive and republishing;
+something specific to the telemetry packet (CFE_MSG validation of the tlm secondary header, or
+SBN not re-forwarding a CI_LAB-origin telemetry MID) drops it before OnAIR. 4 focused attempts;
+stopped rather than grind.
+
+**Next steps for this slice (not done here):**
+
+1. Determine why a CI_LAB-republished telemetry MID does not reach OnAIR via SBN when the real
+   one does — likely the tlm secondary-header format, or an SBN forward filter on origin.
+2. The AINOS3-95 memory records a *working* spoof demo (spoofed IMU_HK seen by OnAIR); recover
+   that packet format — it encodes the header this manual attempt is getting wrong.
+3. The `/sparta-attack-test` skill may carry a working injection harness; try it before more
+   hand-rolling.
+
+**Concrete follow-up for AINOS3-116 (separate):** retrofit `stix_iob_index.py`'s `--coverage` to
+use `stix2patterns` instead of regex — it resolves the AND/OR and selector-vs-measure
+limitations recorded there. The parser is the right substrate for the whole STIX program.
+
+**No stack state changed** — the injected packets never reached the SB, and no SET_TIME was
+fired.
