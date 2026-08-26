@@ -41,7 +41,7 @@ an epic seed, not one change.
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` A prioritised list of buildable missing vectors (arguments that map to recorded observables), distinct from those needing observability work first.
+- [x] `AC1` A prioritised list of buildable missing vectors (arguments that map to recorded observables), distinct from those needing observability work first.
 - [x] `AC2` The EX-0014.01 repair as the first slice and exemplar: a script spoofing the NOVATEL GPS time input (via the `ci_lab` republish path), producing a GPS-time-anomaly footprint EX-0012.12 cannot — live-validated, confirming R15 actually catches it (closing the `AINOS3-96` 'recorded ≠ works' caveat).
 - [ ] `AC3` Each repaired/new script live-validated via `/sparta-attack-test`; paper-only matches do not count.
 - [ ] `AC4` For scripts that cannot produce their pattern's footprint, a recorded reason (observability gap vs not-modelled), feeding `AINOS3-117`.
@@ -259,3 +259,23 @@ This sharpens the AINOS3-96 "18 partials": a chunk of them are **command-path-fa
 detection-covered, effect-not-injectable** (AC4), distinct from the genuinely-repairable
 telemetry-spoof family (EX-0014.x, done). The DE-0003 "conceal activity" seven remain their own
 category (intent has near-zero observable by design).
+
+### 2026-08-26 · AC1 DONE — prioritised vector backlog
+
+Formalised the buildable-vs-observability split into `AINOS3_118_VECTOR_BACKLOG.md`, grounded in
+the live findings + the mechanical inventory (40 subscribed MIDs × model-feature × mask × rule
+coverage). Key structural result, mechanically confirmed: the five attitude sensors
+(IMU/MAG/CSS/FSS/ST) all fuse into `ADCS_DI.Payload.<sensor>.*` **features** (so a spoof reaches
+the IF), while **`ADCS_DI.Gps` has 0 features** and `NOVATEL.*` is masked — which is exactly WHY
+slice 3 (IMU) was caught and slice 2 (GPS position) was a gap. The backlog gives:
+
+- **Tier 1 (buildable + reaches a detector):** the MAG/CSS/FSS/ST sensor-spoof family (reuses the
+  validated IMU inject→ADCS_DI→IF path) and RW/THRUSTER actuator spoofs (direct IF features).
+- **Tier 2 (buildable but undetected):** NOVATEL position (done → AINOS3-97 AC6) + recording-only
+  MIDs with no rule/fusion (build only to document).
+- **Not buildable now:** footprint-limit (table family, slice 4), deprecated (IMP → AINOS3-101),
+  intent-gap (DE-0003), needs-observability (unsubscribed / unrepresentable args).
+
+Prioritised by leverage over the retrain/coverage destination, per the standing direction.
+AC1/AC2/AC4 done; AC3 = 3 scripts validated; AC5 = 4 slices. The remaining repair work is Tier 1
+(sensor/actuator family) — no longer blocked on analysis.
