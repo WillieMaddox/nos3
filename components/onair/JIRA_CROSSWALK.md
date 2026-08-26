@@ -140,6 +140,10 @@ Sorted by key; unkeyed slugs (`—`) last.
 | — | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app |  |
 | — | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps |  |
 | — | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters |  |
+| — | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments |  |
+| — | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph |  |
+| — | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix |  |
+| — | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns |  |
 | — | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock |  |
 | — | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets |  |
 | — | sunsafe-pivot | Spike | — | SUNSAFE-only pivot decision | ✅ Resolved |
@@ -177,7 +181,7 @@ Keys for the four new slugs were created and entered **2026-08-23**: `corpus-int
 and `retrain-clean-corpus` (AINOS3-101). The last two are the **Sprint 29** spine, created
 early so the deferral is tracked on the board rather than in a plan document.
 
-### AINOS3-95 backlog — slugs reserved, awaiting Jira keys (2026-08-25)
+### AINOS3-95 / AINOS3-96 backlog — slugs reserved, awaiting Jira keys (2026-08-25/26)
 
 Fifteen tickets produced by `AINOS3-95` (`sparta-logging-gap-analysis`) when it closed. **No
 Jira keys yet** — `—` per this file's convention. Bodies are written and live in
