@@ -47,13 +47,16 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC4` Nothing that a live artifact depends on is moved — verified by regenerating at least one
       dependent artifact after the move and diffing to zero.
 - [ ] `AC5` Space reclaimed recorded, and a note on whether deletion is now safe.
-- [ ] `AC6` **Torn-read filter for training** (from AINOS3-118 slice 2). Sparse double-buffer torn
-      reads on NOVATEL columns (the same tears that false-positive rule-gate R15) appear to
-      desensitize the v5 IF's position-delta feature: a live +500 km PNT spoof AND a continuous
-      walk-off ramp both score **0 anomalies**, though the spoof dominates the recorded column.
-      Define and apply a torn-read row/value filter to the training corpus so PNT position-delta
-      stays sensitive, then confirm EX-0014.04 (`--mechanism pnt-spoof`) becomes detectable after
-      a retrain — across all four per-mode heads, not just SUNSAFE.
+- [ ] `AC6` **Torn-read filter for training** (from AINOS3-118 slice 2). ⚠ Premise corrected by
+      AINOS3-121: the position/MAG spoof misses are **not** caused by torn-read *desensitization* —
+      the harness shows the deployed IF misses ANY single-subsystem spoof (0% in all four modes)
+      because 1%-FP thresholds sit in the low tail of concentrated nominal distributions, so no
+      small feature-subset can cross. A torn-read filter therefore **will not** make EX-0014.04
+      detectable by the IF. It is still worth doing for a *different, confirmed* reason — torn
+      NOVATEL reads false-positive rule-gate R15 (they survive its median-5 on long-uptime stacks) —
+      so scope this AC to **de-noising the corpus for R15 + general data hygiene**, not as the fix
+      for the PNT gap. The PNT/MAG/IMU gap fix is a per-subsystem detection primitive (tracked on
+      AINOS3-118), not a training filter.
 
 ## Log
 

@@ -14,16 +14,15 @@ A vector is decided on two independent axes.
   onto the Software Bus (validated slices 1-3). Command-path techniques are buildable by
   definition (the command bus is external).
 - **Detectable** — the produced observable reaches a gate:
-  - **IF** if the spoofed field is a **non-masked model feature OR propagates** into one — but
-    feature-membership is **necessary, not sufficient** (⚠ corrected slice 5). Observed: a forged
-    IMU rate (`ADCS_DI.Payload.Imu.wbn`) marginally trips the IF; a forged MAG intensity reaches
-    `ADCS_DI.Payload.Mag.bvb` (a used feature) yet the IF **misses it** even at 1000×; GPS position
-    neither fuses (`ADCS_DI.Gps` = 0 features) nor survives the delta-only **mask**. These are
-    **operational** results (what the deployed model does). The tempting *mechanism* — "rate-like
-    features catchable, field/position-like absorbed" — is an **unverified hypothesis**: it has not
-    passed a positive-control sensitivity test, because live scoring is not yet reproducible offline
-    (AINOS3-121). Treat the "detectable?" column below as *deployed-model
-    coverage*, not as a law about what is detectable in principle.
+  - **IF** — VERIFIED by AINOS3-121 (reproducible harness, exact score match): a spoof confined to
+    **one subsystem's telemetry** (position / MAG / IMU — a few features) is **undetected in all
+    four modes, at any magnitude** (0% of nominal baselines cross; the response saturates). The
+    features ARE used and the model DOES detect broad multi-feature anomalies, so these are **true
+    coverage gaps**, not model-blind artifacts. The mechanism is **not** "high variance" and **not**
+    mode-specific (both earlier guesses were wrong): calibrating each threshold to 1% FP puts it in
+    the extreme low tail of a concentrated nominal distribution, so **no small feature-subset carries
+    enough score weight to cross**. The deployed IF is a *broad-anomaly* detector; single-subsystem
+    spoofs fall below its granularity. Run `if_audit.py` to reproduce.
   - **rule-gate** if a rule watches that MID's counter/flag/state (R1-R16).
   - **consistency / staleness** for monotonic-counter and frozen-stream footprints.
 
@@ -32,12 +31,13 @@ caught — the double-buffer flicker holds the feature for a fraction of frames,
 IF sees brief discontinuities, not a sustained regime shift (IMU: 1-7 anomaly frames). A
 recorded observable is also not a verified one until fired live (the AINOS3-96 caveat).
 
-> ⚠ **IF-null epistemics (standing rule).** A 0-anomaly IF result backs an **operational
-> coverage** statement immediately ("the deployed detector missed this, live"), but it backs a
-> **mechanistic / design** conclusion ("this is fundamentally IF-undetectable", "because feature
-> X is high-variance") **only after** AINOS3-121 clears that feature with a
-> reproduced score + positive control. Every "MISS / GAP" verdict here is the former until that
-> spike says otherwise.
+> ⚠ **IF-null epistemics (standing rule, AINOS3-121).** A 0-anomaly IF result backs an
+> **operational coverage** statement immediately ("the deployed detector missed this, live"). It
+> backs a **mechanistic / design** conclusion only after `if_audit.py` shows, for that feature and
+> mode: (a) the offline score reproduces the live one, (b) the feature is responsive and the
+> attack still 0% — a *true coverage gap* — and (c) the mode's positive control is high (a mode
+> whose posctl is low, **e.g. BDOT at 1%, is inert and its nulls mean nothing**). The gaps below
+> have now passed (a)+(b) in all four modes; BDOT additionally fails (c).
 
 ## Detectability matrix (40 subscribed MIDs)
 
@@ -48,7 +48,7 @@ The backbone. "IF" = spoof reaches the isolation forest (directly or via ADCS_DI
 |---|---|---|---|---|
 | 0x0871 | NOVATEL (device) | masked; no ADCS_DI fusion | R15 (time only) | **time→R15**, **position→GAP** |
 | 0x0926 | IMU_DEV | → ADCS_DI.Imu (14 feat) | R1 on IMU.DeviceEnabled | **rate→IF (marginal)** |
-| 0x092B | MAG_DEV | → ADCS_DI.Mag.bvb (used feature) | R1 | **deployed IF MISS** (slice 5; why: open) |
+| 0x092B | MAG_DEV | → ADCS_DI.Mag.bvb (used feature) | R1 | **true coverage gap** — verified 0% all modes (AINOS3-121) |
 | 0x0911 | CSS_DEV | → ADCS_DI.Css (attitude-like?) | R1 | buildable → IF **must test** |
 | 0x0921 | FSS_DEV | → ADCS_DI.Fss (attitude-like?) | R1 | buildable → IF **must test** |
 | 0x0935 | ST_DEV | → ADCS_DI.St (attitude-like?) | R1 | buildable → IF **must test** |
@@ -71,7 +71,7 @@ live-verified coverage cheaply.
   case). Each raw device MID (0x0911 / 0x0921 / 0x0935) fuses into its
   `ADCS_DI.Payload.<sensor>.*` features. ⚠ **Test each — do not assume** (slice 5): whether the IF
   isolates a spoof there is **not predictable from feature-membership alone** and must be measured
-  per sensor (the rate-vs-field intuition is unverified — AINOS3-121). One `--mechanism sensor-spoof` slice per sensor, kept in
+  per sensor — but AINOS3-121 shows the deployed IF misses ANY single-subsystem spoof (0% all modes), so CSS/FSS/ST will read the same until a per-subsystem primitive exists. One `--mechanism sensor-spoof` slice per sensor, kept in
   Tier 1 only until its test says catchable. **MAG is already tested → Tier 2 (IF-blind).**
 - **Actuator spoof — RW / THRUSTER** (0x0993 / 0x08EA are direct IF features). A forged wheel
   speed / thruster state inconsistent with commanded torque is a dynamics contradiction the IF
@@ -86,7 +86,7 @@ Value is in proving and bounding the blind spot, feeding the retrain / rule work
   (torn-read training filter) or a position-consistency primitive.
 - **MAG intensity spoof (EX-0014.03 MAG)** — DONE (slice 5). Propagates to `ADCS_DI.Mag.bvb`
   (a used feature) but the **deployed** IF misses it even at 1000×. Whether that is a true
-  coverage gap or a model-blind artifact is **open** — AINOS3-121 re-adjudicates.
+  coverage gap is **confirmed** (AINOS3-121: 0% cross in all four modes; feature responsive, attack still missed — not model-blind).
   Candidate detector-side fix regardless: a magnitude/range consistency check on `bvb`.
 - **Any recording-only MID with no rule and no ADCS_DI fusion** — e.g. TORQUER (0x093A),
   DS (0x08B8). A spoof lands in the CSV but no gate sees it. Build only to document; each is a

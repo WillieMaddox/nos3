@@ -7,7 +7,7 @@ per-mode heads) + the four parallel detector gates (rule-gate R1–R14,
 consistency-check, staleness-check) currently deployed in the OnAIR plugin against
 the NOS3 cFS flight software.
 
-**Last updated:** 2026-08-20 — **the classifier confidence tiers (§4) were re-derived and
+**Last updated:** 2026-08-27 — added §A0 (single-subsystem-spoof blindness + BDOT inertness, measured via AINOS3-121's `if_audit.py`) and the IF-null validation rule. 2026-08-20 — **the classifier confidence tiers (§4) were re-derived and
 most of them moved.** They had been hardcoded, unreproducible strings; an audit found that
 **none of the four techniques published as ROBUST met the documented "F1 ≥ 0.85 on every
 split" rule** (`DE-0003.01` averaged 0.03). Tiers now come from
@@ -379,6 +379,31 @@ split is now **42 detected · 26 out-of-scope · 0 not-evaluated · 109 not-appl
 ---
 
 ## What it does NOT catch (the honest limits)
+
+### A0. Single-subsystem spoofs — and how we validate an "it doesn't catch" claim
+
+The anomaly detector is a **broad-anomaly** detector. A spoof confined to **one subsystem's
+telemetry** — a forged GPS position, magnetometer reading, or IMU rate — is **not caught in any
+ADCS mode, at any magnitude.** This was *measured*, not assumed (AINOS3-121): an offline harness
+that reproduces the live score exactly, run against captured nominal frames in all four modes,
+shows such spoofs move the score too little to cross the alarm threshold (0% of nominal frames,
+even at 1000× magnitude). The reason is structural — each threshold is calibrated to a 1% false-
+alarm rate, which places it in the far tail of a tightly-clustered nominal distribution, so no
+small group of fields carries enough weight to trip it. The fix is a **targeted per-subsystem
+check** (range / consistency), not a change to the anomaly model.
+
+⚠ **`MODE_BDOT` is effectively blind.** Its detector was calibrated on far less nominal data than
+the others (296 samples vs 14k–53k) and is so conservative that *even a massive, broad
+perturbation barely trips it* — it would miss real anomalies, not just sensor spoofs. BDOT needs a
+proper nominal re-collection and recalibration (Sprint-29 retrain).
+
+**Standing rule for this document.** An "it doesn't catch X" statement is an *operational* fact —
+what the deployed detector did — and may be stated as such immediately. A *mechanistic* claim
+("because …", "fundamentally undetectable") requires running `components/onair/training/if_audit.py`
+first: it must reproduce the live score, show the feature is responsive but the attack still 0% (a
+true gap), and show the mode's positive control is high (else that mode is inert and its "misses"
+mean nothing). Cite its output when making such a claim.
+
 
 ### A. Detection is structurally tied to SUNSAFE mode
 

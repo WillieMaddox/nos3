@@ -320,3 +320,17 @@ unverified hypothesis, pending AINOS3-121). MAG joins EX-0014.04 as a
 **buildable-but-undetected** (Tier-2) vector, not a Tier-1 win. The faithful MAG spoof mechanism
 is validated (it lands in the recorded feature); the *deployed detector* gives no coverage — and
 whether that is fixable-by-retrain or fundamental is what the audit spike decides.
+
+### 2026-08-27 · Gap mechanism RESOLVED by AINOS3-121 (supersedes the slice 2/3/5 hedges)
+
+The "unverified hypothesis" caveats on the slice-2 (position), slice-3 (IMU) and slice-5 (MAG)
+gaps are now settled. AINOS3-121 built a reproducible offline harness (exact live-score match)
+and ran per-mode positive controls: a spoof confined to **one subsystem** (position / MAG / IMU)
+is **undetected by the deployed IF in all four modes, at any magnitude** — a **true coverage
+gap**, not a model-blind artifact (the features are used and the model detects broad anomalies).
+The mechanism is **neither "high variance" nor mode-specific** (both earlier guesses were wrong):
+the 1%-FP thresholds sit in the extreme low tail of concentrated nominal distributions, so no
+small feature-subset carries enough score weight to cross. **Consequence for this ticket:** the
+Tier-1 CSS/FSS/ST sensor-spoof slices will read the same 0% — the fix is a **per-subsystem
+detection primitive** (a range/consistency check), not more spoof scripts and not a feature
+un-mask. Detail + the `if_audit.py` tool live in AINOS3-121.
