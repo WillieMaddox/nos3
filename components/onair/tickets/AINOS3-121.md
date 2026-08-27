@@ -3,9 +3,11 @@ key: AINOS3-121
 slug: if-scoring-audit
 type: Spike
 epic: AINOS3-79 (detector-rigor)
-status: Backlog
+status: Open
 priority: High
+estimate: E 5 / T 1.5
 opened: 2026-08-27
+sprints: [28]
 origin: AINOS3-118 (challenge to IF-null conclusions)
 ---
 

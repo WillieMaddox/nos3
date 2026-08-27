@@ -76,9 +76,11 @@ assigned** — the four new slugs got keys on 2026-08-23 (`AINOS3-98`–`AINOS3-
 | AINOS3-102 | headless-sim-coverage-gap | Bug | High | 2 | 0.5 | **Added 08-25.** Payload sims absent from the headless launch — coverage verified on the wrong stack |
 | AINOS3-109 | csv-prune-integrity-fields | Spike | Medium | 2 | 0.5 | **Added 08-25.** The CSV prune drops `CFECoreChecksum` *because* it is static — which is the signal |
 | AINOS3-103 | detect-cf-file-faults | Story | High | 2 | 0.5 | **Added 08-25.** R-rule on CF file-op faults — the sprint's second shipped detector |
+| AINOS3-118 | stix-guided-attack-generation | Story | High | 5 | 2.0 | **Added 08-27.** Repair attack scripts from STIX IOB patterns; EX-0014 family done (2 TPs + a validated IF gap) |
+| AINOS3-121 | if-scoring-audit | Spike | **High** | 5 | 1.5 | **Added 08-27.** Reproduce IF scores offline + positive controls; gates every IF-null gap conclusion and the Sprint-29 retrain trust |
 
-**Committed set:** E = **28** · T = **7.75** (was E 20 / T 5.75 at kickoff; **+8 E added
-mid-sprint 2026-08-25** — see below). See the [capacity note](#capacity-note).
+**Committed set:** E = **38** · T = **11.25** (was E 20 / T 5.75 at kickoff; **+8 E added
+2026-08-25**, **+10 E added 2026-08-27** — see below). See the [capacity note](#capacity-note).
 
 **Stretch set:** E = **7**.
 
@@ -104,6 +106,20 @@ exactly that basis:
 - **`AINOS3-108`** drops columns (four subscribed MIDs that never transmit)
 - **`AINOS3-102`** may add columns back (whether `cam-sim` joins the headless launch)
 - **`AINOS3-109`** may restore columns (whether pruned integrity fields reach the CSV)
+
+## Mid-sprint addition, 2026-08-27 — `AINOS3-118` + `AINOS3-121`
+
+Two tickets pulled in from the `AINOS3-96` STIX thread, which ran hot this session:
+
+- **`AINOS3-118`** (was forward work off `AINOS3-96`) — the EX-0014 spoof family is repaired and
+  live-validated: `.01` GPS-time → R15 (strong TP), `.03` IMU-rate → IF (marginal TP), `.04` GPS
+  position → a validated detector gap. AC1 (prioritised vector backlog) and AC2 (exemplar) done.
+  In-sprint because the work is already delivering coverage findings that feed the rebuild.
+- **`AINOS3-121`** (`if-scoring-audit`, **new**) — a methodology challenge showed our IF-null
+  conclusions ("0 anomalies → gap") rest on an unvalidated assumption: an offline `decision_function`
+  does not reproduce the live score, so no positive control has run. This spike makes IF nulls
+  trustworthy for design use and **gates** both the `AINOS3-118` gap adjudication and the Sprint-29
+  retrain evaluation — high enough leverage to commit now rather than defer.
 
 They run in that order because each constrains the next: 108 frees subscription-cap slots that
 102 may need, and 109 settles the prune rule before any later work produces more integrity

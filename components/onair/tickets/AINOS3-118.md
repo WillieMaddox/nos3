@@ -7,6 +7,7 @@ status: In Progress
 priority: Medium
 estimate: E 5 / T 2.0
 opened: 2026-08-26
+sprints: [28]
 origin: AINOS3-96 (sparta-stix-ingest)
 ---
 
