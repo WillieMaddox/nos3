@@ -186,6 +186,14 @@ named observability/detector gap, which is exactly the AC4 output.
 **Provenance caveat:** measured in SUNSAFE on one stack; the retrain analysis should confirm the
 torn-read hypothesis and check the other three per-mode heads.
 
+⚠ **Mechanism caveat (added after a methodology challenge):** the *operational* result — the
+deployed model gives 0 coverage for a position spoof, live — is solid. The *mechanism* (masked +
+torn-read desensitised) mixes one fact (the `NOVATEL.*` raw columns are delta-only masked — see
+`features.py`) with one **unverified** hypothesis (desensitisation). A structural audit shows the
+`d_ECEF*` features ARE used by the model, so a positive-control sensitivity test is needed to
+decide *true coverage gap* vs *model-blind*; it could not be run yet (offline scoring not
+reproducible). Tracked in AINOS3-121; it re-adjudicates this gap.
+
 ### 2026-08-26 · Slice 3 (EX-0014.03 Sensor Data) — repaired; MARGINAL IF catch; completes the EX-0014 contrast
 
 Third slice. Repaired EX-0014.03 from sensor-*disable* to a real IMU data fabrication
@@ -200,11 +208,11 @@ spoofed value took `wbn` in 63/300 rows during the ad-hoc probe.
 **Marginal but real IF catch — honestly characterised, not oversold.** Baseline 0% anomalies;
 during injection the IF score dips clearly negative (−0.0130 to −0.0169, below the −0.000025
 threshold) and flags anomaly frames — but only **1–7 frames (~0.6–1.8%)**, a contiguous burst,
-not a sustained alert. Cause: the double-buffer flicker means the spoofed `wbn` holds for only a
-fraction of frames, so the IF sees brief discontinuities rather than a sustained regime shift.
-The dynamics IF is tuned for *sustained* physics perturbations (a thruster firing, a real
-tumble), and an injected-telemetry flicker only marginally crosses its threshold. A defensible
-TP by provenance (clean baseline, score demonstrably anomalous during the window), but weak.
+not a sustained alert. A defensible TP by provenance (clean baseline, score demonstrably
+anomalous during the window), but weak. The *operational* claim (a real, weak live catch) stands;
+the proposed *cause* (flicker holds `wbn` only briefly / the IF prefers sustained perturbations)
+is a plausible but **unverified** mechanism — see AINOS3-121 for the positive
+control that would confirm it.
 
 **The EX-0014 family now tells one coherent detector-coverage story** (all three sub-techniques
 repaired + live-validated):
@@ -294,16 +302,20 @@ intensity) propagates to `ADCS_DI.Payload.Mag.bvb` (a feature) and onward to `AD
 left the normal band. High occupancy + absurd magnitude rules out the flicker/occupancy
 explanation — it is genuine IF insensitivity to `bvb`.
 
-**Why, and the AC1 correction.** `bvb` is the body-frame magnetic-field vector — it **naturally
-sweeps its full range** as the vehicle moves through Earth's field, so the IF learned a
-high-variance distribution and a large spoof is absorbed. IMU angular *rate* (`wbn`) is
-low-variance in a stable attitude, so its spoof marginally isolates. **"Reaches a model feature"
-is necessary but NOT sufficient** — the feature must also be **low-variance / discriminable** for
-a spoof to score anomalous. This corrects the Tier-1 premise in the AC1 backlog (fixed there):
-attitude sensors are NOT uniformly IF-detectable; it is per-feature.
+**Operational fact vs mechanism (⚠ corrected after a methodology challenge).** The *operational*
+result stands: the **deployed** detector gave **0 coverage** for the MAG spoof, live. The
+*mechanism* I first gave — "`bvb` is high-variance so the spoof is absorbed" — is an **unverified
+hypothesis**, not established. A structural audit shows `bvb` IS used by the model (~60-76 splits),
+so "ignored feature" is refuted; but the positive-control that would confirm the variance story (a
+per-feature sensitivity sweep) **could not be run** — an offline `decision_function` does not
+reproduce the live score (nominal frame: offline −0.0265 vs live normal). So the correct, earned
+claim is only: **feature-membership is necessary but not sufficient for detection, and MAG spoofing
+gets no coverage from the deployed model** — the *why* is open pending AINOS3-121
+(AINOS3-79). CSS/FSS/ST stay "must-test", and the test is only trustworthy once that spike lands.
 
-**Consequence for the family:** CSS / FSS / ST must be **tested, not assumed** — each depends on
-whether its derived feature is rate-like (low-variance, catchable) or field/attitude-like
-(high-variance, absorbed). MAG joins EX-0014.04 as a **buildable-but-undetected** (Tier-2) vector,
-not a Tier-1 win. Faithful MAG spoof mechanism is validated; the detector, not the script, is the
-limit.
+**Consequence for the family:** CSS / FSS / ST must be **tested, not assumed** — feature-membership
+does not predict whether the deployed IF flags a spoof (the rate-vs-field intuition is an
+unverified hypothesis, pending AINOS3-121). MAG joins EX-0014.04 as a
+**buildable-but-undetected** (Tier-2) vector, not a Tier-1 win. The faithful MAG spoof mechanism
+is validated (it lands in the recorded feature); the *deployed detector* gives no coverage — and
+whether that is fixable-by-retrain or fundamental is what the audit spike decides.

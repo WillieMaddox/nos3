@@ -14,15 +14,16 @@ A vector is decided on two independent axes.
   onto the Software Bus (validated slices 1-3). Command-path techniques are buildable by
   definition (the command bus is external).
 - **Detectable** — the produced observable reaches a gate:
-  - **IF** if the spoofed field is a **non-masked model feature OR propagates** into one, **AND
-    that feature is low-variance enough for a spoof to isolate**. Feature-membership is necessary
-    but NOT sufficient (⚠ corrected slice 5). Validated: a forged IMU `AngularAcc` lands in
-    `ADCS_DI.Payload.Imu.wbn` (a low-variance *rate*) and the IF marginally catches it; a forged
-    MAG intensity lands in `ADCS_DI.Payload.Mag.bvb` (a *field vector* that naturally sweeps its
-    full range) and the IF **misses it entirely** even at 1000× magnitude. GPS position neither
-    fuses (`ADCS_DI.Gps` = 0 features) nor survives the delta-only **mask**, so it is IF-invisible.
-    Rule of thumb: **rate-like** derived features are catchable, **field/attitude/position-like**
-    ones are absorbed.
+  - **IF** if the spoofed field is a **non-masked model feature OR propagates** into one — but
+    feature-membership is **necessary, not sufficient** (⚠ corrected slice 5). Observed: a forged
+    IMU rate (`ADCS_DI.Payload.Imu.wbn`) marginally trips the IF; a forged MAG intensity reaches
+    `ADCS_DI.Payload.Mag.bvb` (a used feature) yet the IF **misses it** even at 1000×; GPS position
+    neither fuses (`ADCS_DI.Gps` = 0 features) nor survives the delta-only **mask**. These are
+    **operational** results (what the deployed model does). The tempting *mechanism* — "rate-like
+    features catchable, field/position-like absorbed" — is an **unverified hypothesis**: it has not
+    passed a positive-control sensitivity test, because live scoring is not yet reproducible offline
+    (AINOS3-121). Treat the "detectable?" column below as *deployed-model
+    coverage*, not as a law about what is detectable in principle.
   - **rule-gate** if a rule watches that MID's counter/flag/state (R1-R16).
   - **consistency / staleness** for monotonic-counter and frozen-stream footprints.
 
@@ -30,6 +31,13 @@ A vector is decided on two independent axes.
 caught — the double-buffer flicker holds the feature for a fraction of frames, so the dynamics
 IF sees brief discontinuities, not a sustained regime shift (IMU: 1-7 anomaly frames). A
 recorded observable is also not a verified one until fired live (the AINOS3-96 caveat).
+
+> ⚠ **IF-null epistemics (standing rule).** A 0-anomaly IF result backs an **operational
+> coverage** statement immediately ("the deployed detector missed this, live"), but it backs a
+> **mechanistic / design** conclusion ("this is fundamentally IF-undetectable", "because feature
+> X is high-variance") **only after** AINOS3-121 clears that feature with a
+> reproduced score + positive control. Every "MISS / GAP" verdict here is the former until that
+> spike says otherwise.
 
 ## Detectability matrix (40 subscribed MIDs)
 
@@ -40,7 +48,7 @@ The backbone. "IF" = spoof reaches the isolation forest (directly or via ADCS_DI
 |---|---|---|---|---|
 | 0x0871 | NOVATEL (device) | masked; no ADCS_DI fusion | R15 (time only) | **time→R15**, **position→GAP** |
 | 0x0926 | IMU_DEV | → ADCS_DI.Imu (14 feat) | R1 on IMU.DeviceEnabled | **rate→IF (marginal)** |
-| 0x092B | MAG_DEV | → ADCS_DI.Mag.bvb (high-variance) | R1 | **rate n/a → IF MISS** (slice 5) |
+| 0x092B | MAG_DEV | → ADCS_DI.Mag.bvb (used feature) | R1 | **deployed IF MISS** (slice 5; why: open) |
 | 0x0911 | CSS_DEV | → ADCS_DI.Css (attitude-like?) | R1 | buildable → IF **must test** |
 | 0x0921 | FSS_DEV | → ADCS_DI.Fss (attitude-like?) | R1 | buildable → IF **must test** |
 | 0x0935 | ST_DEV | → ADCS_DI.St (attitude-like?) | R1 | buildable → IF **must test** |
@@ -61,9 +69,9 @@ live-verified coverage cheaply.
 
 - **Attitude-sensor spoof family — CSS / FSS / ST** (extends the validated EX-0014.03 IMU
   case). Each raw device MID (0x0911 / 0x0921 / 0x0935) fuses into its
-  `ADCS_DI.Payload.<sensor>.*` features. ⚠ **Test each — do not assume** (slice 5): only if the
-  derived feature is *rate-like* (low-variance) will the IF isolate a spoof; *attitude/angle-like*
-  features behave like MAG (absorbed). One `--mechanism sensor-spoof` slice per sensor, kept in
+  `ADCS_DI.Payload.<sensor>.*` features. ⚠ **Test each — do not assume** (slice 5): whether the IF
+  isolates a spoof there is **not predictable from feature-membership alone** and must be measured
+  per sensor (the rate-vs-field intuition is unverified — AINOS3-121). One `--mechanism sensor-spoof` slice per sensor, kept in
   Tier 1 only until its test says catchable. **MAG is already tested → Tier 2 (IF-blind).**
 - **Actuator spoof — RW / THRUSTER** (0x0993 / 0x08EA are direct IF features). A forged wheel
   speed / thruster state inconsistent with commanded torque is a dynamics contradiction the IF
@@ -77,9 +85,9 @@ Value is in proving and bounding the blind spot, feeding the retrain / rule work
   column, **0 gates catch it** (masked + no ADCS_DI fusion). Fix filed: AINOS3-97 AC6
   (torn-read training filter) or a position-consistency primitive.
 - **MAG intensity spoof (EX-0014.03 MAG)** — DONE (slice 5). Propagates to `ADCS_DI.Mag.bvb`
-  (a feature) but the IF misses it even at 1000× — `bvb` is a naturally high-variance field
-  vector. Detector fix, not a script fix: a magnitude/range consistency check on `bvb`, or a
-  variance-aware feature transform in the retrain.
+  (a used feature) but the **deployed** IF misses it even at 1000×. Whether that is a true
+  coverage gap or a model-blind artifact is **open** — AINOS3-121 re-adjudicates.
+  Candidate detector-side fix regardless: a magnitude/range consistency check on `bvb`.
 - **Any recording-only MID with no rule and no ADCS_DI fusion** — e.g. TORQUER (0x093A),
   DS (0x08B8). A spoof lands in the CSV but no gate sees it. Build only to document; each is a
   candidate rule-gate rule, not a detection win yet.
