@@ -34,7 +34,6 @@ per-attack results instead of raw frame scores.
 | AINOS3-27 | Task | High | 5 | 1.0 | Re-score the corpus at incident granularity |
 | AINOS3-28 | Epic | — | — | — | SPARTA demo app |
 | AINOS3-29 | Story | Medium | 5 | 1.25 | Demo app Tier A shows real per-technique status |
-| sunsafe-pivot | Spike | — | — | — | (Resolved) SUNSAFE-only pivot decision |
 
 **Totals (delivered tickets):** E = 21 · T = 5.0 (≈ 40 ideal hours).
 
@@ -136,20 +135,6 @@ out of scope (see AINOS3-46).
 - No console errors; Tier B/C explicitly deferred.
 
 **Stretch goal** (depends on AINOS3-27 for live incident data).
-
----
-
-## ✅ Resolved — no work this sprint
-
-### sunsafe-pivot — SUNSAFE-only pivot decision · `Spike` · Resolved · E — · T —
-
-**Summary:** Decide whether to pivot to a SUNSAFE-only detector if other modes
-are too noisy or v5 drifts.
-
-**Description:** The Week-1 6.6h drift soak (0.01% FP, no drift) and the
-all-modes soak protocol (INERTIAL/BDOT steady-state ≤0.00%) resolve this spike:
-the "pivot to SUNSAFE-only" fallback is **not triggered**. Sprint proceeds as
-planned; the SUNSAFE-routed detection caveat stays documented, not "fixed."
 
 ---
 
