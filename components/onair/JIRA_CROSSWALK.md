@@ -143,7 +143,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns | Sprint 28 · ▶️ In Progress |
 | AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock | Backlog |
 | AINOS3-120 | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets | Backlog |
-| AINOS3-121 | if-scoring-audit | Spike | detector-rigor | Reproducible IF scoring + per-feature sensitivity/calibration audit | Sprint 28 · ◑ Committed |
+| AINOS3-121 | if-scoring-audit | Spike | detector-rigor | Reproducible IF scoring + per-feature sensitivity/calibration audit | Sprint 28 · ✅ Done |
 
 ## Sprint 28 (planning)
 
