@@ -19,8 +19,10 @@ The rules, and what each check enforces:
   2. ONE ROW PER KEY. A key naming two slugs is the AINOS3-30 failure recurring.
   3. NO DISAGREEMENT. If a slug or key does appear twice, the other column must
      still agree — a conflict is an error, a plain duplicate is a warning.
-  4a. A KEYED ROW WITH BLANK `Status` MEANS `Backlog`. Creating a ticket is then a
-     one-cell edit: paste the key and leave Status alone.
+  4a. EVERY ROW HAS A STATUS; a missing one defaults to `Backlog` and must be
+     WRITTEN, not left blank. Rows (keyed or `—`) carry `Backlog` until they move,
+     so creating a ticket stays a one-cell edit — paste the key, the status already
+     reads `Backlog`.
   4b. `—` IN THE JIRA COLUMN means not yet created. Such a row must not RESTATE that
      in `Status` ("Pending key") — the dash already says it, and duplicating it means
      two cells to edit when the key arrives. A terminal status on an unkeyed row is
@@ -144,14 +146,18 @@ def main(argv=None):
             if keyed:
                 errors.append(f"tickets/pending/{fn}: slug now keyed {keyed[0]} — promote it")
 
+    # rule 4a: every row must carry an explicit status; blank defaults to Backlog
+    # and must be written (not left implicit).
+    for r in rows:
+        if not r["status"]:
+            errors.append(f"L{r['line']}: '{r['slug']}' has a blank Status — "
+                          f"write 'Backlog' (the default) explicitly")
+
     for w in warnings:
         print(f"  warn : {w}")
     for e in errors:
         print(f"  ERROR: {e}")
     uniq = len(by_slug)
-    implicit = sum(1 for r in rows if r["key"] != "—" and not r["status"])
-    if implicit:
-        print(f"  note : {implicit} keyed row(s) with blank Status — read as 'Backlog'")
     print(f"\n{len(rows)} rows · {uniq} distinct slugs · "
           f"{len(rows) - uniq} duplicate row(s) · {len(errors)} error(s)")
     if errors:

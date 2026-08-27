@@ -3,7 +3,7 @@ key: AINOS3-86
 slug: inertial-false-alarms
 type: Story
 epic: AINOS3-79 (detector-rigor)
-status: In Progress
+status: Paused
 priority: High
 opened: 2026-08-11
 sprints: [27, 28]

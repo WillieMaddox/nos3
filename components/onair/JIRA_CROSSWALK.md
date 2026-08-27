@@ -90,7 +90,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-65 | consistency-gate | Story | detector-gates | Consistency-check: per-sample bus-spoof detector | ✅ Done, deployed |
 | AINOS3-66 | staleness-gate | Story | detector-gates | Staleness-check: telemetry-denial / frozen-stream detector | ✅ Done, deployed |
 | AINOS3-67 | sb-command-rule | Task | detector-gates | Rule-gate R6: CFE_SB routing/subscription command rule | ✅ Done, deployed |
-| AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 (DeepSAD / VAE) feasibility | Backlog |
+| AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 (DeepSAD / VAE) feasibility | ⛔ Blocked (gated on AINOS3-30) |
 | AINOS3-69 | next-ml-bet | Spike | — | Next big-ML bet (Phase 5/6 vs consolidate) | ✅ Done |
 | AINOS3-70 | subscribe-recording-mids | Task | coverage-expansion | Subscribe the 16 Section-B recording MIDs (pipe cap 32→48; schema 383 cols) | ✅ Done (2026-07-16) |
 | AINOS3-71 | detect-wiper-ransomware | Story | coverage-expansion | FM file-operation detector (EX-0010.01/.02) — rule-gate R11 | ✅ Done (2026-07-29) |
@@ -108,18 +108,18 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Backlog (was S27 stretch) |
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | Retrain dropping harmful bus-activity features | Backlog (fold into retrain-clean-corpus, never its own cycle) |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Reach actuator saturation for the recovery-boundary test | Backlog |
-| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band | Sprint 28 · ◑ Committed (diagnosis bounded; see plan) |
+| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band | Sprint 28 · ⏸️ Paused |
 | AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected | Sprint 28 · ◑ Committed |
 | AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 | AINOS3-89 | catch-rate-provenance-gap | Spike | detector-rigor | Published catch rates disagree with measurement | Backlog |
 | AINOS3-90 | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? | Sprint 28 · ✅ Done |
-| AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | Star-tracker validity is intermittent and the device is off by default | Sprint 28 · ○ Stretch (in progress) |
+| AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | Star-tracker validity is intermittent and the device is off by default | Sprint 28 · ▶️ In Progress (stretch) |
 | AINOS3-92 | soak-drift-hz | Task | detector-rigor | `analyze_soak_drift.py` uses the wrong sample rate | Sprint 28 · ✅ Done |
-| AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | `Catch` and `Incidents` are not comparable | Sprint 28 · ○ Stretch |
+| AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | `Catch` and `Incidents` are not comparable | Sprint 28 · ◑ Committed (stretch) |
 | AINOS3-94 | coverage-table-schema | Spike | detector-rigor | Redesign the coverage-table schema | Backlog |
 | AINOS3-95 | sparta-logging-gap-analysis | Spike | coverage-expansion | SPARTA logging best practices vs what we record | Sprint 28 · ✅ Done |
 | AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Use the SPARTA STIX 2.1 dataset as ground truth | Sprint 28 · ✅ Done |
-| AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Separate live corpus data from superseded | Sprint 28 · ◑ Committed (reparented from detector-rigor ✅ 2026-08-23) |
+| AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Separate live corpus data from superseded | Sprint 28 · ◑ Committed (reparented from detector-rigor 2026-08-23) |
 | AINOS3-98 | corpus-integrity | Epic | — | Corpus integrity — the corpus as a first-class, versioned artifact | — |
 | AINOS3-99 | fold-variance-triage | Spike | corpus-integrity | Explain the per-instance F1 spread holding the tier column down | Sprint 28 · ◑ Committed |
 | AINOS3-100 | corpus-rebuild-steadyflight | Story | corpus-integrity | Recollect the classified attack set under the steady-flight protocol | Backlog (Sprint 29 target) |
@@ -132,18 +132,18 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-107 | frame-aliasing-semantics | Spike | detector-rigor | Frame aliasing and per-frame threshold meaning | Backlog |
 | AINOS3-108 | subscription-hygiene | Task | coverage-expansion | Resolve four silent MID subscriptions | Sprint 28 · ⛔ Blocked (schema removal needs a retrain — fold into AINOS3-101) |
 | AINOS3-109 | csv-prune-integrity-fields | Spike | corpus-integrity | The CSV prune drops security-relevant fields | Sprint 28 · ✅ Done |
-| AINOS3-110 | build-missing-cfs-apps | Epic | — | Build the missing stock cFS apps |  |
-| AINOS3-111 | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app |  |
-| AINOS3-112 | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app |  |
-| AINOS3-113 | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps |  |
-| AINOS3-114 | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters |  |
+| AINOS3-110 | build-missing-cfs-apps | Epic | — | Build the missing stock cFS apps | Backlog |
+| AINOS3-111 | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app | Backlog |
+| AINOS3-112 | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app | Backlog |
+| AINOS3-113 | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps | Backlog |
+| AINOS3-114 | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters | Backlog |
 | AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments | ✅ Done |
 | AINOS3-116 | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph | ✅ Done |
-| AINOS3-117 | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix |  |
-| AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns | In Progress |
-| AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock |  |
-| AINOS3-120 | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets |  |
-| — | sunsafe-pivot | Spike | — | SUNSAFE-only pivot decision | ✅ Resolved |
+| AINOS3-117 | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix | Backlog |
+| AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns | ▶️ In Progress |
+| AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock | Backlog |
+| AINOS3-120 | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets | Backlog |
+| AINOS3-121 | if-scoring-audit | Spike | detector-rigor | Reproducible IF scoring + per-feature sensitivity/calibration audit | Backlog |
 
 ## Sprint 28 (planning)
 
@@ -225,13 +225,6 @@ detailed ticket writeups (Summary/Description/AC + actuals) are in
 ### Backlog / carryover (slugs reserved; file rows here as they're created)
 
 ## Sprint 23 (prior)
-
-Workstream Sprint 2 (`SPRINT_23_PLAN.md`), shipped 2026-06. Keys entered + doc body
-swept to keys 2026-07-06 (`sunsafe-pivot` has no key → stays a slug). The carryover
-items (`extra-mids`, `tcn-feature`, `corpus-instance-4`, `demo-tier-bc`) advanced to
-Sprint 24 and are listed above.
-
----
 
 ## ⚠ AINOS3-30 — key reuse, split 2026-08-19
 
