@@ -11,7 +11,7 @@ sprints: [28]
 origin: AINOS3-118 (challenge to IF-null conclusions)
 ---
 
-# if-scoring-audit — Reproducible IF scoring + per-feature sensitivity/calibration audit
+# AINOS3-121 — Reproducible IF scoring + per-feature sensitivity/calibration audit
 
 **Summary:** Before any design decision rests on an IF **null** ("0 anomalies → gap"), establish that the deployed isolation forest is a trustworthy oracle for that judgement: reproduce its live scores offline, prove per-feature sensitivity with positive controls, and check the operating threshold is calibrated. Today none of these hold, so IF nulls are only valid as *operational coverage facts*, not as *mechanistic/design conclusions*.
 

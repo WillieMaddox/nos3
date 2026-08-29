@@ -85,7 +85,13 @@ data/onair/external/
 # SPARTA reference material fetched from https://sparta.aerospace.org/related-work/iob
 # (Space Vehicle Logging Best Practices guide + spreadsheet, Distro A). Aerospace
 # Corporation's to distribute, not ours to vendor — re-download from the IOB page.
-data/sparta/
+# EXCEPT the .meta.json provenance sidecars, which are OURS: pure metadata (URL,
+# fetch time, sha256, object counts) with no Aerospace content. They are what makes
+# `fetch_sparta_stix.py --check` meaningful across machines and time — without them
+# in git, every STIX claim in AINOS3-95/96/115/116/117/118 traces to an untracked
+# local file fetched from a moving `f=latest` endpoint. (AINOS3-96, 2026-08-28)
+data/sparta/*
+!data/sparta/*.meta.json
 # data/onair is data (NAS-backed) → git-ignored, EXCEPT the small deployed-config
 # JSONs in models/ which are committed explicitly (cluster_taxonomy.json,
 # incident_rescore*.json, explanation_catalog.json, *_report.md).

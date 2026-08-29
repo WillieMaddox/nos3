@@ -19,10 +19,10 @@ The rules, and what each check enforces:
   2. ONE ROW PER KEY. A key naming two slugs is the AINOS3-30 failure recurring.
   3. NO DISAGREEMENT. If a slug or key does appear twice, the other column must
      still agree — a conflict is an error, a plain duplicate is a warning.
-  4a. EVERY ROW HAS A STATUS; a missing one defaults to `Backlog` and must be
-     WRITTEN, not left blank. Rows (keyed or `—`) carry `Backlog` until they move,
-     so creating a ticket stays a one-cell edit — paste the key, the status already
-     reads `Backlog`.
+  4a. EVERY KEYED ROW HAS A STATUS; a missing one defaults to `Backlog` and must be
+     WRITTEN, not left blank. An UNKEYED (`—`) row leaves `Status` BLANK — a slug is
+     not in the Jira backlog until it is in Jira. When the key arrives, both cells are
+     filled together: paste the key, write `Backlog`.
   4b. `—` IN THE JIRA COLUMN means not yet created. Such a row must not RESTATE that
      in `Status` ("Pending key") — the dash already says it, and duplicating it means
      two cells to edit when the key arrives. A terminal status on an unkeyed row is
@@ -146,12 +146,26 @@ def main(argv=None):
             if keyed:
                 errors.append(f"tickets/pending/{fn}: slug now keyed {keyed[0]} — promote it")
 
-    # rule 4a: every row must carry an explicit status; blank defaults to Backlog
-    # and must be written (not left implicit).
+    # rule 4a: a KEYED row must carry an explicit status; blank defaults to Backlog
+    # and must be written, not left implicit.
+    #
+    # An UNKEYED row ('—') must NOT carry 'Backlog': a slug cannot be in the Jira
+    # backlog before it is in Jira at all, so that cell would assert something untrue.
+    # Leave it blank until the key exists — then 'Backlog' becomes the default and
+    # creating the ticket stays a one-cell edit (paste key, write Backlog).
+    # A TERMINAL status on an unkeyed row stays legitimate (work resolved without ever
+    # being ticketed — see rule 4b), so only 'Backlog' is rejected here.
+    # Corrected 2026-08-28: the previous version demanded 'Backlog' on every row,
+    # contradicting the convention documented at the head of JIRA_CROSSWALK.md.
     for r in rows:
-        if not r["status"]:
-            errors.append(f"L{r['line']}: '{r['slug']}' has a blank Status — "
-                          f"write 'Backlog' (the default) explicitly")
+        keyed = r["key"] != "—"
+        if keyed and not r["status"]:
+            errors.append(f"L{r['line']}: '{r['slug']}' is keyed {r['key']} but has a blank "
+                          f"Status — write 'Backlog' (the default) explicitly")
+        if not keyed and r["status"].strip().lower() == "backlog":
+            errors.append(f"L{r['line']}: '{r['slug']}' has no Jira key but Status is "
+                          f"'Backlog' — it cannot be in the backlog before it is in Jira; "
+                          f"leave Status blank until the key exists")
 
     for w in warnings:
         print(f"  warn : {w}")

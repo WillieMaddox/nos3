@@ -379,3 +379,75 @@ class-naming decisions go to the retrain (`AINOS3-101`) and the overlay, not to 
 scripts), the degeneracy and probe-only work-queues, the four forward tickets, and this AC4
 split are the deliverables. The subjective per-script grading is correctly deferred to the
 pattern tooling rather than hand-produced.
+
+### 2026-08-28 · ⚠ CORRECTION ×2 + the deprecation decision settled (owner call)
+
+Two claims in this ticket's log were re-checked against the bundle during the AINOS3-115
+rewrite audit. **One was half-unsourced and one was wrong in kind.** Both were load-bearing:
+the first drives the label set, the second sizes `AINOS3-117`.
+
+**[1] The IMP deprecation is verified; the "v4.0 successors" claim is NOT in the data.**
+
+Verified (reproducible from the bundle): exactly **6 deprecated attack-patterns out of 270**,
+and they are precisely `IMP-0001…0006` — the whole v3 Impact family, nothing else in the
+bundle. All are parent techniques (`x_sparta_is_subtechnique: False`), all in the `Impact`
+tactic, which itself **survives** (`IMP-0007…0014` carry it).
+
+Not verified, and stated here earlier as though it were STIX authority — *"SPARTA … replaced
+the survivors with `IMP-0007` / `IMP-0008` / `IMP-0009`"*:
+
+- no `revoked` field and no `x_mitre_deprecated` field on any of the six
+- no successor text in any of the six descriptions
+- **0 of the 75 `related-to` edges** touching a deprecated IMP point at `IMP-0007…0014`
+- deprecation is signalled **only** by the literal string `[DEPRECATED]` in `name`
+  (`audit_script_vs_stix.py:106` is the single place that detects it — brittle, and the only
+  signal available; it should assert the expected count of 6 and fail loudly on drift)
+
+There is no successor mapping because **SPARTA changed the taxonomy's axis**, not its names:
+old `IMP-0001…0006` are **effects** (Deception, Disruption, Denial, Degradation, Destruction,
+Theft); new `IMP-0007…0014` are **mechanisms** (Native Functionality Abuse, State/Mode
+Manipulation, Configuration Manipulation, Data Manipulation, Command & Data Flow Manipulation,
+Software/Firmware Manipulation, Resource Exhaustion, Timing Manipulation). One old effect is
+reachable by several new mechanisms and vice-versa, so a 1:1 remap does not exist to be found.
+
+⚠ Corroborating: the six deprecated techniques have **zero IOB indicators**. SPARTA did not
+merely retire them — it never gave them behavioural patterns. There is no pattern-level
+definition to detect against, so removal costs nothing in IOB coverage.
+
+**DECISION (owner, 2026-08-28): remove, do not remap.** The five IMP classifier classes
+(`IMP-0001/0002/0003/0005/0006`) and all six techniques are removed outright — 18 script files
+(`impact/imp_000{1..6}_*.{py,_cosmos.py,.md}`), 5 of 24 attack classes. The v4 mechanism ids may
+be recorded as **cross-references** on surviving classes but never as class names, per this
+ticket's own `AC4` split. Execution and the full rationale live in the `label-set-freeze` ticket;
+this entry records why remapping was rejected.
+
+**[2] ⚠ "an entirely new `SV` tactic (44 techniques) never assessed" is wrong in kind.**
+
+`SV-*` is **not a tactic and its members are not techniques.** They are SPARTA's *Space Vehicle
+threat catalogue* — a related-work cross-reference — flattened into `attack-pattern` because the
+STIX export has no other type for them. Evidence:
+
+- external URL is `sparta.aerospace.org/related-work/**threats**/SV-AC-3`, not `/technique/`
+- **0 of 44 carry `kill_chain_phases`** — they belong to no tactic
+- `name` is identical to the id (`SV-AC-3`); no human-readable title
+- `description` is a stringified Python list — a scrape artifact
+- **0 IOB indicators**
+- prefixes are `SP·AC·MA·AV·IT·CF·DCO` — threat *categories*, cross-referenced to CAPEC
+
+Consequences: live **techniques** are 264 − 44 = **220** across 9 tactics; against our 177 v3
+leaves the genuine delta is roughly **43 new**, not the ~93 implied here. `AINOS3-117`'s largest
+and most uncertain item disappears, and its `E 3 / T 1.0` estimate becomes plausible.
+
+**[3] Provenance gap closed (was silent).** Every STIX claim in this ticket cites a bundle that
+was **untracked** — `.gitignore` excluded all of `data/sparta/`, including our own `.meta.json`
+sha256 sidecar — while the only machine-retrievable endpoint is the moving `f=latest`. The
+sidecar is now tracked (`data/sparta/*` + `!data/sparta/*.meta.json`), so
+`fetch_sparta_stix.py --check` is meaningful across machines and time. The bundle, the xlsx and
+`logging_workbook.json` stay untracked: they carry Aerospace content, which is theirs to
+distribute. Bundle sha256 for every claim above:
+`f9ce5b05270ce76677c5a7b8b14d65f223c75849587f09af482665f7ee42fffa`.
+
+**Standing lesson.** This ticket's *tooling and structural* work held up under re-checking; its
+*interpretive* claims did not, twice. Machine facts from the bundle are citable directly;
+readings of what SPARTA "did" or "meant" need verifying against object fields and relationships
+before anything is built on them.
