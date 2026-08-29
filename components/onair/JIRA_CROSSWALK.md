@@ -137,8 +137,8 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-112 | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app | Backlog |
 | AINOS3-113 | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps | Backlog |
 | AINOS3-114 | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters | Backlog |
-| AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments | ✅ Done |
-| AINOS3-116 | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph | ✅ Done |
+| AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments | Sprint 28 · ▶️ In Progress (reopened) |
+| AINOS3-116 | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph | Sprint 28 · ▶️ In Progress (reopened) |
 | AINOS3-117 | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix | Backlog |
 | AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns | Sprint 28 · ▶️ In Progress |
 | AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock | Backlog |

@@ -334,3 +334,23 @@ small feature-subset carries enough score weight to cross. **Consequence for thi
 Tier-1 CSS/FSS/ST sensor-spoof slices will read the same 0% — the fix is a **per-subsystem
 detection primitive** (a range/consistency check), not more spoof scripts and not a feature
 un-mask. Detail + the `if_audit.py` tool live in AINOS3-121.
+
+### 2026-08-28 · Phase-4 scope note — two live IMP references to fix on rollback
+
+The IMP-0001…0006 removal (`label-set-freeze`, `AINOS3-96` 2026-08-28) leaves two **live**
+references that were deliberately deferred to this ticket's rollback rather than edited in the
+Phase-2 text pass, because both sit in files this rollback already opens:
+
+- `AINOS3_118_VECTOR_BACKLOG.md:101` — *"Deprecated — IMP-0001/2/3/5/6. Retired in SPARTA v4.0;
+  needs a relabel to the v4 successors"* — now **false**: the decision is **remove, not relabel**
+  (no successor mapping exists; v4 re-axed effect→mechanism). Reword to "removed" when the backlog
+  is rolled back.
+- `rule_gate/rule_gate_plugin.py:82,159` — the R13 label string reads *"EXF-0003.02 exfil /
+  IMP-0006 theft"*. The rule fires regardless, but `IMP-0006` is a deprecated class name;
+  drop it, leaving `EXF-0003.02` as the sole technique id (the coverage doc's R13 note was
+  already re-pointed this way in Phase 2). ⚠ Editing the deployed plugin means syncing the build
+  tree (`fsw/build/exe/cpu1/cf/onair/`) and an OnAIR restart, per the standing deploy rule — a
+  string-only change, but it still ships.
+
+Neither breaks at runtime (the class list lives in the model pkl, not these files); this is
+label hygiene, folded here on the owner's call 2026-08-28.

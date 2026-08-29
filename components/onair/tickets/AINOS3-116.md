@@ -3,11 +3,12 @@ key: AINOS3-116
 slug: stix-iob-pattern-index
 type: Spike
 epic: AINOS3-41 (coverage-expansion)
-status: Done
+status: In Progress
 priority: Medium
 estimate: E 3 / T 0.75
 opened: 2026-08-26
-closed: 2026-08-26
+reopened: 2026-08-28
+sprints: [28]
 origin: AINOS3-96 (sparta-stix-ingest)
 ---
 
@@ -38,9 +39,10 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 - [x] `AC1` A tool that, given a technique id, lists its linked IOBs with their STIX patterns, from the local bundle.
 - [x] `AC2` Reverse and cross queries: techniques sharing an IOB; the distinct pattern-argument vocabulary across all IOBs (the input list for `AINOS3-115`).
-- [x] `AC3` A per-technique observability report joining IOBs to `mid_stix_map.json`: for each IOB, can we observe it, and does our claimed script exercise it?
+- [ ] `AC3` A per-technique observability report joining IOBs to `mid_stix_map.json`: for each IOB, can we observe it, and does our claimed script exercise it? ⚠ The `--coverage` tool is built and correct, but its output is only meaningful once `AINOS3-115` delivers the **complete** 254-argument map — on the 12-row seed almost every IOB reports `no-observable`. Re-run and record once `AINOS3-115` closes.
 - [x] `AC4` The EX-0014.01 vs EX-0012.12 case reproduced as a regression fixture — distinct techniques whose unique IOBs are the separating signal.
 - [x] `AC5` Fetch provenance recorded: the bundle sha256 the graph was read from.
+- [ ] `AC6` **Run `--degeneracy` across all 10 of the `AINOS3-96` phase-2 identical-footprint groups** and record a per-group verdict — **genuine degeneracy** (unique IOBs do not separate → collapse the classes) vs **script limitation** (unique IOBs separate → distinct techniques, the script is the limitation), with the `EX-0014.01`/`EX-0012.12` case as the proof standard. The tool was built for this in the original pass but never run across the queue. Feeds `label-set-freeze` `AC4` and `AINOS3-117`.
 
 ## Log
 
@@ -90,3 +92,21 @@ the graph is detectable.
 **Hand-off:** `AINOS3-118` uses `--technique`/`--coverage` to pick buildable missing vectors and
 promotes `mid_stix_map` rows to `verified` as it validates; `AINOS3-117` uses `--degeneracy`
 across the phase-2 queue. ⚠ The `UACE-3` finding above is a live lead for `AINOS3-87` right now.
+
+### 2026-08-28 · reopened — the tool is done, the deliverable is not
+
+Reopened from Done alongside `AINOS3-115`. Nothing above is repudiated: `stix_iob_index.py` is
+built and correct, and `AC1`/`AC2`/`AC4`/`AC5` stay demonstrated. Two things reopen it:
+
+- **`AC3` was checked against the 12-row seed map**, on which almost every IOB reports
+  `no-observable`. The observability report is meaningful only once `AINOS3-115` delivers the
+  complete 254-argument map, so `AC3` is un-checked pending that.
+- **`AC6` added:** the `--degeneracy` tool was built to triage the 10 `AINOS3-96` phase-2 groups
+  "by command, not by hand" — but was **never run across the queue**. Running it and recording
+  the 10 verdicts is what feeds the `label-set-freeze` collapse-vs-script-fix decision and
+  `AINOS3-117`. ⚠ Note the sibling lower-bound caveat from `label-set-freeze AC3`: the
+  `--structural` command-set grouping in `audit_script_vs_stix.py` missed `IMP-0001` ≡
+  `EX-0012.09` (same `EPS SWITCH`, different padding), so the 10-group list is a floor — the
+  IOB-pattern check here is exactly the sharper instrument that catches such pairs.
+
+⚠ Jira: needs moving out of Done by the owner; the crosswalk mirror reflects the reopen.
