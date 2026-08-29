@@ -331,52 +331,14 @@ ATTACK_CATALOG: dict[str, dict] = {
         # to be visible. See [[project_attack_footprint_validation_wave2_2026-05-15]].
         "recommended_post_seconds_s": 300,
     },
-    "imp_0001_deception": {
-        "id": "IMP-0001",
-        "tactic": "impact",
-        "path": "impact/imp_0001_deception.py",
-        "expected_runtime_s": 10,
-        "corruption_dwell_s": 120,  # EVS events + counter manipulations persist briefly
-    },
-    "imp_0002_disruption": {
-        "id": "IMP-0002",
-        "tactic": "impact",
-        "path": "impact/imp_0002_disruption.py",
-        "expected_runtime_s": 10,
-        "corruption_dwell_s": 120,
-    },
-    "imp_0003_denial": {
-        "id": "IMP-0003",
-        "tactic": "impact",
-        "path": "impact/imp_0003_denial.py",
-        "expected_runtime_s": 10,
-        "corruption_dwell_s": 120,
-    },
-    "imp_0004_degradation": {
-        "id": "IMP-0004",
-        "tactic": "impact",
-        "path": "impact/imp_0004_degradation.py",
-        "expected_runtime_s": 10,
-        "corruption_dwell_s": 0,  # undetectable, no residual signal
-    },
-    "imp_0005_destruction": {
-        "id": "IMP-0005",
-        "tactic": "impact",
-        "path": "impact/imp_0005_destruction.py",
-        "expected_runtime_s": 10,
-        "corruption_dwell_s": 300,  # destruction effects persist
-    },
-    "imp_0006_theft": {
-        "id": "IMP-0006",
-        "tactic": "impact",
-        "path": "impact/imp_0006_theft.py",
-        "expected_runtime_s": 10,
-        # Target TO_DEBUG (MID 0x18E8). TO HK is NOT subscribed by OnAIR
-        # security_tlm — level-1 cmd-injection bar is confirmable only via
-        # subprocess exit_code=0, not on-board telemetry ack. Verified
-        # 2026-05-28 against csv_out_2026-05-16T05-21-42.
-        "corruption_dwell_s": 120,  # theft = downlink reads, brief residual
-    },
+    # IMP-0001..0006 REMOVED 2026-08-28. SPARTA v4.0 deprecates the entire v3 Impact
+    # family (verified: 6 of 270 attack-patterns, zero IOB indicators, no successor
+    # mapping in the bundle — v4 replaced an EFFECT taxonomy with a MECHANISM one).
+    # Decision was remove, not remap; see AINOS3-96's 2026-08-28 log entry and the
+    # label-set-freeze ticket. Historical batch configs that still name these keys
+    # (batch_permode_pilot.json, batch_ainos3_30_weakclass.json) now fail loudly with
+    # "unknown attack" rather than running — the intended behaviour for the record of
+    # a completed study.
     # DE-0003 obfuscate on-board values (12 sub-techniques). Like EX-0012 these
     # modify on-board state, but the intent is evasion (hide adversary activity)
     # rather than direct effect. Many have only level 1 (recon-only) — those

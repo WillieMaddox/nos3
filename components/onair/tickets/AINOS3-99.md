@@ -15,20 +15,28 @@ sprints: [28]
 
 ## Description
 
-The derived tiers (`data/onair/models/classifier_tiers.json`, 26 classes,
-3 LOIO folds) show enormous per-instance spread:
+The derived tiers (`data/onair/models/classifier_tiers.json`, 3 LOIO folds) show
+enormous per-instance spread:
 
 | class | fold F1s | min | max | tier |
 |---|---|--:|--:|---|
-| `IMP-0001` | `[0.00, 0.66, 0.80]` | 0.00 | 0.80 | HIGH-VAR |
 | `EX-0012.09` | `[0.00, 0.00, 0.50]` | 0.00 | 0.50 | HIGH-VAR |
 | `DE-0003.02` | `[0.07, 0.00, 0.65]` | 0.00 | 0.65 | HIGH-VAR |
 | `EX-0012.08` | `[0.52, 0.00, 0.29]` | 0.00 | 0.52 | HIGH-VAR |
-| `IMP-0003` | `[0.94, 0.11, 0.71]` | 0.11 | 0.94 | HIGH-VAR |
+| `EX-0012.12` | `[0.00, 0.37, 0.14]` | 0.00 | 0.48 | HIGH-VAR |
+| `DE-0003.06` | `[0.44, 0.33, 0.00]` | 0.00 | 0.44 | HIGH-VAR |
 
-A class reaching 0.80 on one spacecraft run and 0.00 on another is not information-limited —
+A class reaching 0.65 on one spacecraft run and 0.00 on another is not information-limited —
 it is **instance-limited**. A single contaminated instance is already **ruled out**: zero-F1
-folds distribute across all three instances (**9 / 6 / 6** of 26 classes).
+folds distribute across all three instances.
+
+⚠ **The example rows were changed 2026-08-28.** They previously led with `IMP-0001` and
+`IMP-0003`, two of the five deprecated-`IMP` classes removed from the label set (see
+`label-set-freeze` and `AINOS3-96`'s 2026-08-28 entry). The point is unchanged — non-IMP
+classes show the same 0.00→0.65 spread — but the **class count and the per-instance zero-F1
+distribution are now stale**: they were `26 classes` / `9·6·6 of 26`, computed over the old
+label set, and are re-derived only when `classifier_tiers.json` is regenerated on the frozen
+labels. `AC1`/`AC2` below therefore run on the **post-freeze** artifact, not the 26-class one.
 
 That leaves the useful question — is the spread explained by the **blind-window collection
 defect**? The answer sizes Sprint 29's collection, which is why a 2-hour desk spike runs a

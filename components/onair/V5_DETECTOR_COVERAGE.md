@@ -7,7 +7,7 @@ per-mode heads) + the four parallel detector gates (rule-gate R1–R14,
 consistency-check, staleness-check) currently deployed in the OnAIR plugin against
 the NOS3 cFS flight software.
 
-**Last updated:** 2026-08-27 — added §A0 (single-subsystem-spoof blindness + BDOT inertness, measured via AINOS3-121's `if_audit.py`) and the IF-null validation rule. 2026-08-20 — **the classifier confidence tiers (§4) were re-derived and
+**Last updated:** 2026-08-28 — ⚠ **the five deprecated-`IMP` classes (`IMP-0001/0002/0003/0005/0006`) were removed** from the label set. SPARTA v4.0 deprecates the entire v3 Impact family (verified: zero IOB indicators, no successor mapping — v4 replaced an *effect* taxonomy with a *mechanism* one; see `AINOS3-96` 2026-08-28 and `label-set-freeze`). Their rows are struck from the tables below. ⚠ **Numbers that were computed over the 26-class model — the catch-rate table, the tier minima, the OOF label-accuracy breakdown — are frozen at their last 26-class values until `classifier_tiers.json` and the OOF cache are regenerated on the frozen labels (label-set-freeze AC7 / Phase 5).** Removing a class changes cross-entropy and can move surviving classes' scores; treat every per-technique figure here as pre-regeneration until that lands. 2026-08-27 — added §A0 (single-subsystem-spoof blindness + BDOT inertness, measured via AINOS3-121's `if_audit.py`) and the IF-null validation rule. 2026-08-20 — **the classifier confidence tiers (§4) were re-derived and
 most of them moved.** They had been hardcoded, unreproducible strings; an audit found that
 **none of the four techniques published as ROBUST met the documented "F1 ≥ 0.85 on every
 split" rule** (`DE-0003.01` averaged 0.03). Tiers now come from
@@ -83,7 +83,7 @@ telemetry fields at ~5 Hz:
 |---|---|
 | Will it cry wolf? | Rarely — under 1 alarm per ~5 hours of nominal flight. |
 | Will it catch a real attack? | **Yes — at the incident level, 93 % of genuinely detectable state-change attacks raise an alert** (vs ~61 % of individual frames; one alert per attack is what matters). Detection is strongest in SUNSAFE; weaker in other modes. |
-| Will it tell me *which* attack? | **For no technique is the label reliable on every run** (§4: the ROBUST tier is currently empty). For **six** it is usable on every run as a strong suggestion — `EX-0008.01/.02`, `IMP-0002/0005/0006`, `DE-0003.10`. For others it narrows to a *family* of indistinguishable techniques, or is a hint only. Three cannot be labeled at all. |
+| Will it tell me *which* attack? | **For no technique is the label reliable on every run** (§4: the ROBUST tier is currently empty). For **three** it is usable on every run as a strong suggestion — `EX-0008.01/.02`, `DE-0003.10` (three of the previous six were the now-removed `IMP-0002/0005/0006`). For others it narrows to a *family* of indistinguishable techniques, or is a hint only. Three cannot be labeled at all. |
 | Does Stage 2 catch things Stage 1 misses? | **No** — Stage 2 only *sharpens* what Stage 1 flagged. **But the parallel gate layer does** — it catches 13 validated Section-A techniques (flag/counter/spoof/freeze) the dynamics-IF is structurally blind to. |
 
 ---
@@ -181,14 +181,15 @@ the IF's training-corpus identity is unrecorded, so disjointness cannot be prove
 
 | Technique | Catch rate | Technique | Catch rate |
 |---|--:|---|--:|
-| EX-0012.07 propulsion | **100 %** | EX-0008.02 RTS | 91 % |
-| EX-0012.08 ADCS | **100 %** | IMP-0005 destruction | 75 % |
-| IMP-0003 denial | **100 %** | EX-0012.05 scheduler | 64 % |
-| EX-0012.09 EPS | ⚠ **0 %** (see note) | EX-0012.04 app tables | 63 % |
-| EX-0014.04 PNT spoof | 98 % | IMP-0006 theft | 62 % |
-| EX-0014.03 sensor spoof | 91 % | IMP-0001 deception | 61 % |
-| EX-0008.01 ATS | 91 % | IMP-0002 disruption | 58 % |
-| EX-0012.12 system clock | 57 % | | |
+| EX-0012.07 propulsion | **100 %** | EX-0008.01 ATS | 91 % |
+| EX-0012.08 ADCS | **100 %** | EX-0012.05 scheduler | 64 % |
+| EX-0014.04 PNT spoof | 98 % | EX-0012.04 app tables | 63 % |
+| EX-0014.03 sensor spoof | 91 % | EX-0012.12 system clock | 57 % |
+| EX-0008.02 RTS | 91 % | EX-0012.09 EPS | ⚠ **0 %** (see note) |
+
+⚠ Five `IMP` rows (`IMP-0001/0002/0003/0005/0006`, catch rates 58–100 %) were removed with
+the deprecated Impact family. `IMP-0003`/`IMP-0005` were probe-only/NOOP scripts, so their
+high catch rates never described a real detection.
 
 ### 3. Incident-level detection — the operational view
 
@@ -258,17 +259,19 @@ F1, because the cluster is the label the system actually emits (§B.1). Scoring
 `EX-0012.04` at its technique F1 (0.01) would tier a label we never claim to
 produce; its cluster scores 0.45.
 
-- **ROBUST — currently EMPTY.** No technique meets the bar. `IMP-0005` is the
-  closest at **min 0.848** across folds, 0.002 short. The 0.85 threshold is
-  inherited verbatim from the previous version of this section and was
-  deliberately **not** lowered to populate the tier.
-- **STABLE-MID:** `IMP-0005` (0.85), `EX-0008.02` (0.77), `IMP-0006` (0.72),
-  `EX-0008.01` (0.71), `IMP-0002` (0.60), `DE-0003.10` (0.50), plus `nominal`
-  (0.78). *(min F1 in parentheses.)*
+- **ROBUST — currently EMPTY.** No technique meets the bar. With the deprecated-`IMP`
+  classes removed, the closest surviving attack technique is `EX-0008.02` at **min 0.774**
+  (the previous "closest", `IMP-0005` at 0.848, was a probe-only NOOP script — its near-bar
+  score was a corpus artifact, not a detection). The 0.85 threshold is inherited verbatim and
+  was deliberately **not** lowered to populate the tier. ⚠ Minima are pre-regeneration
+  (label-set-freeze AC7).
+- **STABLE-MID:** `EX-0008.02` (0.77), `EX-0008.01` (0.71), `DE-0003.10` (0.50), plus
+  `nominal` (0.78). *(min F1 in parentheses; the removed `IMP-0002/0005/0006` were here.)*
 - **HIGH-VARIANCE:** the `EX-0012.{03,04,05}` and `EX-0012.12`/`EX-0014.01`
-  clusters, `DE-0003.01/.02/.03/.06/.08`, `EX-0012.07/.08/.09`, `EX-0014.04`,
-  `IMP-0001`, `IMP-0003`. Note `IMP-0003` spans **0.11 → 0.94** across three runs
-  — the clearest example of why the mean is the wrong statistic here.
+  clusters, `DE-0003.01/.02/.03/.06/.08`, `EX-0012.07/.08/.09`, `EX-0014.04`. (`IMP-0001`
+  and `IMP-0003` were here — `IMP-0003` spanned 0.11 → 0.94 across three runs, which had been
+  the clearest example of why the mean is the wrong statistic; `EX-0012.08` at 0.00 → 0.52
+  now carries that point.)
 - **DEAD (cannot be labeled as-is):** `DE-0003.09`, `EX-0014.03`,
   `EX-0012.04 [prereq]`. See next section.
 
@@ -353,9 +356,10 @@ R12/R13 required a subscription fix: OnAIR was originally mis-subscribed to the 
 `usEnabledRoutes`/`usConfigRoutes`. R12 keys on `TO.usCmdCnt` (static-in-nominal, an
 R6–R11 sibling); R13 fires when the route mask leaves its baseline (the specific
 "downlink reconfigured" signal). A `TO_ENABLE_OUTPUT` redirect to an attacker trips
-both. R13 also **sharpens IMP-0006 (theft)** — a downlink redirect is the on-board
-footprint of telemetry theft, previously only inferred via side effects. (The re-point
-also put the full **CI** app HK `0x0884` on the pipe — real command-ingest observability,
+both. R13 also **sharpens the downlink-theft footprint (`EXF-0003.02`)** — a downlink
+redirect is the on-board footprint of telemetry theft, previously only inferred via side
+effects — this was the detection previously attributed to the now-removed `IMP-0006`. (The
+re-point also put the full **CI** app HK `0x0884` on the pipe — real command-ingest observability,
 deferred to a follow-up.)
 
 DE-0001 needed no new rule: its on-board footprint is `LC.CurrentLCState` leaving the
@@ -462,9 +466,9 @@ By design, the monitor only sees the MIDs in `nos3_security_tlm.json`. A
 
 | Signal class | Meaning | Examples |
 |---|---|---|
-| **ON_BOARD** | Visible — at least one watched field changes | IMP-0002/3/5, DE-0003.06/09/10 |
-| **OBFUSCATION** | Real, but the attack hides itself (e.g. RESET zeroes the counter before the next HK packet); only an EVS event trail survives | IMP-0001, DE-0003.01/02/08 |
-| **UNSUBSCRIBED** | Target subsystem's housekeeping is **not** monitored — on-board acknowledgement is structurally invisible | IMP-0006, DE-0003.03/11 |
+| **ON_BOARD** | Visible — at least one watched field changes | DE-0003.06/09/10, EX-0012.07/08 |
+| **OBFUSCATION** | Real, but the attack hides itself (e.g. RESET zeroes the counter before the next HK packet); only an EVS event trail survives | DE-0003.01/02/08 |
+| **UNSUBSCRIBED** | Target subsystem's housekeeping is **not** monitored — on-board acknowledgement is structurally invisible | DE-0003.03/11 |
 | **CONCEPTUAL** | No-op / description-only technique — nothing to detect | DE-0003.04/05/07/12 |
 
 UNSUBSCRIBED and CONCEPTUAL attacks are **out of scope** for telemetry-based
@@ -491,8 +495,8 @@ leave-one-instance-out, out-of-fold predictions (AINOS3-34) gives the honest
 figure. For the **deployed selective per-mode hybrid** (AINOS3-37): **42.3 % label
 accuracy of detected attacks** out-of-fold — up **+7.7 pts** from the v3 global
 head's 34.6 % OOF on identical folds, concentrated in the dynamic-mode / ROBUST-tier
-techniques the per-mode heads target (DE-0003.10, IMP-0002, IMP-0006, EX-0014.01,
-EX-0012.07 up; the telemetry-indistinguishable `EX-0012.{03,04,05}` cluster down a
+techniques the per-mode heads target (DE-0003.10, EX-0014.01, EX-0012.07 up — the
+list as-measured also included `IMP-0002`/`IMP-0006`, now removed; the telemetry-indistinguishable `EX-0012.{03,04,05}` cluster down a
 little). **The coverage overlay now reports these honest OOF numbers.** ⚠ Note the
 scale: the overlay previously showed **76.9 %**, which was *in-sample* and >2×
 optimistic — the honest OOF hybrid figure (42.3 %) is a truer picture *and* better
@@ -503,10 +507,10 @@ methodology was corrected. Incident detection recall is identical either way
 The label collapse is tier- and mode-dependent (the per-cluster figures below are
 the v3 global-head OOF breakdown that motivated the hybrid; the **current
 per-technique `label_ok` under the deployed hybrid is in the coverage overlay** —
-e.g. the hybrid lifts IMP-0002 and IMP-0006 to fully labelled):
+e.g. the hybrid lifted the now-removed `IMP-0002`/`IMP-0006` to fully labelled — a gain that leaves the corpus with those classes):
 
 - **By tier** (as tiered *before* the 2026-08-20 re-derivation): the then-ROBUST clusters keep their labels out-of-fold
-  (`EX-0008.02` 100 %, `IMP-0005` 100 %, the `IMP-0001/2/3/6` family ~67 %);
+  (`EX-0008.02` 100 %; the removed `IMP-0005` scored 100 % and the `IMP-0001/2/3/6` family ~67 %, but those were probe-only/intent-degenerate scripts — see the removal note at the top);
   HIGH-VARIANCE and DEAD clusters collapse (`EX-0012.08/.09`, `EX-0014.03/.04`
   → 0 %). The aggregate is dragged down by the many always-*detected*-but-not-
   *labelable* HIGH-VAR attacks.
@@ -614,11 +618,6 @@ steady flight.
 | EX-0014.01 time spoof | 26 % | HIGH-VAR | ON_BOARD | ≡ EX-0012.12 |
 | EX-0014.03 sensor spoof | 91 % | DEAD | ON_BOARD | detected, not labelable |
 | EX-0014.04 PNT spoof | 98 % | HIGH-VAR | ON_BOARD | |
-| IMP-0001 deception | 61 % | HIGH-VAR | OBFUSCATION | counter telescoping |
-| IMP-0002 disruption | 58 % | **STABLE-MID** | ON_BOARD | |
-| IMP-0003 denial | 100 % | HIGH-VAR | ON_BOARD | |
-| IMP-0005 destruction | 75 % | **STABLE-MID** | ON_BOARD | best-labeled technique (min F1 0.85) — 0.002 short of the ROBUST bar |
-| IMP-0006 theft | 62 % | STABLE-MID | UNSUBSCRIBED | side effects + R13 route-mask change (downlink-redirect variant) |
 | DE-0003.01 disable logging | < 25 % | HIGH-VAR | OBFUSCATION | ⚠ was published ROBUST; actually min F1 0.29 (v3: 0.03) |
 | DE-0003.02 clear logs | < 25 % | HIGH-VAR | OBFUSCATION | counter telescoped |
 | DE-0003.03 | < 25 % | HIGH-VAR | UNSUBSCRIBED | out of scope |
