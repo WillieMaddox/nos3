@@ -71,7 +71,7 @@ live-verified coverage cheaply.
   case). Each raw device MID (0x0911 / 0x0921 / 0x0935) fuses into its
   `ADCS_DI.Payload.<sensor>.*` features. ⚠ **Test each — do not assume** (slice 5): whether the IF
   isolates a spoof there is **not predictable from feature-membership alone** and must be measured
-  per sensor — but AINOS3-121 shows the deployed IF misses ANY single-subsystem spoof (0% all modes), so CSS/FSS/ST will read the same until a per-subsystem primitive exists. One `--mechanism sensor-spoof` slice per sensor, kept in
+  per sensor — but AINOS3-121 shows the deployed IF misses ANY single-subsystem spoof (0% all modes), so CSS/FSS/ST will read the same until a per-subsystem primitive exists (`per-subsystem-consistency-primitive`, under AINOS3-63). One `--mechanism sensor-spoof` slice per sensor, kept in
   Tier 1 only until its test says catchable. **MAG is already tested → Tier 2 (IF-blind).**
 - **Actuator spoof — RW / THRUSTER** (0x0993 / 0x08EA are direct IF features). A forged wheel
   speed / thruster state inconsistent with commanded torque is a dynamics contradiction the IF
@@ -98,8 +98,11 @@ Value is in proving and bounding the blind spot, feeding the retrain / rule work
   LOAD/ACTIVATE command path and its detection (R9) are faithful, but a *committed* table swap
   is not reproducible via external injection (ACTIVATE errors, no pending buffer — slice 4).
   Detection covered; effect not injectable.
-- **Deprecated — IMP-0001/2/3/5/6.** Retired in SPARTA v4.0; needs a relabel to the v4
-  successors (IMP-0007/8/9), not a script. → AINOS3-101.
+- **REMOVED — IMP-0001/2/3/5/6.** Deprecated across the whole v3 Impact family in SPARTA v4.0
+  (verified: zero IOB indicators, no successor mapping — v4 re-axed effect→mechanism). ⚠ The
+  earlier "needs a relabel to the v4 successors" reading was **wrong**: there is no 1:1 successor
+  to relabel to. Decision is **remove, not relabel** — 5 classes and 18 scripts deleted (Phase 2).
+  → `label-set-freeze`, `AINOS3-96` 2026-08-28.
 - **Intent-gap — DE-0003 ×7** (conceal command counters / quiet windows). The SPARTA intent is
   concealment, whose faithful footprint genuinely IS a counter reset / probe — there is no
   richer observable to build. → AC4, not repairable.

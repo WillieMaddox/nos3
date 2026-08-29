@@ -196,3 +196,12 @@ shows the mode is not inert.
 
 **Deliverables:** golden-capture instrumentation in the isolation_forest plugin (submodule,
 `GoldenCaptureEvery`, default 0); `if_audit.py`; doc write-backs. **All 5 ACs met — closing.**
+
+### 2026-08-29 · per-subsystem primitive re-homed (no change to findings)
+
+The 2026-08-28 AC4 write-back concluded the PNT/MAG/IMU misses are true coverage gaps whose fix
+is "a per-subsystem primitive, tracked on AINOS3-118". That conclusion stands unchanged — the
+harness result and the re-adjudication are sound. Only the **tracking pointer** moves: the
+primitive is now `per-subsystem-consistency-primitive` under the detector-gates epic (`AINOS3-63`),
+not `AINOS3-118` (a detector build did not belong in an attack-generation Story). Nothing about
+this ticket's ACs or measurements changes.

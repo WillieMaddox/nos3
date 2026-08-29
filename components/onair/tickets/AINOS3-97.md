@@ -55,8 +55,8 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
       detectable by the IF. It is still worth doing for a *different, confirmed* reason — torn
       NOVATEL reads false-positive rule-gate R15 (they survive its median-5 on long-uptime stacks) —
       so scope this AC to **de-noising the corpus for R15 + general data hygiene**, not as the fix
-      for the PNT gap. The PNT/MAG/IMU gap fix is a per-subsystem detection primitive (tracked on
-      AINOS3-118), not a training filter.
+      for the PNT gap. The PNT/MAG/IMU gap fix is a per-subsystem detection primitive
+      (`per-subsystem-consistency-primitive`, under AINOS3-63 — re-homed from AINOS3-118 on 2026-08-29), not a training filter.
 
 ## Log
 

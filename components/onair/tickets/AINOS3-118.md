@@ -42,7 +42,7 @@ an epic seed, not one change.
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [x] `AC1` A prioritised list of buildable missing vectors (arguments that map to recorded observables), distinct from those needing observability work first.
+- [ ] `AC1` A prioritised list of buildable missing vectors (arguments that map to recorded observables), distinct from those needing observability work first. ⚠ The **list and the live-validated detectability findings stand**; but the *buildable vs needs-observability-first* split reads the `mid_stix_map` states, now known to be a 12-row seed (`AINOS3-115` reopened) — so that split is **provisional** until the complete 254-argument map lands. Re-confirm the boundary then.
 - [x] `AC2` The EX-0014.01 repair as the first slice and exemplar: a script spoofing the NOVATEL GPS time input (via the `ci_lab` republish path), producing a GPS-time-anomaly footprint EX-0012.12 cannot — live-validated, confirming R15 actually catches it (closing the `AINOS3-96` 'recorded ≠ works' caveat).
 - [ ] `AC3` Each repaired/new script live-validated via `/sparta-attack-test`; paper-only matches do not count.
 - [ ] `AC4` For scripts that cannot produce their pattern's footprint, a recorded reason (observability gap vs not-modelled), feeding `AINOS3-117`.
@@ -354,3 +354,23 @@ Phase-2 text pass, because both sit in files this rollback already opens:
 
 Neither breaks at runtime (the class list lives in the model pkl, not these files); this is
 label hygiene, folded here on the owner's call 2026-08-28.
+
+### 2026-08-29 · Phase-4 rollback — provisional on the reopened map; primitive re-homed; folded edits done
+
+Rolled back the parts of this ticket that rest on now-reopened dependencies, without touching the
+live-validated slices (the 5 EX-0014-family runs and their footprints stand — they are empirical,
+not map-derived):
+
+- **`AC1` un-checked.** The vector backlog's *buildable vs needs-observability-first* split reads
+  `mid_stix_map` states, which `AINOS3-115` reopened as a 12-row seed. The list and the
+  detectability findings are unaffected; only that one boundary is provisional until the complete
+  254-argument map lands. Same defect class as `AINOS3-116 AC3`.
+- **Per-subsystem primitive re-homed.** The detector that `AINOS3-121` concluded is the PNT/MAG/IMU
+  fix was tracked here — a detector build inside an attack-generation Story. Split out to
+  `per-subsystem-consistency-primitive` under the detector-gates epic (`AINOS3-63`). The 2026-08-27
+  log entry's "per-subsystem detection primitive" reference now lives there; this ticket keeps only
+  the attack-script work.
+- **Folded live edits done** (the two flagged in the 2026-08-28 scope note):
+  `AINOS3_118_VECTOR_BACKLOG.md` — the "Deprecated … needs a relabel to the v4 successors" line
+  corrected to **REMOVED** (no successor mapping exists); `rule_gate_plugin.py` R13 label — `IMP-0006`
+  dropped, `EXF-0003.02` kept, source synced to the build tree.
