@@ -90,7 +90,6 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-65 | consistency-gate | Story | detector-gates | Consistency-check: per-sample bus-spoof detector | ✅ Done, deployed |
 | AINOS3-66 | staleness-gate | Story | detector-gates | Staleness-check: telemetry-denial / frozen-stream detector | ✅ Done, deployed |
 | AINOS3-67 | sb-command-rule | Task | detector-gates | Rule-gate R6: CFE_SB routing/subscription command rule | ✅ Done, deployed |
-| — | per-subsystem-consistency-primitive | Story | detector-gates | Per-subsystem range/consistency gate for single-subsystem spoofs |  |
 | AINOS3-68 | deepsad-revisit | Spike | — | Reopen Phase 5 (DeepSAD / VAE) feasibility | ⛔ Blocked (gated on AINOS3-30) |
 | AINOS3-69 | next-ml-bet | Spike | — | Next big-ML bet (Phase 5/6 vs consolidate) | ✅ Done |
 | AINOS3-70 | subscribe-recording-mids | Task | coverage-expansion | Subscribe the 16 Section-B recording MIDs (pipe cap 32→48; schema 383 cols) | ✅ Done (2026-07-16) |
@@ -145,7 +144,8 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock | Backlog |
 | AINOS3-120 | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets | Backlog |
 | AINOS3-121 | if-scoring-audit | Spike | detector-rigor | Reproducible IF scoring + per-feature sensitivity/calibration audit | Sprint 28 · ✅ Done |
-| — | label-set-freeze | Story | corpus-integrity | Freeze the classifier's class list and class names |  |
+| AINOS3-122 | label-set-freeze | Story | corpus-integrity | Freeze the class label set | Sprint 28 · ◑ Committed |
+| AINOS3-123 | per-subsystem-consistency-primitive | Story | detector-gates | Per-subsystem consistency gate | Backlog |
 
 ## Sprint 28 (planning)
 

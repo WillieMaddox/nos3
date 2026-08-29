@@ -1,16 +1,17 @@
 ---
-key: —
+key: AINOS3-122
 slug: label-set-freeze
 type: Story
 epic: AINOS3-98 (corpus-integrity)
-status: Open
+status: Committed
 priority: High
 estimate: E 5 / T 1.5
 opened: 2026-08-28
+sprints: [28]
 origin: AINOS3-96 (sparta-stix-ingest)
 ---
 
-# label-set-freeze — Freeze the classifier's class list and class names
+# label-set-freeze — Freeze the class label set
 
 **Summary:** As an ML engineer, I want the classifier's class list and class names settled and frozen as a reviewed artifact before any collection or retrain, because the label vector is the single input that `classifier_tiers.json`, `cluster_taxonomy.json`, `explanation_catalog.json` and the LOIO folds all derive from — so a bad class invalidates all four at once, and if it is discovered after collection the fix is another collection.
 
@@ -52,6 +53,26 @@ entry, so this ticket executes rather than re-litigates:
 - **Probe-only classes.** `IMP-0003` and `IMP-0005` are the two class members of the probe-only
   set; both leave with the IMP removal. Confirm no others remain.
 
+**The four derived artifacts, and why regenerating them is part of this ticket.** Four artifacts
+are a pure function of `(corpus, per-frame label assignment, model recipe)`, so **any change to
+the label partition — a size change or a frame reassignment — invalidates all four**; only a pure
+1:1 rename escapes with a string-substitution. This ticket changes the partition (5 removals, plus
+any `AC3` collapse), so all four regenerate. ⚠ This is a **re-fit, not a row-delete**: removing a
+class re-routes its frames — measured, **1,696 frames whose true class survives were mispredicted
+into IMP buckets** and must re-route — so the surviving classes' F1s change; hand-deleting the IMP
+rows would leave stale, wrong numbers. It is **offline** (reads `csv_corpus_v3stage` + the deployed
+model, no stack). Locations (not co-located):
+
+| # | artifact | path | git |
+|---|---|---|---|
+| 1 | OOF cache (regenerate FIRST — the others derive from it) | `data/onair/models/cluster_rescore/loio_predictions_oof_v3hybrid_full.npz` | untracked (large) |
+| 2 | `classifier_tiers.json` | `data/onair/models/classifier_tiers.json` | tracked |
+| 3 | `cluster_taxonomy.json` | `data/onair/models/cluster_rescore/cluster_taxonomy.json` | tracked |
+| 4 | `explanation_catalog.json` | `data/onair/models/explanation_catalog.json` | tracked |
+
+⚠ **Clobber hazard:** `eval_classifier_clusters.py` overwrites the **deployed** `cluster_taxonomy.json`
+unless pointed at a staging `--out-dir`. Regenerate to staging, diff, then promote.
+
 ⚠ **Nothing here requires recollection.** Renaming, collapsing and dropping operate on the label
 vector; the frames are untouched. That is precisely why it must happen before collection and not
 after — the same correction costs one regeneration now and one full collection later.
@@ -61,14 +82,14 @@ after — the same correction costs one regeneration now and one full collection
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
 - [ ] `AC1` The `IMP-0001…0006` removal executed: 18 script files deleted, 5 classes dropped from the label set, and every reference in an **open** ticket or active document resolved (`AINOS3-84`, `AINOS3-99`, `AINOS3-101`, `V5_DETECTOR_COVERAGE.md`, `AINOS3_118_VECTOR_BACKLOG.md`, workbook `SPARTA_Mapping`). Done tickets and `JIRA_CROSSWALK.md` keep their references — they are append-only history.
-- [ ] `AC2` A frozen class list published as a reviewable artifact, one line of justification per class, naming each for its demonstrable footprint. The count is stated against the current 24 attack classes.
-- [ ] `AC3` `audit_script_vs_stix.py --structural` fixed to group on the discriminating action, and the collision map **re-derived** — the published 10 groups / 13 probe-only are a lower bound until it is.
-- [ ] `AC4` Every surviving class checked against that re-derived map; each collision resolved as **collapse** (one class) or **script-fix** (distinct, script is the limitation), with the `EX-0014.01` precedent as the standard of proof — IOB patterns decide, not footprint.
-- [ ] `AC5` `EX-0012.04 [prereq]` adjudicated with a recorded reason; a class name that encodes a collection artifact is not carried forward silently.
-- [ ] `AC6` v4.0 mechanism ids attached to surviving classes as cross-references, with the mapping recorded as **judgement** and its rationale — not as STIX authority, which does not exist for it.
-- [ ] `AC7` ⚠ The four derived artifacts regenerated **together** — `classifier_tiers.json`, `cluster_taxonomy.json`, `explanation_catalog.json`, the OOF cache — and `AINOS3-97 AC2`'s dependency map used to confirm nothing else reads them.
-- [ ] `AC8` A statement of what moved and why: measured F1 will change where a genuine degeneracy was collapsed. Reported as a **taxonomy change**, never as a model improvement.
-- [ ] `AC9` `AINOS3-100` and `AINOS3-101` updated to consume this ticket's output. ⚠ `AINOS3-101 AC2`'s designated ROBUST test case is `IMP-0005`, which this ticket deletes — its replacement is chosen after the relabel, from whatever class is then nearest the bar.
+- [ ] `AC2` `audit_script_vs_stix.py --structural` fixed to group on the discriminating action, and the collision map **re-derived** — the published 10 groups / 13 probe-only are a lower bound until it is.
+- [ ] `AC3` Every surviving class checked against that re-derived map; each collision resolved as **collapse** (one class) or **script-fix** (distinct, script is the limitation), with the `EX-0014.01` precedent as the standard of proof — IOB patterns decide, not footprint.
+- [ ] `AC4` `EX-0012.04 [prereq]` adjudicated with a recorded reason; a class name that encodes a collection artifact is not carried forward silently.
+- [ ] `AC5` v4.0 mechanism ids attached to surviving classes as cross-references, with the mapping recorded as **judgement** and its rationale — not as STIX authority, which does not exist for it.
+- [ ] `AC6` A frozen class list published as a reviewable artifact, one line of justification per class, naming each for its demonstrable footprint. The count is stated against the current 24 attack classes. Nothing downstream may change membership or names after this without reopening the ticket.
+- [ ] `AC7` The four derived artifacts regenerated on `csv_corpus_v3stage` with the frozen labels — ⚠ a **re-fit, ordered**: the OOF cache re-run **first**, then `classifier_tiers.json`, `cluster_taxonomy.json` and `explanation_catalog.json` derived from it (see the artifact table + the 1,696-frame contamination note above — hand-deleting the IMP rows is wrong). `cluster_taxonomy.json` written to a staging `--out-dir` (clobber hazard); the three tracked artifacts reviewed as a git diff before promotion; `AINOS3-97 AC2`'s dependency map used to confirm nothing else reads them.
+- [ ] `AC8` A statement of what moved and why — measured F1 changes where a genuine degeneracy was collapsed, reported as a **taxonomy change, never a model improvement** — and `V5_DETECTOR_COVERAGE.md` updated from its "frozen pending regeneration" placeholders to the regenerated values (catch-rate table, §4 tier minima, OOF label-accuracy breakdown).
+- [ ] `AC9` `AINOS3-100` and `AINOS3-101` updated to consume the `AC6` artifact. ⚠ `AINOS3-101 AC2`'s designated ROBUST test case is `IMP-0005`, which this ticket deletes — its replacement is chosen after the relabel, from whatever class is then nearest the bar.
 
 ## Log
 

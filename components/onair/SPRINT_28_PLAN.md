@@ -78,9 +78,10 @@ assigned** — the four new slugs got keys on 2026-08-23 (`AINOS3-98`–`AINOS3-
 | AINOS3-103 | detect-cf-file-faults | Story | High | 2 | 0.5 | **Added 08-25.** R-rule on CF file-op faults — the sprint's second shipped detector |
 | AINOS3-118 | stix-guided-attack-generation | Story | High | 5 | 2.0 | **Added 08-27.** Repair attack scripts from STIX IOB patterns; EX-0014 family done (2 TPs + a validated IF gap) |
 | AINOS3-121 | if-scoring-audit | Spike | **High** | 5 | 1.5 | **Added 08-27.** Reproduce IF scores offline + positive controls; gates every IF-null gap conclusion and the Sprint-29 retrain trust |
+| AINOS3-122 | label-set-freeze | Story | **High** | 5 | 1.5 | **Added 08-29.** Freeze the class label set — consumes AINOS3-96's decisions; **gates the Sprint-29 rebuild/retrain** |
 
-**Committed set:** E = **38** · T = **11.25** (was E 20 / T 5.75 at kickoff; **+8 E added
-2026-08-25**, **+10 E added 2026-08-27** — see below). See the [capacity note](#capacity-note).
+**Committed set:** E = **43** · T = **12.75** (was E 20 / T 5.75 at kickoff; **+8 E added
+2026-08-25**, **+10 E added 2026-08-27**, **+5 E added 2026-08-29** — see below). See the [capacity note](#capacity-note).
 
 **Stretch set:** E = **7**.
 
@@ -525,3 +526,17 @@ uncertainty of *outcome* (three candidate causes), not for hands-on hours.
 8. **If headroom, in this order:** `AINOS3-94` stages 1–2 (pairs with `AINOS3-96`'s
    STIX-as-build-source decision), `AINOS3-93`, `AINOS3-91` (cheapest while a soak stack is
    already up).
+
+## Mid-sprint addition, 2026-08-29 — `AINOS3-122` (label-set-freeze)
+
+Pulled in as the **capstone of the SPARTA-spike work** and the **gate to Sprint 29**.
+`AINOS3-96` closed by *routing* the class-list and class-naming decisions onward — and nothing
+picked them up (`AINOS3-101` never absorbed them). `AINOS3-122` is that missing owner: it freezes
+the class label set (executes the deprecated-`IMP` removal already begun, resolves the
+footprint-collision groups, adjudicates `EX-0012.04 [prereq]`, names each class for its
+demonstrable footprint) and then regenerates the four label-derived artifacts on the frozen
+labels. It is **offline** (no stack) and mostly a decision task; `AC1` is already substantially
+done. It **must** complete before Sprint 29 collection, so it belongs to the current sprint even
+at ~1 week left — ⚠ if it slips, it heads Sprint 29 *ahead of* collection, not alongside it. The
+sibling `AINOS3-123` (per-subsystem consistency gate, split from the `AINOS3-118`/`AINOS3-121`
+rollback) stays in **Backlog** — a new detector build, stack-dependent, not gating the rebuild.

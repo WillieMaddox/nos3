@@ -1,16 +1,16 @@
 ---
-key: —
+key: AINOS3-123
 slug: per-subsystem-consistency-primitive
 type: Story
 epic: AINOS3-63 (detector-gates)
-status: Open
+status: Backlog
 priority: High
 estimate: E 5 / T 2.0
 opened: 2026-08-29
 origin: AINOS3-121 (if-scoring-audit)
 ---
 
-# per-subsystem-consistency-primitive — Per-subsystem range/consistency gate for single-subsystem spoofs
+# per-subsystem-consistency-primitive — Per-subsystem consistency gate
 
 **Summary:** As a defender, I want a per-subsystem range/plausibility gate running beside the IF, because `AINOS3-121` proved the deployed isolation forest misses **any** spoof confined to one subsystem's telemetry (position / MAG / IMU) in **all four modes at any magnitude** — a true coverage gap no attack script or retrain closes, only a targeted primitive.
 
