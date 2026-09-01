@@ -326,3 +326,12 @@ tickets, so AC7 cannot sign off standalone:
 
 Staging artifacts stay in `data/onair/models/label_set_regen/`, unpromoted; the live overlay reads
 the 26-class artifacts until `AINOS3-101`.
+
+### 2026-09-01 · AC7 — one of two gates cleared (dependency map done)
+
+`AINOS3-97 AC2` produced `artifact_corpus_map.json`: the promotion set
+`{OOF, classifier_tiers, cluster_taxonomy, explanation_catalog}` is a **closed** dependency of
+`csv_corpus_v3stage`, and the only **live** consumer among them is `cluster_taxonomy.json` (the
+plugin reads it). So AC7's "confirm nothing else reads them" clause is **satisfied**. AC7's
+remaining gate is unchanged: **promotion** waits on the `AINOS3-101` 17-class pkl retrain (a live
+26-class classifier + a promoted 17-class taxonomy would mismatch). AC7 stays open on that one gate.

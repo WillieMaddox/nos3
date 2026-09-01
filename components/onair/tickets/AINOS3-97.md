@@ -41,7 +41,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 - [ ] `AC1` Inventory of `data/onair/csv` by collection: date range, size, collecting scenario, and
       the defect (if any) that supersedes it.
-- [ ] `AC2` **Artifact→corpus dependency map** produced *before* anything moves; every artifact in
+- [x] `AC2` **Artifact→corpus dependency map** produced *before* anything moves; every artifact in
       `data/onair/models/` traced to the corpus it was built from.
 - [ ] `AC3` Superseded collections moved to `data/onair/csv_stale/` with a per-collection README.
 - [ ] `AC4` Nothing that a live artifact depends on is moved — verified by regenerating at least one
@@ -70,3 +70,31 @@ collection) appear to teach the v5 IF that large ECEF/position deltas are normal
 position spoof is undetected (0 anomalies, static and ramping, in SUNSAFE). Filed as `AC6` — a
 retrain-time row filter, distinct from the collection-level quarantine of AC1–AC5. See the
 AINOS3-118 log + `project_ainos3_118_gps_spoof` for the validation detail.
+
+### 2026-09-01 · AC2 DONE — artifact→corpus dependency map built (gates AINOS3-122 AC7)
+
+`data/onair/models/artifact_corpus_map.json` — all 55 artifacts traced, from provenance fields
+where present and **through the producing scripts** where the artifact carries no corpus field
+(`classifier_tiers.json` → `meta.cache` → OOF → corpus; `cluster_taxonomy.json` →
+`source_classifier` + OOF; `incident_rescore*` → `oof_predictions` → OOF).
+
+**Corpus → dependents:**
+
+| corpus | # artifacts | move-safe? |
+|---|--:|---|
+| **`csv_corpus_v3stage`** (frozen, load-bearing) | 18 | ⛔ **do NOT move** — OOF caches, tiers, taxonomy, explanation, `label_set.json`, incident rescores, mode_aware, the AC7 staging set |
+| NOMINAL soak (IF calibration + IF pkls) | 15 | separate lineage — the IF stack, not the attack corpus |
+| `csv_ainos3_30` / `_s27` | 2 | ablations — known superseded, safe to quarantine |
+| `csv_corpus_v3` (~v3stage lineage) | 5 | the classifier pkls |
+| `?UNKNOWN` (eval artifacts) | 6 | low risk, but need a script-trace before deletion |
+
+⚠ **The finding AC2 exists to surface: 11 artifacts carry NO recorded corpus provenance** — the 5
+classifier pkls and 6 eval JSONs (`benchmark_fayyaz`, `permode_pilot*`, `roc_*`,
+`steadyflight_replication`). Their corpus is inferred by script/convention, not stored in the
+file, so a purely artifact-side map is impossible for them. This is *why* AC2 is "the whole risk":
+you cannot safely quarantine 30 GB while a fifth of the model artifacts don't record what they
+were built from. **Forward fix:** stamp a `corpus`/`corpus_sha256` field into every regeneration
+output. **Immediate:** the 6 `?UNKNOWN` eval artifacts must be script-traced before AC3 moves
+anything they might cite.
+
+**AC3/AC4 (the actual quarantine) not started** — the map is the prerequisite and is now in hand.
