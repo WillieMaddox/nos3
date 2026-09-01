@@ -52,6 +52,11 @@ from collections import defaultdict
 
 import numpy as np
 
+try:
+    from label_set import training_excludes as _ls_excludes
+except Exception:  # label_set.json absent -> backward-compatible no-op
+    _ls_excludes = lambda: []
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, THIS_DIR)
 from loader import load_with_labels       # noqa: E402
@@ -303,7 +308,7 @@ def main():
         v3 = pickle.load(f)
     schema = v3["schema"]
     hp = v3["clf"].get_params()
-    allowed_labels = set(v3["labels"])
+    allowed_labels = set(v3["labels"]) - set(_ls_excludes())  # AINOS3-122 AC7: frozen label set
     n_feat = len(schema.get("feature_names", []))
     print(f"restricting eval to v3's {len(allowed_labels)} labels")
     print(f"v3 recipe: {n_feat} features, max_iter={hp['max_iter']}, "

@@ -40,6 +40,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC2` Each verdict re-tested live and updated with the measured result, in either direction.
 - [ ] `AC3` If detectable, a rule with 0 FP over a nominal soak and a live TP.
 - [ ] `AC4` Coverage overlay updated in this ticket.
+- [ ] `AC5` ⚠ **Deferred-class checkpoint (C1, from `AINOS3-122`).** When the missing apps land (`AINOS3-113` MM / `AINOS3-111` CS), re-adjudicate the deferred `EX-0012.03/.04/.05` classes (`label_set.json` `status=deferred`, `gating_ticket=AINOS3-119`): test whether the now-observable memory/config-integrity signals (`MIRE`/`DISE-13`) separate `EX-0012.03`, and whether command-parameter observability (`UACE-3`) separates `EX-0012.04` from `.05`. Record a verdict per class and update `label_set.json`.
 
 ## Log
 

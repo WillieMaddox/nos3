@@ -71,6 +71,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC3` `mid_stix_map.py --check` (the schema-drift guard) is **wired into the standing check suite**, not merely runnable — the loop this ticket's original hand-off named and never closed. A mapped field absent from `nos3_security_tlm.json` without an explicit unsubscribed marker fails the suite.
 - [ ] `AC4` The observability-gap metric is the **headline**: *N of 254 arguments have no verified NOS3 observable*, with the by-construction fractions called out (`network-traffic`, `process`, `x-opencti-cryptographic-key`).
 - [ ] `AC5` Hand-off stated and consistent: `AINOS3-116 --coverage` joins through the completed map; `AINOS3-118` promotes `unverified → verified` rows as it live-validates; the map is the **authority** for the `AINOS3-118` "needs observability first" tier so that no consumer treats un-mapped as unobservable.
+- [ ] `AC6` ⚠ **Deferred-class checkpoint (C1, from `AINOS3-122`).** On completion, re-adjudicate the deferred classes gated on the finished map — `DE-0003.03/.09/.10` (`label_set.json` `status=deferred`, `gating_ticket=AINOS3-115`): signal-sweep each across the recorded + subscribable MID surface for a technique-specific signal, and record a verdict — **confirm** (promote into the label set) or **drop** (remove, with evidence). Update `label_set.json`. This is the checkpoint the freeze's deferral relies on being forced by this ticket's completion.
 
 ## Log
 

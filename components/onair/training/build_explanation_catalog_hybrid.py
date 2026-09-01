@@ -35,6 +35,11 @@ import pickle
 
 import numpy as np
 
+try:
+    from label_set import training_excludes as _ls_excludes
+except Exception:  # label_set.json absent -> backward-compatible no-op
+    _ls_excludes = lambda: []
+
 import attribution as A
 import eval_classifier_clusters as E
 from incident_attribution import format_top_features
@@ -106,7 +111,7 @@ def main():
     print(f"loading instance {args.instance} ({len(insts[args.instance])} manifests) ...",
           flush=True)
     X, y, meta = E.load_instance(CSV_DIR, insts[args.instance], schema,
-                                 allowed_labels=set(labels))
+                                 allowed_labels=set(labels) - set(_ls_excludes()))  # AINOS3-122 AC7
     aid, incorr = meta["attack_id"], meta["in_corruption"]
     modes = meta["adcs_mode"]
     print(f"loaded X={X.shape}  modes={sorted(set(modes))}", flush=True)

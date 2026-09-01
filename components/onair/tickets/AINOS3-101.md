@@ -47,6 +47,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC3` ⚠ The like-for-like control is produced — tiers re-derived on `csv_corpus_v3stage` restricted to the same mode scope — or the comparison confounds cleaner data with narrower scope.
 - [ ] `AC4` ⚠ The 0.85 bar is **not** moved; more instances make `ROBUST` harder (min over more folds).
 - [ ] `AC5` Deployment, if any, follows the `AINOS3-37` discipline: one-line ini change, one-line rollback, live-verified, build tree synced. **Not deploying is a valid outcome.**
+- [ ] `AC6` ⚠ **Consume the frozen label set** (`data/onair/models/label_set.json`, `AINOS3-122 AC6`): the retrain reads its class list and `training_excludes()` (via `label_set.py`) rather than inferring labels from the corpus — `dropped` + probe-only `deferred` (Group A) excluded, cluster `deferred` (Group B) trained. ⚠ **This ticket owns the true 17-class DEPLOY** the `AINOS3-122 AC7` interim regeneration did not: retrain **and redeploy the classifier `.pkl`** (currently `xgb_attack_classifier_v3_hybrid.pkl`, still 26-class) so the live plugin stops predicting the removed classes, then promote the derived artifacts to match. Promoting `AINOS3-122`'s staging artifacts without this pkl retrain would leave the live 26-class classifier predicting labels the 17-class `cluster_taxonomy.json` has no entry for.
 
 ## Log
 

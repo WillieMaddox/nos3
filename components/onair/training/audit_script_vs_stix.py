@@ -84,10 +84,34 @@ def behaviour(path):
 
 
 
+_PHANTOM = re.compile(r"^[a-z_][a-z0-9_]*$")
+
+
 def _footprint(txt):
-    """The objective on-wire signature: the set of (MID-token, FC-token) sent."""
-    return frozenset((m.group(1), m.group(2)) for m in re.finditer(
+    """The objective on-wire signature: the set of (MID-token, FC-token) sent.
+    A bare lower-case MID token (mid, tgt, fc) is a helper-definition parameter or
+    loop variable from the `build_ccsds_cmd(mid, fc)` DEF, not an actual send;
+    capturing it invents a phantom ('mid','fc') pair shared by every script with
+    such a helper, which over-merges once boilerplate is stripped. Excluded here."""
+    pairs = ((m.group(1), m.group(2)) for m in re.finditer(
         r"build_ccsds_cmd\(\s*([A-Za-z_0-9\[\]\"\'.]+)\s*,\s*([A-Za-z_0-9]+)", txt))
+    return frozenset((mid, fc) for mid, fc in pairs if not _PHANTOM.match(mid))
+
+
+# Boilerplate function codes: connectivity probes (NOOP), evidence resets
+# (RESET / RST_COUNTERS / RESET_COUNTERS), baseline reads (REQ_HK / SEND_HK /
+# SEND_DIAG), and the literal 0. These scaffold nearly every script and say nothing
+# about *which* attack it is; stripping them yields the DISCRIMINATING action.
+# AINOS3-122 AC2: the full-footprint grouping is a lower bound because two scripts
+# sharing the attack command but differing in this scaffold do not group (the
+# IMP-0001 == EX-0012.09 EPS-switch case AINOS3-96 missed).
+_BOILER = re.compile(r"NOOP|RST_COUNTERS|RESET|REQ_HK|SEND_HK|SEND_DIAG", re.I)
+
+
+def _discriminating(txt):
+    """The footprint with boilerplate FCs stripped -- the attack command(s) only."""
+    return frozenset((mid, fc) for mid, fc in _footprint(txt)
+                     if fc != "0" and not _BOILER.search(fc))
 
 
 def structural(defs, byid):
@@ -106,16 +130,21 @@ def structural(defs, byid):
     dep = sorted(c for c in src if "[DEPRECATED]" in (defs.get(c, ("", ))[0]))
     notin = sorted(c for c in src if c not in defs)
     sigs = collections.defaultdict(set)
+    dsigs = collections.defaultdict(set)
     probe = []
     for cid, p in src.items():
         txt = open(p, errors="replace").read()
         sig = _footprint(txt)
         if sig:
             sigs[sig].add(cid)
+        dsig = _discriminating(txt)
+        if dsig:
+            dsigs[dsig].add(cid)
         fcs = {fc for _, fc in sig}
         if fcs and all("NOOP" in fc.upper() or fc == "0" for fc in fcs):
             probe.append(cid)
     deg = [ids for ids in sigs.values() if len(ids) > 1]
+    ddeg = [ids for ids in dsigs.values() if len(ids) > 1]
 
     print(f"{len(src)} source scripts (cosmos duplicates folded)\n")
     print(f"[deprecated in STIX v4.0] {len(dep)}: {', '.join(dep) or 'none'}")
@@ -127,6 +156,16 @@ def structural(defs, byid):
     for ids in sorted(deg, key=lambda x: (-len(x), sorted(x))):
         allprobe = all(i in probe for i in ids)
         print(f"    {sorted(ids)}{'  [all probe-only, trivial]' if allprobe else ''}")
+
+    seen = {frozenset(g) for g in deg}
+    new_only = [ids for ids in ddeg if frozenset(ids) not in seen]
+    print(f"\n[discriminating-action groups (boilerplate stripped)] {len(ddeg)} -- "
+          f"{len(new_only)} NOT visible in the full-footprint list above "
+          f"(collisions the scaffold was hiding):")
+    for ids in sorted(ddeg, key=lambda x: (-len(x), sorted(x))):
+        allprobe = all(i in probe for i in ids)
+        flag = "  <-- NEW" if frozenset(ids) in {frozenset(g) for g in new_only} else ""
+        print(f"    {sorted(ids)}{'  [all probe-only]' if allprobe else ''}{flag}")
     return 0
 
 

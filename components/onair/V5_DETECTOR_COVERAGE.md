@@ -7,7 +7,7 @@ per-mode heads) + the four parallel detector gates (rule-gate R1–R14,
 consistency-check, staleness-check) currently deployed in the OnAIR plugin against
 the NOS3 cFS flight software.
 
-**Last updated:** 2026-08-28 — ⚠ **the five deprecated-`IMP` classes (`IMP-0001/0002/0003/0005/0006`) were removed** from the label set. SPARTA v4.0 deprecates the entire v3 Impact family (verified: zero IOB indicators, no successor mapping — v4 replaced an *effect* taxonomy with a *mechanism* one; see `AINOS3-96` 2026-08-28 and `label-set-freeze`). Their rows are struck from the tables below. ⚠ **Numbers that were computed over the 26-class model — the catch-rate table, the tier minima, the OOF label-accuracy breakdown — are frozen at their last 26-class values until `classifier_tiers.json` and the OOF cache are regenerated on the frozen labels (label-set-freeze AC7).** Removing a class changes cross-entropy and can move surviving classes' scores; treat every per-technique figure here as pre-regeneration until that lands. 2026-08-27 — added §A0 (single-subsystem-spoof blindness + BDOT inertness, measured via AINOS3-121's `if_audit.py`) and the IF-null validation rule. 2026-08-20 — **the classifier confidence tiers (§4) were re-derived and
+**Last updated:** 2026-08-28 — ⚠ **the five deprecated-`IMP` classes (`IMP-0001/0002/0003/0005/0006`) were removed** from the label set. SPARTA v4.0 deprecates the entire v3 Impact family (verified: zero IOB indicators, no successor mapping — v4 replaced an *effect* taxonomy with a *mechanism* one; see `AINOS3-96` 2026-08-28 and `label-set-freeze`). Their rows are struck from the tables below. ✅ **Regenerated 2026-09-01 (label-set-freeze AC7):** the tier minima (§4) and OOF numbers are re-fit on the frozen **17-class** label set. The relabel is metric-neutral on the surviving classes — a **fair** same-17-classes comparison moves OOF frame-accuracy only **23.1 % → 21.9 % (−1.2 pts)**; the larger raw drop (28.2 % → 21.9 %) is a composition artifact (the removed IMP classes were relatively well-predicted). ⚠ At the **incident** level (the 42.3 % headline below), a fair same-16-classes comparison moves 28.6 % → 21.4 % — but that is **3 of 56 detected incidents**, mechanically traceable to the cluster-taxonomy split and frame re-routing (not model quality), and too small to trust on this corpus. **The incident-label-accuracy re-derivation is therefore DEFERRED to the Sprint-29 rebuild** (`AINOS3-100`/`AINOS3-101`); the 42.3 % / 34.6 % figures below remain the deployed **26-class** values until then. **ROBUST stays empty.** The IF catch-rate column is label-independent and unchanged by the relabel. 2026-08-27 — added §A0 (single-subsystem-spoof blindness + BDOT inertness, measured via AINOS3-121's `if_audit.py`) and the IF-null validation rule. 2026-08-20 — **the classifier confidence tiers (§4) were re-derived and
 most of them moved.** They had been hardcoded, unreproducible strings; an audit found that
 **none of the four techniques published as ROBUST met the documented "F1 ≥ 0.85 on every
 split" rule** (`DE-0003.01` averaged 0.03). Tiers now come from
@@ -204,7 +204,7 @@ corpus at this granularity:
 |---|---|---|
 | Incident recall — genuinely detectable state-change attacks | **92.8 % (77/83)** | `[unverifiable]` — see AINOS3-80 **F2** |
 | Incident recall — all SPARTA techniques (incl. undetectable-by-design) | 67.8 % (78/115) | `[unverifiable]` — see AINOS3-80 **F2** |
-| Incident label accuracy (of detected; deployed hybrid) | **42.3 %** (v3 global head 34.6 % on identical folds; the old 76.9 % was in-sample-optimistic) | `[OOF]` |
+| Incident label accuracy (of detected; deployed hybrid) | **42.3 %** (v3 global head 34.6 %; old 76.9 % was in-sample-optimistic) — ⚠ **deployed 26-class**; 17-class re-derivation **deferred to Sprint-29** (fair Δ = 3 of 56 incidents, traceable to the relabel) | `[OOF]` |
 
 > **Why "unverifiable" and not "wrong" (AINOS3-80 F2).** The IF trains on *nominal* frames
 > only, so the attack rows scored here were certainly never fitted. But the deployed IF
@@ -259,21 +259,27 @@ F1, because the cluster is the label the system actually emits (§B.1). Scoring
 `EX-0012.04` at its technique F1 (0.01) would tier a label we never claim to
 produce; its cluster scores 0.45.
 
-- **ROBUST — currently EMPTY.** No technique meets the bar. With the deprecated-`IMP`
-  classes removed, the closest surviving attack technique is `EX-0008.02` at **min 0.774**
-  (the previous "closest", `IMP-0005` at 0.848, was a probe-only NOOP script — its near-bar
-  score was a corpus artifact, not a detection). The 0.85 threshold is inherited verbatim and
-  was deliberately **not** lowered to populate the tier. ⚠ Minima are pre-regeneration
-  (label-set-freeze AC7).
-- **STABLE-MID:** `EX-0008.02` (0.77), `EX-0008.01` (0.71), `DE-0003.10` (0.50), plus
-  `nominal` (0.78). *(min F1 in parentheses; the removed `IMP-0002/0005/0006` were here.)*
-- **HIGH-VARIANCE:** the `EX-0012.{03,04,05}` and `EX-0012.12`/`EX-0014.01`
-  clusters, `DE-0003.01/.02/.03/.06/.08`, `EX-0012.07/.08/.09`, `EX-0014.04`. (`IMP-0001`
-  and `IMP-0003` were here — `IMP-0003` spanned 0.11 → 0.94 across three runs, which had been
-  the clearest example of why the mean is the wrong statistic; `EX-0012.08` at 0.00 → 0.52
-  now carries that point.)
-- **DEAD (cannot be labeled as-is):** `DE-0003.09`, `EX-0014.03`,
-  `EX-0012.04 [prereq]`. See next section.
+Tiers **regenerated 2026-09-01** on the frozen 17-class label set (`label_set.json`); values
+below are the regenerated minima, no longer pre-regeneration placeholders.
+
+- **ROBUST — currently EMPTY.** No technique meets the bar. The closest surviving attack technique
+  is `EX-0008.02` at **min 0.79**. The 0.85 threshold is inherited verbatim and was deliberately
+  **not** lowered to populate the tier.
+- **STABLE-MID (2):** `EX-0008.02` (0.79), plus `nominal` (0.83). *(min F1 in parentheses.)* ⚠ On
+  the 17-class refit `EX-0008.01` (0.71 → **0.50**) slipped to HIGH-VARIANCE and `DE-0003.10`
+  left the trained set (DEFERRED) — so this tier shrank from 7 entries to 2.
+- **HIGH-VARIANCE (14):** `EX-0008.01` (0.50), `DE-0003.01` (0.31), `EX-0012.05` (0.23),
+  `EX-0012.07` (0.18), the `EX-0012.{03,04}` cluster (0.06) and the `EX-0012.12`/`EX-0014.01`
+  cluster, plus `DE-0003.02/.06/.08`, `EX-0012.08/.09`, `EX-0014.04` (all min 0.00 — caught
+  often, labelled inconsistently across runs).
+- **DEAD (cannot be labeled as-is):** `EX-0014.03` only. (`DE-0003.09` and `EX-0012.04 [prereq]`
+  left the label set — DEFERRED and DROPPED respectively.)
+- **DEFERRED (not scored here — see `label_set.json`):** `DE-0003.03/.09/.10` (probe-only,
+  excluded from training pending a MID signal-sweep, `AINOS3-115`) and the `EX-0012.03/04/05`
+  *separation* (trained as a cluster, its split pending the MM/CS apps, `AINOS3-119`). ⚠ On the
+  17-class refit the CFE_TBL degeneracy shifted: `EX-0012.05` separated from the `{03,04}` pair,
+  and the tighter cluster now scores 0.06 (was 0.39 as a 3-member cluster) — a taxonomy recompute,
+  not a model change.
 
 **The hybrid is materially better than the v3 global head at labeling**, which the
 old tier list obscured: macro mean-F1 **0.282 → 0.364**, and folds scoring a
@@ -492,7 +498,7 @@ Section 1 come from independent soaks 4–16× larger than the training sets and
 conservatively. Treat "1 % FP" as a `[design-target]` and the soak numbers as the
 measurement. Incident **labelling** had only ever been measured in-sample. Re-scoring the same `csv_corpus_v3stage` corpus with
 leave-one-instance-out, out-of-fold predictions (AINOS3-34) gives the honest
-figure. For the **deployed selective per-mode hybrid** (AINOS3-37): **42.3 % label
+figure. ⚠ **These 26-class figures are frozen pending the Sprint-29 rebuild** — the 17-class re-derivation moved only 3 of 56 detected incidents, too small to trust here (see the banner). For the **deployed selective per-mode hybrid** (AINOS3-37): **42.3 % label
 accuracy of detected attacks** out-of-fold — up **+7.7 pts** from the v3 global
 head's 34.6 % OOF on identical folds, concentrated in the dynamic-mode / ROBUST-tier
 techniques the per-mode heads target (DE-0003.10, EX-0014.01, EX-0012.07 up — the
@@ -606,11 +612,11 @@ steady flight.
 
 | Technique | Catch (SUNSAFE) | Classifier tier | Signal | Note |
 |---|--:|---|---|---|
-| EX-0008.01 ATS | 91 % | **STABLE-MID** | ON_BOARD | |
-| EX-0008.02 RTS | 91 % | **STABLE-MID** | ON_BOARD | reliably caught; label usable on every run (min F1 0.77) but not authoritative |
-| EX-0012.03 prop cmd | < 25 % | HIGH-VAR | ON_BOARD | ≡ .04/.05 cluster; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
-| EX-0012.04 app tables | 63 % | HIGH-VAR | ON_BOARD | ≡ .03/.05 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
-| EX-0012.05 scheduler | 64 % | HIGH-VAR | ON_BOARD | ≡ .03/.04 family; ⚠ hybrid labeling regressed on this cluster, INERTIAL only (AINOS3-78) |
+| EX-0008.01 ATS | 91 % | HIGH-VAR | ON_BOARD | ⚠ slipped STABLE-MID→HIGH-VAR on the 17-class refit (min 0.71→0.50) |
+| EX-0008.02 RTS | 91 % | **STABLE-MID** | ON_BOARD | reliably caught; label usable on every run (min F1 0.79) but not authoritative — the tier's only attack technique |
+| EX-0012.03 memory write | < 25 % | HIGH-VAR | ON_BOARD | DEFERRED separation → `{03,04}` cluster (min 0.06); split pending MM/CS (AINOS3-119) |
+| EX-0012.04 app tables | 63 % | HIGH-VAR | ON_BOARD | DEFERRED separation → `{03,04}` cluster (min 0.06); unique UACE-3 IOB needs command-param logging (AINOS3-119) |
+| EX-0012.05 scheduler | 64 % | HIGH-VAR | ON_BOARD | separated from the {03,04} cluster on the 17-class refit (min 0.23); DEFERRED (AINOS3-119) |
 | EX-0012.07 propulsion | 100 % | HIGH-VAR | ON_BOARD | always detected |
 | EX-0012.08 ADCS | 100 % | HIGH-VAR | ON_BOARD | always detected; label unstable across runs |
 | EX-0012.09 EPS | ⚠ **0 %** | HIGH-VAR | ON_BOARD | **CONFIRMED GAP** — detected by nothing in steady flight (0/3 reps); the 99 % came from transient-dominated data. Ticketed AINOS3-87 |
@@ -620,11 +626,11 @@ steady flight.
 | EX-0014.04 PNT spoof | 98 % | HIGH-VAR | ON_BOARD | |
 | DE-0003.01 disable logging | < 25 % | HIGH-VAR | OBFUSCATION | ⚠ was published ROBUST; actually min F1 0.29 (v3: 0.03) |
 | DE-0003.02 clear logs | < 25 % | HIGH-VAR | OBFUSCATION | counter telescoped |
-| DE-0003.03 | < 25 % | HIGH-VAR | UNSUBSCRIBED | out of scope |
+| DE-0003.03 | < 25 % | **DEFERRED** | probe-only | excluded from training; MID sweep pending (AINOS3-115) |
 | DE-0003.06 | < 25 % | HIGH-VAR | ON_BOARD | one-way confusion only |
 | DE-0003.08 | < 25 % | HIGH-VAR | OBFUSCATION | telescoped |
-| DE-0003.09 | < 25 % | DEAD | ON_BOARD | NOOP-only |
-| DE-0003.10 | < 25 % | **STABLE-MID** | ON_BOARD | was published ROBUST; min F1 0.50 across folds |
+| DE-0003.09 | < 25 % | **DEFERRED** | probe-only | excluded from training; 0 IOBs; MID sweep pending (AINOS3-115) |
+| DE-0003.10 | < 25 % | **DEFERRED** | probe-only | excluded from training; MID sweep pending (AINOS3-115) |
 
 *(DE-0003.04/05/07/11/12 are CONCEPTUAL/UNSUBSCRIBED — out of scope for
 telemetry detection.)*

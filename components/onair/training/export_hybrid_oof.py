@@ -29,6 +29,11 @@ import time
 
 import numpy as np
 
+try:
+    from label_set import training_excludes as _ls_excludes
+except Exception:  # label_set.json absent -> backward-compatible no-op
+    _ls_excludes = lambda: []
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, THIS_DIR)
 from eval_classifier_clusters import (  # noqa: E402
@@ -76,7 +81,7 @@ def main():
     with open(args.classifier, "rb") as f:
         v3 = pickle.load(f)
     schema, hp = v3["schema"], dict(v3["clf"].get_params())
-    allowed = set(v3["labels"])
+    allowed = set(v3["labels"]) - set(_ls_excludes())  # AINOS3-122 AC7: frozen label set
     n_feat = len(schema.get("feature_names", []))
     print(f"routing {routed} to per-mode heads; global head elsewhere; "
           f"max_iter={hp.get('max_iter')}")
