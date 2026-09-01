@@ -5,6 +5,7 @@ type: Story
 epic: AINOS3-110 (build-missing-cfs-apps)
 status: Open
 priority: High
+blocks: AINOS3-124 (CS is a prerequisite of the schema freeze)
 estimate: E 5 / T 2.0
 opened: 2026-08-25
 origin: AINOS3-95 (sparta-logging-gap-analysis)
@@ -60,3 +61,12 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`.
 Results live here, not in a sprint plan.
+
+### 2026-09-01 · BUMPED — schema-freeze (AINOS3-124) prerequisite, the long pole of Stage 1
+
+Owner decided CS is a **GO** before the schema freeze (`AINOS3-124`): freezing the recorded schema
+without integrity columns and building CS afterward would force a full re-collect. So CS is
+sequenced **ahead of** the freeze — `AINOS3-124 AC4` cannot publish the frozen schema until CS's
+columns are built and **live-verified reaching OnAIR**. HS (`AINOS3-112`) and MM/MD (`AINOS3-113`)
+were **NO-GO** (deferred to `schema-vNext`). The standing relationship is in the `blocks:`
+frontmatter field; slot this into the sprint that precedes the Stage-2 rebuild.

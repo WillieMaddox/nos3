@@ -23,7 +23,7 @@ streams), retrain, and confirm LOIO shows no regression elsewhere before any dep
 
 ⚠ **Evidence base narrowed 2026-08-28.** The original justification named three beneficiaries —
 PNT plus `IMP-0003` (denial) and `IMP-0006` (theft). Both IMP classes are among the five
-deprecated-`IMP` classes removed from the label set (`label-set-freeze`, `AINOS3-96`
+deprecated-`IMP` classes removed from the label set (`AINOS3-122`, `AINOS3-96`
 2026-08-28), so **two-thirds of this ticket's cited gain no longer exists as measured**. The
 surviving PNT result was itself measured on the old 24-class label set, so it does not transfer
 automatically either — it must be **re-measured against the frozen labels** before this retrain
@@ -37,7 +37,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 - [ ] `AC1` The harmful pure bus-activity features (per AINOS3-39) removed; classifier retrained on the
       frozen corpus.
-- [ ] `AC1a` ⚠ **Pre-req:** the AINOS3-39 drop-experiment is re-run on the post-`label-set-freeze` corpus, so the "harmful features" list and the PNT gain are established on the frozen label set — not inherited from the pre-removal 24-class measurement.
+- [ ] `AC1a` ⚠ **Pre-req:** the AINOS3-39 drop-experiment is re-run on the post-`AINOS3-122` corpus, so the "harmful features" list and the PNT gain are established on the frozen label set — not inherited from the pre-removal 24-class measurement.
 - [ ] `AC2` LOIO shows the surviving gain (PNT, plus whatever `AC1a` confirms) retained with no regression on other clusters or modes.
 - [ ] `AC3` Deploy only through the AINOS3-37 live-verify + one-line-rollback discipline; ini + build
       tree synced.

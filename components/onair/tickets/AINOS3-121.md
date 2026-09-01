@@ -202,6 +202,6 @@ shows the mode is not inert.
 The 2026-08-28 AC4 write-back concluded the PNT/MAG/IMU misses are true coverage gaps whose fix
 is "a per-subsystem primitive, tracked on AINOS3-118". That conclusion stands unchanged — the
 harness result and the re-adjudication are sound. Only the **tracking pointer** moves: the
-primitive is now `per-subsystem-consistency-primitive` under the detector-gates epic (`AINOS3-63`),
+primitive is now `AINOS3-123` under the detector-gates epic (`AINOS3-63`),
 not `AINOS3-118` (a detector build did not belong in an attack-generation Story). Nothing about
 this ticket's ACs or measurements changes.

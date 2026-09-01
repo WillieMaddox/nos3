@@ -11,7 +11,7 @@ sprints: [28]
 origin: AINOS3-96 (sparta-stix-ingest)
 ---
 
-# label-set-freeze — Freeze the class label set
+# AINOS3-122 — Freeze the class label set
 
 **Summary:** As an ML engineer, I want the classifier's class list and class names settled and frozen as a reviewed artifact before any collection or retrain, because the label vector is the single input that `classifier_tiers.json`, `cluster_taxonomy.json`, `explanation_catalog.json` and the LOIO folds all derive from — so a bad class invalidates all four at once, and if it is discovered after collection the fix is another collection.
 

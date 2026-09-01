@@ -337,7 +337,7 @@ un-mask. Detail + the `if_audit.py` tool live in AINOS3-121.
 
 ### 2026-08-28 · Phase-4 scope note — two live IMP references to fix on rollback
 
-The IMP-0001…0006 removal (`label-set-freeze`, `AINOS3-96` 2026-08-28) leaves two **live**
+The IMP-0001…0006 removal (`AINOS3-122`, `AINOS3-96` 2026-08-28) leaves two **live**
 references that were deliberately deferred to this ticket's rollback rather than edited in the
 Phase-2 text pass, because both sit in files this rollback already opens:
 
@@ -367,7 +367,7 @@ not map-derived):
   254-argument map lands. Same defect class as `AINOS3-116 AC3`.
 - **Per-subsystem primitive re-homed.** The detector that `AINOS3-121` concluded is the PNT/MAG/IMU
   fix was tracked here — a detector build inside an attack-generation Story. Split out to
-  `per-subsystem-consistency-primitive` under the detector-gates epic (`AINOS3-63`). The 2026-08-27
+  `AINOS3-123` under the detector-gates epic (`AINOS3-63`). The 2026-08-27
   log entry's "per-subsystem detection primitive" reference now lives there; this ticket keeps only
   the attack-script work.
 - **Folded live edits done** (the two flagged in the 2026-08-28 scope note):

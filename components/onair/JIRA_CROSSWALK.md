@@ -146,6 +146,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-121 | if-scoring-audit | Spike | detector-rigor | Reproducible IF scoring + per-feature sensitivity/calibration audit | Sprint 28 · ✅ Done |
 | AINOS3-122 | label-set-freeze | Story | corpus-integrity | Freeze the class label set | Sprint 28 · ◑ Committed |
 | AINOS3-123 | per-subsystem-consistency-primitive | Story | detector-gates | Per-subsystem consistency gate | Backlog |
+| AINOS3-124 | schema-freeze | Story | corpus-integrity | Freeze the recorded telemetry schema | Backlog |
 
 ## Sprint 28 (planning)
 

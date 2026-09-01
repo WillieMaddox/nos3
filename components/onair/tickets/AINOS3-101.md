@@ -23,12 +23,12 @@ largely from unusable frames.
 
 This ticket is the retrain that tests whether a corpus without those two defects — collected
 under the steady-flight protocol (`AINOS3-100`) and labelled against the frozen class set
-(`label-set-freeze`) — can put any class into `ROBUST`. It runs **after** collection; it does not
+(`AINOS3-122`) — can put any class into `ROBUST`. It runs **after** collection; it does not
 itself collect.
 
 ⚠ **Depends on three upstream freezes, and inherits their discipline:**
 
-- **`label-set-freeze`** settles the class list and names. The five deprecated-`IMP` classes are
+- **`AINOS3-122`** settles the class list and names. The five deprecated-`IMP` classes are
   gone and class names track the demonstrable footprint, so this retrain trains on a label set
   that no longer over-promises. It must consume that frozen set, not re-derive its own.
 - **`AINOS3-100`** supplies the clean corpus and its manifest.

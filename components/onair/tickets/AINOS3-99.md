@@ -32,7 +32,7 @@ folds distribute across all three instances.
 
 ⚠ **The example rows were changed 2026-08-28.** They previously led with `IMP-0001` and
 `IMP-0003`, two of the five deprecated-`IMP` classes removed from the label set (see
-`label-set-freeze` and `AINOS3-96`'s 2026-08-28 entry). The point is unchanged — non-IMP
+`AINOS3-122` and `AINOS3-96`'s 2026-08-28 entry). The point is unchanged — non-IMP
 classes show the same 0.00→0.65 spread — but the **class count and the per-instance zero-F1
 distribution are now stale**: they were `26 classes` / `9·6·6 of 26`, computed over the old
 label set, and are re-derived only when `classifier_tiers.json` is regenerated on the frozen

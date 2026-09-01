@@ -42,7 +42,7 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [ ] `AC3` A per-technique observability report joining IOBs to `mid_stix_map.json`: for each IOB, can we observe it, and does our claimed script exercise it? ⚠ The `--coverage` tool is built and correct, but its output is only meaningful once `AINOS3-115` delivers the **complete** 254-argument map — on the 12-row seed almost every IOB reports `no-observable`. Re-run and record once `AINOS3-115` closes.
 - [x] `AC4` The EX-0014.01 vs EX-0012.12 case reproduced as a regression fixture — distinct techniques whose unique IOBs are the separating signal.
 - [x] `AC5` Fetch provenance recorded: the bundle sha256 the graph was read from.
-- [ ] `AC6` **Run `--degeneracy` across all 10 of the `AINOS3-96` phase-2 identical-footprint groups** and record a per-group verdict — **genuine degeneracy** (unique IOBs do not separate → collapse the classes) vs **script limitation** (unique IOBs separate → distinct techniques, the script is the limitation), with the `EX-0014.01`/`EX-0012.12` case as the proof standard. The tool was built for this in the original pass but never run across the queue. Feeds `label-set-freeze` `AC3` and `AINOS3-117`.
+- [ ] `AC6` **Run `--degeneracy` across all 10 of the `AINOS3-96` phase-2 identical-footprint groups** and record a per-group verdict — **genuine degeneracy** (unique IOBs do not separate → collapse the classes) vs **script limitation** (unique IOBs separate → distinct techniques, the script is the limitation), with the `EX-0014.01`/`EX-0012.12` case as the proof standard. The tool was built for this in the original pass but never run across the queue. Feeds `AINOS3-122` `AC3` and `AINOS3-117`.
 
 ## Log
 
@@ -103,8 +103,8 @@ built and correct, and `AC1`/`AC2`/`AC4`/`AC5` stay demonstrated. Two things reo
   complete 254-argument map, so `AC3` is un-checked pending that.
 - **`AC6` added:** the `--degeneracy` tool was built to triage the 10 `AINOS3-96` phase-2 groups
   "by command, not by hand" — but was **never run across the queue**. Running it and recording
-  the 10 verdicts is what feeds the `label-set-freeze` collapse-vs-script-fix decision and
-  `AINOS3-117`. ⚠ Note the sibling lower-bound caveat from `label-set-freeze AC2`: the
+  the 10 verdicts is what feeds the `AINOS3-122` collapse-vs-script-fix decision and
+  `AINOS3-117`. ⚠ Note the sibling lower-bound caveat from `AINOS3-122 AC2`: the
   `--structural` command-set grouping in `audit_script_vs_stix.py` missed `IMP-0001` ≡
   `EX-0012.09` (same `EPS SWITCH`, different padding), so the 10-group list is a floor — the
   IOB-pattern check here is exactly the sharper instrument that catches such pairs.

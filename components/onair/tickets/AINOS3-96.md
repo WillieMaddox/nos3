@@ -418,7 +418,7 @@ definition to detect against, so removal costs nothing in IOB coverage.
 (`IMP-0001/0002/0003/0005/0006`) and all six techniques are removed outright — 18 script files
 (`impact/imp_000{1..6}_*.{py,_cosmos.py,.md}`), 5 of 24 attack classes. The v4 mechanism ids may
 be recorded as **cross-references** on surviving classes but never as class names, per this
-ticket's own `AC4` split. Execution and the full rationale live in the `label-set-freeze` ticket;
+ticket's own `AC4` split. Execution and the full rationale live in the `AINOS3-122` ticket;
 this entry records why remapping was rejected.
 
 **[2] ⚠ "an entirely new `SV` tactic (44 techniques) never assessed" is wrong in kind.**
