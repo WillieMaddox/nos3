@@ -42,7 +42,7 @@ separates "cleaner data helped" from "we just evaluated on an easier slice."
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` Retrain and re-derive tiers on the clean corpus; report whether `ROBUST` is reachable.
+- [ ] `AC1` Retrain and re-derive tiers on the clean corpus; report whether `ROBUST` is reachable. ⚠ **Temper the prior:** `AINOS3-99` found the per-instance F1 spread is neither blind-window nor sample-size driven but a **generalisation limit** (a class's footprint varies across runs), and `min`-over-folds structurally penalises that diversity — so `ROBUST` (min F1 ≥ 0.85 across folds) is **probably not reachable via corpus size or steady-flight collection alone**. A `ROBUST`-empty outcome here is the expected result, not a failure; the honest deliverable is *why*, tied to footprint reproducibility.
 - [ ] `AC2` ⚠ A designated near-bar test case reported explicitly against the 0.85 bar. The **previous** designee, `IMP-0005` (min F1 0.8481), is **removed** — it was a deprecated-`IMP` class whose script was probe-only (NOOP-only, self-declared "CONCEPTUAL"), so its near-`ROBUST` score was a corpus artifact, not a real detection. The replacement is chosen **after** the relabel, from whichever surviving class is then nearest the bar; naming it is part of this ticket, not inherited.
 - [ ] `AC3` ⚠ The like-for-like control is produced — tiers re-derived on `csv_corpus_v3stage` restricted to the same mode scope — or the comparison confounds cleaner data with narrower scope.
 - [ ] `AC4` ⚠ The 0.85 bar is **not** moved; more instances make `ROBUST` harder (min over more folds).
