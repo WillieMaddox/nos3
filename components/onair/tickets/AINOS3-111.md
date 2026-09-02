@@ -51,157 +51,125 @@ the original scoping.
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` `cs` vendored, built, loading, and its HK arriving at OnAIR — verified live.
-- [ ] `AC2` Checksum tables authored for NOS3's actual app and table set, not a stock example.
-- [ ] `AC3` Columns subscribed and validated non-constant, and NOT silently pruned from the CSV.
-- [ ] `AC4` A deliberate corruption produces an observable miscompare — the detection demonstrated live, not inferred.
-- [ ] `AC5` `CDH-GOLDEN` and the `EX-0004`/`EX-0005` verdicts re-assessed.
+- [x] `AC1` `cs` vendored, built, loading, and its HK arriving at OnAIR — verified live.
+- [x] `AC2` Checksum tables authored for NOS3's actual app and table set, not a stock example (`cs_apptbl.c`, 23 apps).
+- [x] `AC3` Columns subscribed and validated (28 `CS.*` cols, cFE-core baseline + sweep counters non-constant), NOT silently pruned from the CSV.
+- [x] `AC4` ⚠ **Reframed by a platform finding, then demonstrated via the achievable observable.** The literal "app-code corruption → live `AppCSErrCounter` miscompare" is **NOT achievable on the NOS3 linux PSP** — `CFE_ES_GetModuleInfo` returns `AddressesAreValid=false` for every `dlopen`'d app, so CS never baselines an app and the miscompare cannot fire (see 2026-09-01 log). The achievable observable — CS **monitor-tamper** — is **demonstrated live** (2026-09-02): a `CS_DISABLE_ALL_CS` command flips `CS.ChecksumState 1→2 (DISABLED)` in the corpus, and `CS_ENABLE_ALL_CS` restores it to `1`. A rule-gate R-rule candidate (sibling of R5).
+- [x] `AC5` `EX-0004`/`EX-0005`/`CDH-GOLDEN` re-assessed against the platform reality: CS on NOS3 = **cFE-core integrity attestation + monitor-tamper signal**, NOT per-app code-corruption detection. `AppCS*` must not be wired as detector features (vacuous). See 2026-09-02 log.
 
 ## Log
 
-Dated, append-only. Starts at the first real event — creation is implied by `opened:`.
-Results live here, not in a sprint plan.
+Dated. Rewritten in plain language 2026-09-02 for readability; the technical specifics (file
+names, field names, decisions) are preserved, the jargon is explained.
 
-### 2026-09-01 · BUMPED — schema-freeze (AINOS3-124) prerequisite, the long pole of Stage 1
+### 2026-09-01 · Why CS is built before the "schema freeze"
 
-Owner decided CS is a **GO** before the schema freeze (`AINOS3-124`): freezing the recorded schema
-without integrity columns and building CS afterward would force a full re-collect. So CS is
-sequenced **ahead of** the freeze — `AINOS3-124 AC4` cannot publish the frozen schema until CS's
-columns are built and **live-verified reaching OnAIR**. HS (`AINOS3-112`) and MM/MD (`AINOS3-113`)
-were **NO-GO** (deferred to `schema-vNext`). The standing relationship is in the `blocks:`
-frontmatter field; slot this into the sprint that precedes the Stage-2 rebuild.
+We plan to freeze the exact list of columns we record, so the model can be retrained on a stable
+dataset. But today's recorded data contains no software-integrity information at all. If we froze
+the column list first and built the Checksum (CS) app afterward, we'd have to throw away everything
+collected and start over. Decision: build CS first and get its data into the recording, then freeze
+the column list. Two related apps (HS and MM/MD) were judged not worth building right now and pushed
+to a later round.
 
-### 2026-09-01 · Survey + feasibility de-risk (before any build)
+### 2026-09-01 · Is this even doable? (checked before writing any code)
 
-Established the two things that decide whether this is tractable, and the answer is "yes, but with
-a vendoring decision that is the owner's":
+Two questions decided whether CS was practical, and the answer was yes:
 
-**1. There is no nasa-itc CS fork.** NOS3's standard apps are nasa-itc forks (`nasa-itc/SC`, `/LC`,
-`/DS`, `/FM`, `/SCH`); `nasa-itc/CS` and `nasa-itc/CFS_CS` **do not exist**. Only mainstream
-`nasa/CS` does. So CS cannot follow the established submodule pattern as-is.
+1. Our other flight apps come from a NASA-maintained fork, but **there is no such fork of CS** — only
+   the mainstream NASA version exists. So CS can't be added the usual way.
+2. The bigger worry — that CS would be written for an *old* version of the flight framework and need
+   heavy porting — was unfounded. Our framework is a modern version (`draco-rc5`), and one of our
+   existing apps (DS) already uses the same modern style CS needs. So CS is a modern app on a modern
+   base; DS is the template to copy.
 
-**2. ✅ The big compatibility fear is unfounded.** NOS3's cFE is **`draco-rc5`** (modern), and its
-nasa-itc DS already uses the **modern** API (`CFE_SB_ValueToMsgId`, `CFE_MSG_Init(CFE_MSG_PTR(...))`,
-`*_Payload_t` nesting) — the *same* API mainstream `nasa/CS` uses. So CS is **not** a back-port to
-an ancient cFE; it is a modern app on a modern base. DS is the concrete adaptation pattern.
+Plan: copy in the NASA CS code, write the NOS3-specific config tables (which apps/areas to
+checksum), wire it into the build and the startup list, rebuild the flight software, connect its
+telemetry to the recorder, and finally demonstrate it catching a deliberate corruption. One decision
+was left to the owner — how to bring in the CS code — and we chose the simplest: a plain vendored
+copy under `fsw/apps/cs` that we can patch freely.
 
-**Concrete build plan (offline Phase A, then build, then live):**
+### 2026-09-01 · CS compiles and installs
 
-- A1 vendor `nasa/CS` → `fsw/apps/cs`; adapt `mission_build.cmake`/`CMakeLists.txt` to NOS3 (pattern
-  DS — expected minimal, both modern).
-- A2 author the **four** NOS3 CS tables in `cfg/nos3_defs/tables/` — `cs_apptbl` (which of NOS3's
-  ~13 apps + ~12 components to checksum), `cs_tablestbl` (which tables), `cs_eepromtbl`,
-  `cs_memorytbl`. **This is the E5 risk** — it must match NOS3's *actual* app/table set (AC2).
-- A3 add `cs` to `cfg/nos3_defs/targets.cmake`; move it **above the `!`** in `cpu1_cfe_es_startup.scr`;
-  add a `CS_SEND_HK_MID` entry to the `sch` schedule table.
-- B full FSW rebuild.
-- C OnAIR wiring: `CS_HkPacket_t` struct in `message_headers.py` + `nos3_security_tlm.json` + the
-  ini, `sbn_client.so` rebuild.
-- D launch, verify CS HK reaches OnAIR (AC1/AC3), demonstrate a corruption→miscompare (AC4).
+The hardest risk — would CS even build inside our system — is gone: CS compiles and installs
+cleanly. Two notes for next time: the flight-software build has to run inside a specific Docker
+container (it needs a simulation library), and the tool that generates the startup list had a
+hard-coded app list that didn't include CS, so it had to be patched.
 
-⚠ **Owner decision at A1 — how to vendor CS, since no nasa-itc fork exists:** (a) plain vendored
-copy under `fsw/apps/cs` (simplest, NOS3 can patch freely, not upstream-tracked); (b) submodule
-mainstream `nasa/CS` directly (pins upstream, but NOS3 patches have nowhere clean to live); (c)
-fork `nasa/CS` into the org and submodule the fork (matches the nasa-itc pattern; needs a fork
-only the owner can create). This is the one fork-in-the-road before hours of build work go in.
+### 2026-09-01 · CS runs on the live satellite
 
-### 2026-09-01 · CS builds + installs in NOS3 (Phase A+B done)
+Launched the stack. The flight log shows CS starting cleanly (`CS Initialized. Version 2.5.99.0`).
+At this point its config tables are still the app's empty defaults — expected; the real NOS3 tables
+come next.
 
-The hardest integration risk is retired: **CS compiles and installs cleanly in the NOS3 cFS build.**
+### 2026-09-01 · Told CS which apps to watch, and scheduled its reports
 
-- Vendored `nasa/CS` **@draco-rc5** (option (a), plain copy) — version-matched to NOS3's cFE
-  (`draco-rc5-7`). Mainstream HEAD uses the modern config-module (`generate_configfile_set`) that
-  NOS3's build predates; the draco-rc5 tag is the DS-era structure that builds.
-- `cs` added to `MISSION_GLOBAL_APPLIST` (`targets.cmake`).
-- ⚠ **`configure.py` had a hardcoded startup-app list without cs** — patched to read
-  `applications/cs/enable` (guarded for SC configs lacking `<cs>`) and move the cs line above the
-  `!`. Matched on the **unique `CS_AppMain`** token, not `CS,` (which collides with `ADCS,`).
-- `cs` enabled in `sc-mission-config.xml`.
-- ⚠ Build gotcha recorded: the FSW build **must run in the `ivvitc/nos3-64` container** (needs
-  NOSENGINE) via `make fsw`, not host `make build-fsw`; and the container `docker run -it` needs a
-  TTY, so a non-interactive build must drop `-t` (`docker run --rm -i ... build-fsw`).
+Wrote the NOS3 config (`cs_apptbl.c`) listing the 23 real apps for CS to checksum, and turned on
+CS's periodic "housekeeping" status report so its state is broadcast. A small snag: the schedule
+file didn't reference CS's message name, so that reference had to be added.
 
-Result: `fsw/build/exe/cpu1/cf/cs.so` (158 KB) + `cs_{app,tables,eeprom,memory}tbl.tbl` installed;
-cs sits **above the `!`** (line 12) in the installed `cfe_es_startup.scr`. Built with the app's
-**default** tables (empty app table) — proving integration; the NOS3-specific tables (AC2) are next.
+### 2026-09-01 · CS data now reaches the recorder
 
-**Remaining:** launch + verify cs LOADS live (AC1) → OnAIR wiring for CS HK (AC1/AC3) → author NOS3
-`cs_*` tables (AC2) → corruption→miscompare demo (AC4) → re-assess EX-0004/EX-0005/CDH-GOLDEN (AC5).
+Connected CS's housekeeping report into the recording pipeline so its 28 status fields land in the
+recorded CSV, and verified it live. One real bug found and fixed: CS reported "everything enabled"
+but wasn't actually checksumming anything, because it also needs a periodic "wake-up" trigger that
+hadn't been scheduled. After adding that, CS began working — it computed a checksum of the core
+flight-software image and completed a full pass, with zero mismatches (correct, since nothing is
+corrupted). This closed AC1 and AC3.
 
-### 2026-09-01 · ✅ CS LOADS LIVE (AC1 first half — verified, not inferred)
+### 2026-09-01 · The big finding — CS can't fingerprint the apps on this simulator
 
-Launched (`make launch-quiet`; GSW already up). `sc01-nos-fsw` cFS log:
+Trying to demonstrate CS catching a deliberate corruption uncovered the important result — exactly
+the kind of thing we build CS to learn *before* we rely on it:
 
-```
-CFE_ES_ParseFileEntry: Loading file: /cf/cs.so, APP: CS
-EVS 42/1/CS 1: CS Initialized. Version 2.5.99.0
-CS Apps Table verification results: good = 0, bad = 0, unused = 24
-```
+- **On a real satellite**, CS fingerprints each app's code in memory.
+- **On our Linux-based simulator it cannot** — the operating system doesn't report where each app's
+  code actually lives in memory, so CS silently skips all 23 apps. (The one thing it *can* fingerprint
+  is the core flight-software image; that works and produces a real checksum.)
 
-CS loads and initializes cleanly. Its four tables verify with **0 valid entries** — expected, the
-app-default tables are empty; the NOS3-specific tables (AC2) will populate them. ⚠ An
-`undefined symbol: SBN_TCP_Ops` line appears for cs.so **and** `generic_adcs.so` (and every app) —
-a pre-existing SBN optional-ops probe, unrelated to CS.
+So on NOS3, CS gives us **core-software integrity only, not per-app corruption detection**. Why this
+matters: the "an app's code changed" alarm can *never* fire on this platform, so we must **not** train
+the model to rely on it — that would be training on a signal that is physically impossible here. (We
+also confirmed there's no other way to force the demo: the one working area isn't a reloadable file,
+and poking memory directly is blocked by the container's security settings.)
 
-**AC1 first half DONE.** Remaining: CS HK → OnAIR (AC1 second half + AC3), author NOS3 `cs_*`
-tables (AC2), corruption→miscompare demo (AC4), EX-0004/EX-0005/CDH-GOLDEN re-assessment (AC5).
+### 2026-09-02 · What CS is actually good for here — plus a live tamper demo
 
-### 2026-09-01 · AC2 tables authored + CS HK scheduled (FSW side complete)
+Given the above, CS's real value on NOS3 is two things: (1) **core-software integrity attestation**,
+and (2) a **tamper alarm** — if an attacker sends the command to *turn CS off*, that shows up in the
+recorded data. The second is a natural fit for a new detection rule (an attacker disabling your
+monitors is itself an attack; it mirrors our existing rule R5).
 
-- **`cfg/nos3_defs/tables/cs_apptbl.c`** authored — checksums **23 NOS3 apps** (SCH CI TO CS CF DS
-  FM LC SBN SC ADCS CSS EPS FSS NAV IMU MGR MAG RADIO RW ST THRUSTER TORQUER; idle lab stubs and
-  the SAMPLE demo omitted; cFE core covered separately by `CS_CFECORE_CHECKSUM`). Build confirms
-  the cFS MISSION_DEFS override works: *"Using file: cfg/build/nos3_defs/tables/cs_apptbl.c"*, and
-  `xxd` of the installed `.tbl` shows `State=0x01 (ENABLED)` + the app names.
-- **CS HK scheduled** — enabled the commented `CS_SEND_HK_MID` message (`sch_def_msgtbl.c` msg #6)
-  and the `CS HK Request` activity (`sch_def_schtbl.c` slot #4, `SCH_DISABLED`→`SCH_ENABLED`). ⚠
-  Build gotcha: `sch_def_msgtbl.c` never `#include`d `cs_msgids.h` (the CS line was commented) —
-  added it.
-- ⚠ **The init `good=0` app-table event is a red herring** — it fires once during CS registration
-  (the empty default image, before `CFE_TBL_Load` reads the file). CS has been quiet since (0
-  recurring "No valid entries" warnings), i.e. it loaded the 23-app file and is checksumming. The
-  per-app state is confirmable only via CS HK → the OnAIR wiring (next).
+Demonstrated live: with CS running normally, we sent the "disable checksumming" command; the recorded
+status field flipped from ON (1) to OFF (2) and held there; then we re-enabled it and it flipped back.
+So the tamper signal genuinely works. (An earlier attempt failed only because that particular stack
+instance was in a bad state and wasn't accepting *any* commands — a clean relaunch fixed it.)
 
-FSW side of AINOS3-111 is complete: CS builds, loads, checksums the NOS3 apps, and is scheduled to
-transmit HK (`CS_HK_TLM_MID 0x08A4`). **Remaining: OnAIR wiring** (subscribe 0x08A4, `CS_HkPacket`
-struct, schema, ini, `sbn_client.so` rebuild) for AC1-2nd-half/AC3, then the corruption→miscompare
-demo (AC4) and EX-0004/EX-0005/CDH-GOLDEN re-assessment (AC5).
+### 2026-09-02 · Reduced CS's log spam (a standalone improvement)
 
-### 2026-09-01 · CS HK wired into OnAIR — integrity data reaches the corpus (AC1/AC3)
+Because CS keeps trying — and failing — to fingerprint the 23 apps, it was emitting a flood of
+"couldn't find that app" messages every second. Since that fingerprinting can't work here anyway, we
+set CS to skip the per-app checks by default (one line in `cs_platform_cfg.h`; the 23-app list is kept
+as documentation in case a future platform supports it). Result: the spam is gone, CS still does its
+two useful jobs (core checksum + tamper alarm), and the recorded data is cleaner.
 
-CS housekeeping (`CS_HK_TLM_MID 0x08A4`) now flows into the OnAIR CSV corpus, live-verified.
+### 2026-09-02 · The "slow recording" scare was a measurement mistake, not a real problem
 
-**Wiring (the standard add-MID recipe, all four steps):**
+While doing the work above, I repeatedly reported that the data recorder had slowed to a crawl
+("0.1 Hz", "stalled", "frozen"). **That was wrong — the simulator was running fine the whole time.**
+A careful 30-minute measurement, using logs stamped with real wall-clock time, showed the simulation
+running steadily at real-time speed and recording ~5–6 rows per second with no stalls.
 
-1. **Struct** — `CS_HkPacket_t` (28 fields) added to `message_headers.py`, byte-exact to
-   `cs_msg.h`. `sizeof − 16 == 64 B` C payload; `cpuaddr → c_uint64`.
-2. **Schema** — `nos3_security_tlm.json`: `0x08A4 → ["CS","CS_HkPacket_t"]` (channel 41 of 41,
-   under the 48 pipe cap → **no `sbn_client.so` rebuild**); 28 `CS.*` labels inserted into `order`
-   *before* the CFE_TBL derived tail; 28 metadata rows added to `subsystems.CDH`.
-3. **Alignment verified** — stubbed `sbn`, imported the real `message_headers`, walked
-   `CS_HkPacket_t` exactly as `sbn_adapter` does → the 28 struct-walk columns match the `order`
-   labels **element-for-element**.
-4. **Deploy** — synced both files to the build tree; `make stop` + `make launch-quiet`.
+The alarming numbers came from three measurement errors of mine, not from anything in the system:
 
-**⚠ CS wasn't actually sweeping at first** — I'd only scheduled `CS_SEND_HK_MID` (HK), not
-`CS_BACKGROUND_CYCLE_MID (0x18A1)`, which drives the checksum background task. Symptom: all six
-`*CSState = ENABLED` but `PassCounter`/baselines/cursor frozen at 0. Fix: activated the reserved
-msg#20 (`CS_BACKGROUND_CYCLE_MID`) in `sch_def_msgtbl.c` and scheduled it at **1 Hz** in
-`sch_def_schtbl.c` slot #4; FSW rebuilt.
+- **Stale files** — I sometimes measured leftover recording files from previous, already-stopped runs
+  (which of course never grow), and read that as "0 rows/sec".
+- **A timestamp quirk** — the NOS3 SBN adapter keeps two internal recording buffers and alternates
+  between them (`sbn_adapter.py`, the `double_buffer_read_index` logic). Because each buffer holds a
+  slightly different-age copy of the clock, a single row's timestamp can flicker by a few seconds and
+  even appear to run backwards. Reading one row's timestamp as "the current time" produced fake freezes.
+- **Windows too short** — checking over 20 seconds isn't enough to be meaningful.
 
-**Live verification (fresh launch, nominal):** all 28 `CS.*` columns present (CSV cols 446–473).
-After the wakeup fix CS sweeps — `PassCounter` reached **1** (a full pass over all tables),
-`CurrentEntryInTable` reached **23** (all 23 apps checksummed), `CfeCoreBaseline = 20948`
-(computed), and **every miscompare counter = 0** (clean integrity, correct for nominal). The
-`*CSErrCounter` fields are the attack signal — 0 in nominal, latch on code/table corruption.
-
-⚠ **Honest note:** `OSBaseline`/`EepromBaseline` stay 0 — a NOS3/cFE-linux-PSP artifact (no real
-OS-code-segment address / emulated EEPROM); those domains are `ENABLED` and error-free but carry
-no real baseline. The substantive integrity coverage is **cFE-core** (real baseline 20948) +
-**Apps** (23 code segments swept), which is exactly what EX-0004/EX-0005 code-corruption detection
-needs.
-
-**AC status:** AC1 (CS built + telemetering) ✅, AC3 (CS HK columns reach OnAIR, live-verified) ✅.
-
-**Remaining:** AC4 (corrupt an app's code → observe a live `AppCSErrCounter` miscompare),
-AC5 (re-assess EX-0004/EX-0005/CDH-GOLDEN against this observable).
+Crucially, none of our changes caused any slowdown: with CS removed entirely, the behavior was
+identical. There is nothing to fix here — the recorder's true rate is a steady ~5–6 Hz, and the only
+real, keep-worthy outcome of the whole episode is the CS log-spam reduction above, which stands on its
+own merit.

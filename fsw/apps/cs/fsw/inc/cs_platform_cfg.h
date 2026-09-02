@@ -266,7 +266,14 @@
  *  \par Limits:
  *       This can either be CS_STATE_ENABLED or CS_STATE_DISABLED
  */
-#define CS_APPS_TBL_POWERON_STATE CS_STATE_ENABLED
+/* AINOS3-111: DISABLED on NOS3 — the linux/POSIX PSP reports AddressesAreValid=false
+ * for every dlopen'd app, so per-app checksumming can never fire and only produces
+ * ~46 EVS "AddressValid:0 / could not be found" events/sec (23 apps x 1 Hz background
+ * cycle), which drags OnAIR's frame rate to ~0.1 Hz. The cs_apptbl.c list is kept as
+ * documentation of intended coverage; flip this back to CS_STATE_ENABLED (or send
+ * CS_ENABLE_APPS) if a future PSP exposes app code addresses. cFE-core checksum and the
+ * monitor-tamper observable are unaffected. */
+#define CS_APPS_TBL_POWERON_STATE CS_STATE_DISABLED
 
 /**
  * \brief Desired state of the Tables table at power on
