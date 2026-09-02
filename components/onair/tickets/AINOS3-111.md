@@ -166,3 +166,42 @@ FSW side of AINOS3-111 is complete: CS builds, loads, checksums the NOS3 apps, a
 transmit HK (`CS_HK_TLM_MID 0x08A4`). **Remaining: OnAIR wiring** (subscribe 0x08A4, `CS_HkPacket`
 struct, schema, ini, `sbn_client.so` rebuild) for AC1-2nd-half/AC3, then the corruption→miscompare
 demo (AC4) and EX-0004/EX-0005/CDH-GOLDEN re-assessment (AC5).
+
+### 2026-09-01 · CS HK wired into OnAIR — integrity data reaches the corpus (AC1/AC3)
+
+CS housekeeping (`CS_HK_TLM_MID 0x08A4`) now flows into the OnAIR CSV corpus, live-verified.
+
+**Wiring (the standard add-MID recipe, all four steps):**
+
+1. **Struct** — `CS_HkPacket_t` (28 fields) added to `message_headers.py`, byte-exact to
+   `cs_msg.h`. `sizeof − 16 == 64 B` C payload; `cpuaddr → c_uint64`.
+2. **Schema** — `nos3_security_tlm.json`: `0x08A4 → ["CS","CS_HkPacket_t"]` (channel 41 of 41,
+   under the 48 pipe cap → **no `sbn_client.so` rebuild**); 28 `CS.*` labels inserted into `order`
+   *before* the CFE_TBL derived tail; 28 metadata rows added to `subsystems.CDH`.
+3. **Alignment verified** — stubbed `sbn`, imported the real `message_headers`, walked
+   `CS_HkPacket_t` exactly as `sbn_adapter` does → the 28 struct-walk columns match the `order`
+   labels **element-for-element**.
+4. **Deploy** — synced both files to the build tree; `make stop` + `make launch-quiet`.
+
+**⚠ CS wasn't actually sweeping at first** — I'd only scheduled `CS_SEND_HK_MID` (HK), not
+`CS_BACKGROUND_CYCLE_MID (0x18A1)`, which drives the checksum background task. Symptom: all six
+`*CSState = ENABLED` but `PassCounter`/baselines/cursor frozen at 0. Fix: activated the reserved
+msg#20 (`CS_BACKGROUND_CYCLE_MID`) in `sch_def_msgtbl.c` and scheduled it at **1 Hz** in
+`sch_def_schtbl.c` slot #4; FSW rebuilt.
+
+**Live verification (fresh launch, nominal):** all 28 `CS.*` columns present (CSV cols 446–473).
+After the wakeup fix CS sweeps — `PassCounter` reached **1** (a full pass over all tables),
+`CurrentEntryInTable` reached **23** (all 23 apps checksummed), `CfeCoreBaseline = 20948`
+(computed), and **every miscompare counter = 0** (clean integrity, correct for nominal). The
+`*CSErrCounter` fields are the attack signal — 0 in nominal, latch on code/table corruption.
+
+⚠ **Honest note:** `OSBaseline`/`EepromBaseline` stay 0 — a NOS3/cFE-linux-PSP artifact (no real
+OS-code-segment address / emulated EEPROM); those domains are `ENABLED` and error-free but carry
+no real baseline. The substantive integrity coverage is **cFE-core** (real baseline 20948) +
+**Apps** (23 code segments swept), which is exactly what EX-0004/EX-0005 code-corruption detection
+needs.
+
+**AC status:** AC1 (CS built + telemetering) ✅, AC3 (CS HK columns reach OnAIR, live-verified) ✅.
+
+**Remaining:** AC4 (corrupt an app's code → observe a live `AppCSErrCounter` miscompare),
+AC5 (re-assess EX-0004/EX-0005/CDH-GOLDEN against this observable).

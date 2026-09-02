@@ -1363,3 +1363,53 @@ class CF_HkPacket_t(Structure):
         ("channel0",  CF_HkChannel_Data_t),
         ("channel1",  CF_HkChannel_Data_t),
     ]
+
+# ===========================================================================
+#  CS — Checksum app housekeeping                       MID 0x08A4
+#  Source: fsw/apps/cs/fsw/inc/cs_msg.h  (CS_HkPacket_t)
+#  Added AINOS3-111: on-board integrity monitoring. CS CRCs the cFE core, OS
+#  code segment, and the 23 NOS3 app code segments (cfg/nos3_defs/tables/
+#  cs_apptbl.c) and telemeters per-domain miscompare counters + state. The
+#  *ErrCounter fields are the attack signal: they are 0 in nominal ops and
+#  latch on any code/table corruption (EX-0004 / EX-0005 class).
+#  cpuaddr is 64-bit on this target -> c_uint64.
+# ===========================================================================
+
+class CS_HkPacket_t(Structure):
+    """CS_HK_TLM_MID 0x08A4 — Checksum-app integrity housekeeping.
+    The six *CSState fields report per-domain enable/disable; the six
+    *ErrCounter fields are miscompare counts (0 in nominal, latch on
+    corruption). PassCounter increments each full sweep of all tables —
+    a frozen PassCounter means CS stopped checksumming (denial)."""
+    _pack_ = 1
+    _fields_ = [
+        ("TlmHeader",                   sbn.CFE_SB_Msg_t),
+        ("CmdCounter",                  c_uint8),
+        ("CmdErrCounter",               c_uint8),
+        ("ChecksumState",               c_uint8),
+        ("EepromCSState",               c_uint8),
+        ("MemoryCSState",               c_uint8),
+        ("AppCSState",                  c_uint8),
+        ("TablesCSState",               c_uint8),
+        ("OSCSState",                   c_uint8),
+        ("CfeCoreCSState",              c_uint8),
+        ("RecomputeInProgress",         c_uint8),
+        ("OneShotInProgress",           c_uint8),
+        ("Filler8",                     c_uint8),
+        ("EepromCSErrCounter",          c_uint16),
+        ("MemoryCSErrCounter",          c_uint16),
+        ("AppCSErrCounter",             c_uint16),
+        ("TablesCSErrCounter",          c_uint16),
+        ("CfeCoreCSErrCounter",         c_uint16),
+        ("OSCSErrCounter",              c_uint16),
+        ("CurrentCSTable",              c_uint16),
+        ("CurrentEntryInTable",         c_uint16),
+        ("EepromBaseline",              c_uint32),
+        ("OSBaseline",                  c_uint32),
+        ("CfeCoreBaseline",             c_uint32),
+        ("LastOneShotAddress",          c_uint64),
+        ("LastOneShotSize",             c_uint32),
+        ("LastOneShotMaxBytesPerCycle", c_uint32),
+        ("LastOneShotChecksum",         c_uint32),
+        ("PassCounter",                 c_uint32),
+    ]

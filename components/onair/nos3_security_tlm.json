@@ -1596,6 +1596,202 @@
      "NOOP": "[]"
     },
     "description": "CFDP alignment spare"
+   },
+   "CS.CmdCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS valid command count (static in nominal)"
+   },
+   "CS.CmdErrCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS command error count (latches on malformed CS cmd)"
+   },
+   "CS.ChecksumState": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS global checksum enable state (1=ENABLED)"
+   },
+   "CS.EepromCSState": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS EEPROM-domain checksum state"
+   },
+   "CS.MemoryCSState": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS Memory-domain checksum state"
+   },
+   "CS.AppCSState": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS App-table checksum state (1=ENABLED once cs_apptbl loads)"
+   },
+   "CS.TablesCSState": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS Tables-domain checksum state"
+   },
+   "CS.OSCSState": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS OS-code-segment checksum state"
+   },
+   "CS.CfeCoreCSState": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS cFE-core checksum state"
+   },
+   "CS.RecomputeInProgress": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS recompute-in-progress flag"
+   },
+   "CS.OneShotInProgress": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS one-shot-in-progress flag"
+   },
+   "CS.Filler8": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS 8-bit padding (constant)"
+   },
+   "CS.EepromCSErrCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "EEPROM miscompare count (0 nominal; latches on corruption)"
+   },
+   "CS.MemoryCSErrCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "Memory miscompare count (0 nominal; latches on corruption)"
+   },
+   "CS.AppCSErrCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "App-code miscompare count (0 nominal; ATTACK SIGNAL EX-0004/EX-0005)"
+   },
+   "CS.TablesCSErrCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "Table miscompare count (0 nominal; latches on table corruption)"
+   },
+   "CS.CfeCoreCSErrCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "cFE-core miscompare count (0 nominal; latches on core corruption)"
+   },
+   "CS.OSCSErrCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "OS-code miscompare count (0 nominal; latches on OS corruption)"
+   },
+   "CS.CurrentCSTable": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS current table index being checksummed (cycles)"
+   },
+   "CS.CurrentEntryInTable": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS current entry index within table (cycles)"
+   },
+   "CS.EepromBaseline": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS EEPROM baseline CRC"
+   },
+   "CS.OSBaseline": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS OS-code-segment baseline CRC"
+   },
+   "CS.CfeCoreBaseline": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS cFE-core baseline CRC"
+   },
+   "CS.LastOneShotAddress": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS last one-shot command address"
+   },
+   "CS.LastOneShotSize": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS last one-shot command size"
+   },
+   "CS.LastOneShotMaxBytesPerCycle": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS last one-shot max-bytes-per-cycle"
+   },
+   "CS.LastOneShotChecksum": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS last one-shot checksum result"
+   },
+   "CS.PassCounter": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "CS full-sweep pass count (increments each pass; FROZEN = CS denial)"
    }
   },
   "GNC": {
@@ -3799,6 +3995,34 @@
   "CF.channel1.playback_counter",
   "CF.channel1.frozen",
   "CF.channel1.spare",
+  "CS.CmdCounter",
+  "CS.CmdErrCounter",
+  "CS.ChecksumState",
+  "CS.EepromCSState",
+  "CS.MemoryCSState",
+  "CS.AppCSState",
+  "CS.TablesCSState",
+  "CS.OSCSState",
+  "CS.CfeCoreCSState",
+  "CS.RecomputeInProgress",
+  "CS.OneShotInProgress",
+  "CS.Filler8",
+  "CS.EepromCSErrCounter",
+  "CS.MemoryCSErrCounter",
+  "CS.AppCSErrCounter",
+  "CS.TablesCSErrCounter",
+  "CS.CfeCoreCSErrCounter",
+  "CS.OSCSErrCounter",
+  "CS.CurrentCSTable",
+  "CS.CurrentEntryInTable",
+  "CS.EepromBaseline",
+  "CS.OSBaseline",
+  "CS.CfeCoreBaseline",
+  "CS.LastOneShotAddress",
+  "CS.LastOneShotSize",
+  "CS.LastOneShotMaxBytesPerCycle",
+  "CS.LastOneShotChecksum",
+  "CS.PassCounter",
   "CFE_TBL.FileLoadChanged",
   "CFE_TBL.FileLoadCount",
   "CFE_TBL.TableUpdateChanged",
@@ -3966,6 +4190,10 @@
   "0x08B0": [
    "CF",
    "CF_HkPacket_t"
+  ],
+  "0x08A4": [
+   "CS",
+   "CS_HkPacket_t"
   ]
  }
 }

@@ -119,7 +119,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #4 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  4,  1,  6, SCH_GROUP_CFS_HK },  /* CS HK Request (AINOS3-111) */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 20, SCH_GROUP_NONE },  /* CS Background Cycle (AINOS3-111) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
