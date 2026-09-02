@@ -145,3 +145,24 @@ a pre-existing SBN optional-ops probe, unrelated to CS.
 
 **AC1 first half DONE.** Remaining: CS HK → OnAIR (AC1 second half + AC3), author NOS3 `cs_*`
 tables (AC2), corruption→miscompare demo (AC4), EX-0004/EX-0005/CDH-GOLDEN re-assessment (AC5).
+
+### 2026-09-01 · AC2 tables authored + CS HK scheduled (FSW side complete)
+
+- **`cfg/nos3_defs/tables/cs_apptbl.c`** authored — checksums **23 NOS3 apps** (SCH CI TO CS CF DS
+  FM LC SBN SC ADCS CSS EPS FSS NAV IMU MGR MAG RADIO RW ST THRUSTER TORQUER; idle lab stubs and
+  the SAMPLE demo omitted; cFE core covered separately by `CS_CFECORE_CHECKSUM`). Build confirms
+  the cFS MISSION_DEFS override works: *"Using file: cfg/build/nos3_defs/tables/cs_apptbl.c"*, and
+  `xxd` of the installed `.tbl` shows `State=0x01 (ENABLED)` + the app names.
+- **CS HK scheduled** — enabled the commented `CS_SEND_HK_MID` message (`sch_def_msgtbl.c` msg #6)
+  and the `CS HK Request` activity (`sch_def_schtbl.c` slot #4, `SCH_DISABLED`→`SCH_ENABLED`). ⚠
+  Build gotcha: `sch_def_msgtbl.c` never `#include`d `cs_msgids.h` (the CS line was commented) —
+  added it.
+- ⚠ **The init `good=0` app-table event is a red herring** — it fires once during CS registration
+  (the empty default image, before `CFE_TBL_Load` reads the file). CS has been quiet since (0
+  recurring "No valid entries" warnings), i.e. it loaded the 23-app file and is checksumming. The
+  per-app state is confirmable only via CS HK → the OnAIR wiring (next).
+
+FSW side of AINOS3-111 is complete: CS builds, loads, checksums the NOS3 apps, and is scheduled to
+transmit HK (`CS_HK_TLM_MID 0x08A4`). **Remaining: OnAIR wiring** (subscribe 0x08A4, `CS_HkPacket`
+struct, schema, ini, `sbn_client.so` rebuild) for AC1-2nd-half/AC3, then the corruption→miscompare
+demo (AC4) and EX-0004/EX-0005/CDH-GOLDEN re-assessment (AC5).
