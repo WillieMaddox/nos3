@@ -3,7 +3,7 @@ key: AINOS3-99
 slug: fold-variance-triage
 type: Spike
 epic: AINOS3-98 (corpus-integrity)
-status: Open
+status: Done
 priority: Medium
 opened: 2026-08-23
 sprints: [28]
