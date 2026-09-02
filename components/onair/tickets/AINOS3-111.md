@@ -70,3 +70,78 @@ sequenced **ahead of** the freeze — `AINOS3-124 AC4` cannot publish the frozen
 columns are built and **live-verified reaching OnAIR**. HS (`AINOS3-112`) and MM/MD (`AINOS3-113`)
 were **NO-GO** (deferred to `schema-vNext`). The standing relationship is in the `blocks:`
 frontmatter field; slot this into the sprint that precedes the Stage-2 rebuild.
+
+### 2026-09-01 · Survey + feasibility de-risk (before any build)
+
+Established the two things that decide whether this is tractable, and the answer is "yes, but with
+a vendoring decision that is the owner's":
+
+**1. There is no nasa-itc CS fork.** NOS3's standard apps are nasa-itc forks (`nasa-itc/SC`, `/LC`,
+`/DS`, `/FM`, `/SCH`); `nasa-itc/CS` and `nasa-itc/CFS_CS` **do not exist**. Only mainstream
+`nasa/CS` does. So CS cannot follow the established submodule pattern as-is.
+
+**2. ✅ The big compatibility fear is unfounded.** NOS3's cFE is **`draco-rc5`** (modern), and its
+nasa-itc DS already uses the **modern** API (`CFE_SB_ValueToMsgId`, `CFE_MSG_Init(CFE_MSG_PTR(...))`,
+`*_Payload_t` nesting) — the *same* API mainstream `nasa/CS` uses. So CS is **not** a back-port to
+an ancient cFE; it is a modern app on a modern base. DS is the concrete adaptation pattern.
+
+**Concrete build plan (offline Phase A, then build, then live):**
+
+- A1 vendor `nasa/CS` → `fsw/apps/cs`; adapt `mission_build.cmake`/`CMakeLists.txt` to NOS3 (pattern
+  DS — expected minimal, both modern).
+- A2 author the **four** NOS3 CS tables in `cfg/nos3_defs/tables/` — `cs_apptbl` (which of NOS3's
+  ~13 apps + ~12 components to checksum), `cs_tablestbl` (which tables), `cs_eepromtbl`,
+  `cs_memorytbl`. **This is the E5 risk** — it must match NOS3's *actual* app/table set (AC2).
+- A3 add `cs` to `cfg/nos3_defs/targets.cmake`; move it **above the `!`** in `cpu1_cfe_es_startup.scr`;
+  add a `CS_SEND_HK_MID` entry to the `sch` schedule table.
+- B full FSW rebuild.
+- C OnAIR wiring: `CS_HkPacket_t` struct in `message_headers.py` + `nos3_security_tlm.json` + the
+  ini, `sbn_client.so` rebuild.
+- D launch, verify CS HK reaches OnAIR (AC1/AC3), demonstrate a corruption→miscompare (AC4).
+
+⚠ **Owner decision at A1 — how to vendor CS, since no nasa-itc fork exists:** (a) plain vendored
+copy under `fsw/apps/cs` (simplest, NOS3 can patch freely, not upstream-tracked); (b) submodule
+mainstream `nasa/CS` directly (pins upstream, but NOS3 patches have nowhere clean to live); (c)
+fork `nasa/CS` into the org and submodule the fork (matches the nasa-itc pattern; needs a fork
+only the owner can create). This is the one fork-in-the-road before hours of build work go in.
+
+### 2026-09-01 · CS builds + installs in NOS3 (Phase A+B done)
+
+The hardest integration risk is retired: **CS compiles and installs cleanly in the NOS3 cFS build.**
+
+- Vendored `nasa/CS` **@draco-rc5** (option (a), plain copy) — version-matched to NOS3's cFE
+  (`draco-rc5-7`). Mainstream HEAD uses the modern config-module (`generate_configfile_set`) that
+  NOS3's build predates; the draco-rc5 tag is the DS-era structure that builds.
+- `cs` added to `MISSION_GLOBAL_APPLIST` (`targets.cmake`).
+- ⚠ **`configure.py` had a hardcoded startup-app list without cs** — patched to read
+  `applications/cs/enable` (guarded for SC configs lacking `<cs>`) and move the cs line above the
+  `!`. Matched on the **unique `CS_AppMain`** token, not `CS,` (which collides with `ADCS,`).
+- `cs` enabled in `sc-mission-config.xml`.
+- ⚠ Build gotcha recorded: the FSW build **must run in the `ivvitc/nos3-64` container** (needs
+  NOSENGINE) via `make fsw`, not host `make build-fsw`; and the container `docker run -it` needs a
+  TTY, so a non-interactive build must drop `-t` (`docker run --rm -i ... build-fsw`).
+
+Result: `fsw/build/exe/cpu1/cf/cs.so` (158 KB) + `cs_{app,tables,eeprom,memory}tbl.tbl` installed;
+cs sits **above the `!`** (line 12) in the installed `cfe_es_startup.scr`. Built with the app's
+**default** tables (empty app table) — proving integration; the NOS3-specific tables (AC2) are next.
+
+**Remaining:** launch + verify cs LOADS live (AC1) → OnAIR wiring for CS HK (AC1/AC3) → author NOS3
+`cs_*` tables (AC2) → corruption→miscompare demo (AC4) → re-assess EX-0004/EX-0005/CDH-GOLDEN (AC5).
+
+### 2026-09-01 · ✅ CS LOADS LIVE (AC1 first half — verified, not inferred)
+
+Launched (`make launch-quiet`; GSW already up). `sc01-nos-fsw` cFS log:
+
+```
+CFE_ES_ParseFileEntry: Loading file: /cf/cs.so, APP: CS
+EVS 42/1/CS 1: CS Initialized. Version 2.5.99.0
+CS Apps Table verification results: good = 0, bad = 0, unused = 24
+```
+
+CS loads and initializes cleanly. Its four tables verify with **0 valid entries** — expected, the
+app-default tables are empty; the NOS3-specific tables (AC2) will populate them. ⚠ An
+`undefined symbol: SBN_TCP_Ops` line appears for cs.so **and** `generic_adcs.so` (and every app) —
+a pre-existing SBN optional-ops probe, unrelated to CS.
+
+**AC1 first half DONE.** Remaining: CS HK → OnAIR (AC1 second half + AC3), author NOS3 `cs_*`
+tables (AC2), corruption→miscompare demo (AC4), EX-0004/EX-0005/CDH-GOLDEN re-assessment (AC5).

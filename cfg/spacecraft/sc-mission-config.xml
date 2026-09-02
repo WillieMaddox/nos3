@@ -4,6 +4,9 @@
 		<cf>
 			<enable>true</enable>
 		</cf>
+		<cs>
+			<enable>true</enable>
+		</cs>
 		<ds>
 			<enable>true</enable>
 		</ds>

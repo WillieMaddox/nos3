@@ -101,6 +101,8 @@ else:
 
         # Parse spacecraft configuration
         sc_cf_en = sc_root.find('applications/cf/enable').text
+        cs_node = sc_root.find('applications/cs/enable')  # cs may be absent in other SC configs
+        sc_cs_en = cs_node.text if cs_node is not None else 'false'
         sc_ds_en = sc_root.find('applications/ds/enable').text
         sc_fm_en = sc_root.find('applications/fm/enable').text
         sc_lc_en = sc_root.find('applications/lc/enable').text
@@ -141,6 +143,7 @@ else:
             # Initialize variables
             sc_startup_eof = 999
             cf_line = ""
+            cs_line = ""
             ds_line = ""
             fm_line = ""
             lc_line = ""
@@ -171,6 +174,9 @@ else:
                 if line.find('CF,') != -1:
                     if (sc_cf_en == 'true'):
                         cf_line = line
+                if line.find('CS_AppMain') != -1:  # unique token; 'CS,' would match 'ADCS,'
+                    if (sc_cs_en == 'true'):
+                        cs_line = line
                 if line.find('DS,') != -1:
                     if (sc_ds_en == 'true'):
                         ds_line = line
@@ -259,6 +265,7 @@ else:
         lines.insert(sc_startup_eof, fm_line)
         lines.insert(sc_startup_eof, ds_line)
         lines.insert(sc_startup_eof, cf_line)
+        lines.insert(sc_startup_eof, cs_line)
                         
         # Write startup script file
         with open('./cfg/build/nos3_defs/cpu1_cfe_es_startup.scr', 'w') as fp:
