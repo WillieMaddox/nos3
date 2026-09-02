@@ -133,7 +133,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-108 | subscription-hygiene | Task | coverage-expansion | Resolve four silent MID subscriptions | Sprint 28 · ⛔ Blocked (schema removal needs a retrain — fold into AINOS3-101) |
 | AINOS3-109 | csv-prune-integrity-fields | Spike | corpus-integrity | The CSV prune drops security-relevant fields | Sprint 28 · ✅ Done |
 | AINOS3-110 | build-missing-cfs-apps | Epic | — | Build the missing stock cFS apps | Backlog |
-| AINOS3-111 | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app | Backlog |
+| AINOS3-111 | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app | Sprint 28 · ✅ Done |
 | AINOS3-112 | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app | Backlog |
 | AINOS3-113 | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps | Backlog |
 | AINOS3-114 | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters | Backlog |

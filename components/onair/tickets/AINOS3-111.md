@@ -3,7 +3,7 @@ key: AINOS3-111
 slug: build-cs-app
 type: Story
 epic: AINOS3-110 (build-missing-cfs-apps)
-status: Open
+status: Done
 priority: High
 blocks: AINOS3-124 (CS is a prerequisite of the schema freeze)
 estimate: E 5 / T 2.0
