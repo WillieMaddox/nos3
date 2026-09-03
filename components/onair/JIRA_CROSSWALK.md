@@ -108,18 +108,18 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-83 | ci-command-feature | Task | coverage-expansion | Full-`ci` HK (0x0884) command-ingest detector | Backlog (was S27 stretch) |
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | Retrain dropping harmful bus-activity features | Backlog (fold into retrain-clean-corpus, never its own cycle) |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Reach actuator saturation for the recovery-boundary test | Backlog |
-| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band | Sprint 28 · ⏸️ Paused |
+| AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band | Sprint 28 → 29 · Paused — gated on the INERTIAL closed-loop-control question |
 | AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected | Sprint 28 · ✅ Done |
 | AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 | AINOS3-89 | catch-rate-provenance-gap | Spike | detector-rigor | Published catch rates disagree with measurement | Backlog |
 | AINOS3-90 | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? | Sprint 28 · ✅ Done |
-| AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | Star-tracker validity is intermittent and the device is off by default | Sprint 28 · ▶️ In Progress (stretch) |
+| AINOS3-91 | startracker-inert-fields | Spike | coverage-expansion | Star-tracker validity is intermittent and the device is off by default | Sprint 28 → 29 · stretch, in progress |
 | AINOS3-92 | soak-drift-hz | Task | detector-rigor | `analyze_soak_drift.py` uses the wrong sample rate | Sprint 28 · ✅ Done |
-| AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | `Catch` and `Incidents` are not comparable | Sprint 28 · ◑ Committed (stretch) |
+| AINOS3-93 | overlay-column-scope-mismatch | Bug | detector-rigor | `Catch` and `Incidents` are not comparable | Sprint 28 → 29 · stretch, not reached |
 | AINOS3-94 | coverage-table-schema | Spike | detector-rigor | Redesign the coverage-table schema | Backlog |
 | AINOS3-95 | sparta-logging-gap-analysis | Spike | coverage-expansion | SPARTA logging best practices vs what we record | Sprint 28 · ✅ Done |
 | AINOS3-96 | sparta-stix-ingest | Spike | coverage-expansion | Use the SPARTA STIX 2.1 dataset as ground truth | Sprint 28 · ✅ Done |
-| AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Separate live corpus data from superseded | Sprint 28 · ◑ Committed (reparented from detector-rigor 2026-08-23) |
+| AINOS3-97 | quarantine-stale-corpus | Task | corpus-integrity | Separate live corpus data from superseded | Sprint 28 → 29 · quarantine is rebuild-adjacent (AC2 dep-map done) |
 | AINOS3-98 | corpus-integrity | Epic | — | Corpus integrity — the corpus as a first-class, versioned artifact | — |
 | AINOS3-99 | fold-variance-triage | Spike | corpus-integrity | Explain the per-instance F1 spread holding the tier column down | Sprint 28 · ✅ Done |
 | AINOS3-100 | corpus-rebuild-steadyflight | Story | corpus-integrity | Recollect the classified attack set under the steady-flight protocol | Backlog (Sprint 29 target) |
@@ -130,21 +130,21 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-105 | test-encryption-bypass-observability | Story | coverage-expansion | Are encryptor bypass commands observable? | Backlog |
 | AINOS3-106 | r15-latch-policy | Task | detector-rigor | R15 latch policy after a clock jump | Backlog |
 | AINOS3-107 | frame-aliasing-semantics | Spike | detector-rigor | Frame aliasing and per-frame threshold meaning | Backlog |
-| AINOS3-108 | subscription-hygiene | Task | coverage-expansion | Resolve four silent MID subscriptions | Sprint 28 · ⛔ Blocked (schema removal needs a retrain — fold into AINOS3-101) |
+| AINOS3-108 | subscription-hygiene | Task | coverage-expansion | Resolve four silent MID subscriptions | Sprint 28 → 29 · Blocked — folded into AINOS3-101 (schema removal needs the retrain) |
 | AINOS3-109 | csv-prune-integrity-fields | Spike | corpus-integrity | The CSV prune drops security-relevant fields | Sprint 28 · ✅ Done |
 | AINOS3-110 | build-missing-cfs-apps | Epic | — | Build the missing stock cFS apps | Backlog |
 | AINOS3-111 | build-cs-app | Story | build-missing-cfs-apps | Build the CS checksum app | Sprint 28 · ✅ Done |
 | AINOS3-112 | build-hs-app | Story | build-missing-cfs-apps | Build the HS health and safety app | Backlog |
 | AINOS3-113 | build-mm-md-apps | Story | build-missing-cfs-apps | Build the MM and MD memory apps | Backlog |
 | AINOS3-114 | ground-counter-reconciliation | Story | coverage-expansion | Reconcile ground and spacecraft command counters | Backlog |
-| AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments | Sprint 28 · ▶️ In Progress (reopened) |
-| AINOS3-116 | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph | Sprint 28 · ▶️ In Progress (reopened) |
+| AINOS3-115 | mid-stix-observable-map | Spike | coverage-expansion | Map NOS3/OnAIR MIDs to STIX pattern arguments | Sprint 28 → 29 · STIX chain (reopened) |
+| AINOS3-116 | stix-iob-pattern-index | Spike | coverage-expansion | Query the local STIX IOB↔technique↔pattern graph | Sprint 28 → 29 · STIX chain — AC3/AC6 gated on AINOS3-115 |
 | AINOS3-117 | coverage-triage-stix-v4 | Spike | coverage-expansion | Triage the SPARTA v4.0 techniques absent from our v3 matrix | Backlog |
-| AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns | Sprint 28 · ▶️ In Progress |
+| AINOS3-118 | stix-guided-attack-generation | Story | coverage-expansion | Generate and repair attack scripts from STIX IOB patterns | Sprint 28 → 29 · STIX chain — feeds the rebuild's label/coverage decisions |
 | AINOS3-119 | retest-reopened-verdicts | Task | coverage-expansion | Re-test the verdicts the missing apps unblock | Backlog |
 | AINOS3-120 | schedule-cfe-diag-packets | Story | coverage-expansion | Schedule the silent cFE diagnostic packets | Backlog |
 | AINOS3-121 | if-scoring-audit | Spike | detector-rigor | Reproducible IF scoring + per-feature sensitivity/calibration audit | Sprint 28 · ✅ Done |
-| AINOS3-122 | label-set-freeze | Story | corpus-integrity | Freeze the class label set | Sprint 28 · ◑ Committed |
+| AINOS3-122 | label-set-freeze | Story | corpus-integrity | Freeze the class label set | Sprint 28 → 29 · AC7 gated on the AINOS3-101 retrain |
 | AINOS3-123 | per-subsystem-consistency-primitive | Story | detector-gates | Per-subsystem consistency gate | Backlog |
 | AINOS3-124 | schema-freeze | Story | corpus-integrity | Freeze the recorded telemetry schema | Backlog |
 

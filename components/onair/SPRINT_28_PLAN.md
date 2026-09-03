@@ -540,3 +540,42 @@ done. It **must** complete before Sprint 29 collection, so it belongs to the cur
 at ~1 week left — ⚠ if it slips, it heads Sprint 29 *ahead of* collection, not alongside it. The
 sibling `AINOS3-123` (per-subsystem consistency gate, split from the `AINOS3-118`/`AINOS3-121`
 rollback) stays in **Backlog** — a new detector build, stack-dependent, not gating the rebuild.
+
+---
+
+## 🏁 Sprint close — 2026-09-03
+
+Closed a few days early at a clean boundary: the pre-rebuild work is done, and the corpus
+rebuild itself (`AINOS3-100`/`AINOS3-101`) is Sprint 29 by design.
+
+**Shipped (committed, Done):**
+
+- `AINOS3-96` STIX-as-ground-truth + `AINOS3-95` logging workbook — the two "read the manual"
+  spikes that gated the label set and the schema. `AINOS3-95` also shipped rule **R15** (SET_TIME).
+- `AINOS3-111` — **built the CS checksum app** and wired its housekeeping into the corpus. The
+  headline is a due-diligence finding: per-app code checksumming is **structurally inert on the
+  NOS3 linux PSP**, so CS's value here is cFE-core integrity attestation + a monitor-tamper signal
+  (live-verified), *not* per-app corruption detection — caught before any retrain leaned on it.
+- `AINOS3-99` — the per-instance F1 spread is a **generalisation limit** (footprint reproducibility
+  across runs), not the blind window or sample size; recommends 5 instances with the min-over-folds
+  caveat. Directly tempers `AINOS3-101`'s "is ROBUST reachable?" (probably not via data volume alone).
+- `AINOS3-87` — closed the **`EX-0012.09` EPS-switch gap** with rule **R17:eps-command**
+  (live-verified), and corrected the misleading 99 % in the coverage doc.
+- Also Done: `AINOS3-90`, `AINOS3-92`, `AINOS3-102`, `AINOS3-103` (rule **R16** CF-fault detector),
+  `AINOS3-109`, `AINOS3-121`.
+
+Three shipped detectors this sprint: **R15** (SET_TIME), **R16** (CF faults), **R17** (EPS switch).
+
+**Carried to Sprint 29** (dispositions in the crosswalk):
+
+- `AINOS3-122` label-set-freeze — 8/9; the last AC (regenerate the derived artifacts) is part of
+  the `AINOS3-101` retrain package.
+- `AINOS3-108` — blocked; folded into `AINOS3-101` (the silent-MID removal needs the retrain).
+- `AINOS3-118` / `AINOS3-115` / `AINOS3-116` — the STIX attack-generation/observability chain;
+  feeds the rebuild's label and coverage decisions.
+- `AINOS3-97` quarantine — dependency map (AC2) done; the quarantine itself is rebuild-adjacent.
+- `AINOS3-86` INERTIAL false-alarms — Paused, gated on the closed-loop-control question `AINOS3-95`
+  surfaced. `AINOS3-93` / `AINOS3-91` — stretch, not reached.
+
+**Sprint 29 is the corpus rebuild:** `AINOS3-100` (steady-flight recollection) →
+`AINOS3-101` (retrain + re-derive tiers), which also absorbs 122's AC7, 108, and 97.
