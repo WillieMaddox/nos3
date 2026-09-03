@@ -109,7 +109,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-84 | drop-bus-activity-retrain | Task | classification-trust | Retrain dropping harmful bus-activity features | Backlog (fold into retrain-clean-corpus, never its own cycle) |
 | AINOS3-85 | actuator-saturation-fidelity | Spike | — | Reach actuator saturation for the recovery-boundary test | Backlog |
 | AINOS3-86 | inertial-false-alarms | Story | detector-rigor | Bring INERTIAL's false-alarm rate into the design band | Sprint 28 · ⏸️ Paused |
-| AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected | Sprint 28 · ◑ Committed |
+| AINOS3-87 | detect-eps-switch | Story | coverage-expansion | EX-0012.09 EPS switch toggle is undetected | Sprint 28 · ✅ Done |
 | AINOS3-88 | signal-feasibility | Story | coverage-expansion | Ablate recorded Section-B MIDs for weak-class discrimination (split from AINOS3-30, 2026-08-19) | Sprint 27 · ✅ Done |
 | AINOS3-89 | catch-rate-provenance-gap | Spike | detector-rigor | Published catch rates disagree with measurement | Backlog |
 | AINOS3-90 | verify-nominal-incident-filter | Task | detector-rigor | Is `cluster=nominal` filtered from the operator view? | Sprint 28 · ✅ Done |

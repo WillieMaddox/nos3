@@ -23,7 +23,7 @@ and the mitigation is recommended but **not deployed** (Section B.1). Detection 
 **Previously:** 2026-08-15 — a 24-run replication **resolved** the question of whether the
 catch rates only measure manoeuvre transients (they do not; boxed note in Section 2), but
 found that the Catch column **credits the IF with rule-gate detections** and that
-**`EX-0012.09` is detected by nothing** in steady flight. Added R14 mode-force + flapping
+`EX-0012.09` is now caught by rule **R17:eps-command** (AINOS3-87); previously detected by nothing. Added R14 mode-force + flapping
 detection, the AINOS3-80 provenance tags, and the AINOS3-81 soak results including an
 INERTIAL false-alarm problem now measured at **33.6 %** nominal.
 
@@ -164,8 +164,15 @@ the IF's training-corpus identity is unrecorded, so disjointness cannot be prove
 > by **R1** (2/3) / R3 (1/3), IF lift ≈ 0 for both. The attacks are detected; the Catch column
 > attributes it to the wrong component.
 >
-> **2. `EX-0012.09` (EPS, published 99 %) is detected by NOTHING in steady flight** — 0/3 reps,
-> no IF lift, no rule fired. A genuine coverage gap; ticketed.
+> **2. `EX-0012.09` (EPS, published 99 %) — the gap is now CLOSED by rule `R17:eps-command`**
+> (AINOS3-87, 2026-09-03). The IF is and remains structurally blind (no consumption telemetry in
+> the EPS schema — bus voltages only). But `EPS.CommandCount` is **static at 0 in nominal** (a
+> 22-hour soak + a live baseline), so an EPS switch toggle takes the counter to a new high, which
+> `R17` catches deterministically — same static-in-nominal new-high + dwell mechanism as R6–R12.
+> Live-verified: firing the attack in held SUNSAFE fired `R17` and emitted an incident labelled
+> `EX-0012.09 / eps-command`. The old **99 %** was a corpus artifact (transient-dominated data);
+> the real, honest figure is that `R17` catches it **whenever the switch command is observed** on
+> the bus.
 >
 > **The IF is vindicated where it is the right detector.** `EX-0012.07` propulsion — a genuine
 > sustained-dynamics attack — measured **+77.5 ± 3.6 lift** across three runs (≈ 78–82 % of
@@ -185,7 +192,7 @@ the IF's training-corpus identity is unrecorded, so disjointness cannot be prove
 | EX-0012.08 ADCS | **100 %** | EX-0012.05 scheduler | 64 % |
 | EX-0014.04 PNT spoof | 98 % | EX-0012.04 app tables | 63 % |
 | EX-0014.03 sensor spoof | 91 % | EX-0012.12 system clock | 57 % |
-| EX-0008.02 RTS | 91 % | EX-0012.09 EPS | ⚠ **0 %** (see note) |
+| EX-0008.02 RTS | 91 % | EX-0012.09 EPS | ✅ **R17** |
 
 ⚠ Five `IMP` rows (`IMP-0001/0002/0003/0005/0006`, catch rates 58–100 %) were removed with
 the deprecated Impact family. `IMP-0003`/`IMP-0005` were probe-only/NOOP scripts, so their
@@ -607,8 +614,8 @@ reliability. Signal = observability class.
 
 ⚠ **The Catch column credits the IF with detections the rule-gate makes** — see the boxed
 note in Section 2. For discrete state-change techniques the detection is real but comes from
-R1/R14, not the anomaly detector. `EX-0012.09` is a confirmed gap: nothing detects it in
-steady flight.
+R1/R14/R17, not the anomaly detector. `EX-0012.09` was a confirmed gap; it is now **closed by
+rule R17:eps-command** (AINOS3-87, 2026-09-03).
 
 | Technique | Catch (SUNSAFE) | Classifier tier | Signal | Note |
 |---|--:|---|---|---|
@@ -619,7 +626,7 @@ steady flight.
 | EX-0012.05 scheduler | 64 % | HIGH-VAR | ON_BOARD | separated from the {03,04} cluster on the 17-class refit (min 0.23); DEFERRED (AINOS3-119) |
 | EX-0012.07 propulsion | 100 % | HIGH-VAR | ON_BOARD | always detected |
 | EX-0012.08 ADCS | 100 % | HIGH-VAR | ON_BOARD | always detected; label unstable across runs |
-| EX-0012.09 EPS | ⚠ **0 %** | HIGH-VAR | ON_BOARD | **CONFIRMED GAP** — detected by nothing in steady flight (0/3 reps); the 99 % came from transient-dominated data. Ticketed AINOS3-87 |
+| EX-0012.09 EPS | ✅ **R17** | ON_BOARD | **CLOSED (AINOS3-87)** — caught by rule R17:eps-command (EPS.CommandCount new-high; static-0 in nominal). IF stays blind (no consumption telemetry); the old 99 % was a transient-dominated corpus artifact |
 | EX-0012.12 system clock | 57 % | HIGH-VAR | ON_BOARD | ≡ EX-0014.01 |
 | EX-0014.01 time spoof | 26 % | HIGH-VAR | ON_BOARD | ≡ EX-0012.12 |
 | EX-0014.03 sensor spoof | 91 % | DEAD | ON_BOARD | detected, not labelable |
@@ -697,6 +704,6 @@ Current, claiming only what is measured:
 > frames against ~1 % of nominal** (propulsion, three independent runs), and in steady
 > cruise it raises **no false alarms at all**. When it alarms, a classifier names the
 > technique correctly **~65 % of the time on a spacecraft run it has never seen**
-> (0.645 ± 0.036, out-of-fold). Two known gaps: **`EX-0012.09` (EPS switch) is detected by
-> nothing** in steady flight, and **INERTIAL mode carries a 33.6 % nominal false-alarm rate**
-> that is under investigation.*
+> (0.645 ± 0.036, out-of-fold). One remaining gap: **INERTIAL mode carries a 33.6 % nominal
+> false-alarm rate** that is under investigation. (`EX-0012.09` EPS switch, previously a gap, is
+> now caught by rule R17:eps-command — AINOS3-87.)*

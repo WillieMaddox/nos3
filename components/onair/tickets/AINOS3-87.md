@@ -3,7 +3,7 @@ key: AINOS3-87
 slug: detect-eps-switch
 type: Story
 epic: AINOS3-41 (coverage-expansion)
-status: Open
+status: Done
 priority: Medium
 opened: 2026-08-11
 sprints: [27, 28]
@@ -42,14 +42,20 @@ First establish the on-board footprint, because the outcome forks:
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` Footprint confirmed live: run EX-0012.09 in held SUNSAFE (`single_mode_hold_SUNSAFE`) and
+- [x] `AC1` Footprint confirmed live: run EX-0012.09 in held SUNSAFE (`single_mode_hold_SUNSAFE`) and
       identify which recorded field, if any, changes. Parse with `csv.DictReader`, never
-      `awk -F','`.
-- [ ] `AC2` **If an observable moves:** rule built as a sibling of R1/R5/R6–R13, labeled to EX-0012.09;
-      0-FP over a nominal soak; unit tests; plugin synced to the build tree; live-verified.
-- [ ] `AC3` **If nothing moves:** reclassified UNSUBSCRIBED in `V5_DETECTOR_COVERAGE.md` and the SPARTA
-      matrix, with the evidence and a note on which MID would be needed.
-- [ ] `AC4` Either way, the published 99 % catch rate is corrected to what is actually measured.
+      `awk -F','`. **Live (2026-09-03): `EPS.CommandCount` 0→1 and `EPS.DeviceHK.Switch[1]`
+      `[0,0,0]`→`[3300,250,170]` (Status 0xAA = ON). Both observables move.**
+- [x] `AC2` **Observable moves → rule built.** `R17:eps-command` — `EPS.CommandCount` new-high + dwell,
+      a sibling of R6–R12, labeled to EX-0012.09. `EPS.CommandCount` static-0 in nominal (22 h soak +
+      live baseline) → 0-FP by construction (quiet through the nominal soak). 4 unit tests added (83
+      pass). Plugin synced to the build tree. **Live-verified: firing EX-0012.09 fired `R17` and
+      emitted incident `cluster=EX-0012.09 sub=eps-command`, reproduced on a second send.**
+- [x] `AC3` **N/A — the observable moved, so the AC2 branch was taken, not the UNSUBSCRIBED branch.**
+      (The IF *is* structurally blind — no consumption telemetry — but the switch command is caught by
+      the rule, so the technique is detected, not reclassified.)
+- [x] `AC4` The published 99 % is corrected in `V5_DETECTOR_COVERAGE.md`: EX-0012.09 is now **caught by
+      R17** (the 99 % was a transient-dominated corpus artifact); the four gap/`0 %` statements updated.
 
 ## Log
 
@@ -79,3 +85,36 @@ is the open-ended search for an observable that the schema cannot contain.
 
 **Named missing field, for AC3:** per-switch load or current telemetry in
 `GENERIC_EPS_Hk_tlm_t` — an FSW change to the EPS sim, not a subscription.
+
+### 2026-09-03 · DONE — R17:eps-command built + live-verified (closes the EX-0012.09 gap)
+
+Live footprint (held SUNSAFE), then rule, then live verify — all on the same stack.
+
+**AC1 footprint (live).** Baseline `EPS.CommandCount = 0`, all switches OFF. Fired EX-0012.09
+(`EPS_FC_SWITCH`, switch 1 ON, `0x191A` FC2 via `CI_LAB:5012`). Result: `EPS.CommandCount` **0→1**
+and `EPS.DeviceHK.Switch[1]` **`[0,0,0]`→`[3300, 250, 170]`** (Voltage/Current energized,
+Status 0xAA=ON). So the "observable moves" branch — a rule, not the UNSUBSCRIBED reclassification.
+⚠ The ticket's earlier lean toward UNSUBSCRIBED was about the *consumption* feature (which the EPS
+schema genuinely lacks, so the IF stays blind); it overlooked that `EPS.CommandCount` and the switch
+state are both recorded and both move.
+
+**AC2 rule.** `R17:eps-command` — `EPS.CommandCount` new-high + dwell, a config-only sibling of
+R6–R12 (the generic static-in-nominal counter mechanism). Precondition verified: `EPS.CommandCount`
+is **static at 0** across a 22 h nominal soak (`csv.DictReader`, not `awk`) and the live baseline, so
+0-FP is by construction — and it was quiet through the nominal soak before the attack. Added to the
+`_cmd_rule` map + `_TECH_LABEL` + `_incident_label` (→ `EX-0012.09 / eps-command`), plus a docstring.
+4 unit tests (latch / static-never-fires / double-buffer-flicker / incident-label); **83 pass**.
+
+**Live verify.** Synced the plugin to the build tree, cycled the stack, fired the attack:
+`[rule_gate][ALERT] frame=325 rule=R17:eps-command … (EX-0012.09)` → `[CLEAR]` after dwell →
+`[INCIDENT] cluster=EX-0012.09 sub=eps-command`, reproduced on a second send. Cleanup restored the
+switch OFF.
+
+**AC4.** `V5_DETECTOR_COVERAGE.md`: the four "detected by nothing / ⚠ 0 % / confirmed gap" statements
+for EX-0012.09 are corrected to "caught by R17"; the honest note is that the old 99 % was a
+transient-dominated corpus artifact and R17 catches it whenever the switch command is on the bus.
+
+**Operational note (this session).** The stack needs GSW up *before* `make launch-quiet` (`make gsw`
+build once, then GSW survives `make stop`, so cycle with `make stop` + `make launch-quiet`). And
+always read the **actively-growing** CSV, past OnAIR's ~30–60 s startup warmup — several early "0 Hz"
+readings this session were warmup pauses or stale files, not real stalls.
