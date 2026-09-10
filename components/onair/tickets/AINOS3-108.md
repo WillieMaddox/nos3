@@ -3,11 +3,11 @@ key: AINOS3-108
 slug: subscription-hygiene
 type: Task
 epic: AINOS3-41 (coverage-expansion)
-status: Blocked
+status: Done
 priority: Medium
 estimate: E 2 / T 0.5
 opened: 2026-08-25
-sprints: [28]
+sprints: [28, 29]
 origin: AINOS3-95 (sparta-logging-gap-analysis)
 ---
 
@@ -52,12 +52,12 @@ can be dropped from the plan survives, even though the reasoning behind it was w
 
 The single living list. Nothing here is superseded or extended by a sprint plan.
 
-- [ ] `AC1` A per-MID disposition recorded with its evidence — device-disabled, command-produced, or event-driven — not a blanket "dead" verdict.
-- [ ] `AC2` `CFE_SB_SUBS` and `SBN` resolved: unsubscribed and their columns removed from the schema, or scheduled. If `SBN` is scheduled instead of dropped, the five-variant payload problem MUST be modelled first.
-- [ ] `AC3` `RADIO_DEV` decided on its merits — kept as an event-driven prox-link indicator, or dropped — with the reason recorded.
-- [ ] `AC4` `ST_DEV` explicitly left alone here and its resolution deferred to the star-tracker configuration decision (`AINOS3-86` / `AINOS3-91`).
-- [ ] `AC5` Post-change subscription count recorded against the 48 cap, with the headroom available to `AINOS3-110` and `AINOS3-120` stated.
-- [ ] `AC6` A live check that no *surviving* subscription became silent as a side effect.
+- [x] `AC1` A per-MID disposition recorded with its evidence — device-disabled, command-produced, or event-driven — not a blanket "dead" verdict.
+- [x] `AC2` `CFE_SB_SUBS` and `SBN` resolved: unsubscribed and their columns removed from the schema, or scheduled. If `SBN` is scheduled instead of dropped, the five-variant payload problem MUST be modelled first.
+- [x] `AC3` `RADIO_DEV` decided on its merits — kept as an event-driven prox-link indicator, or dropped — with the reason recorded.
+- [x] `AC4` `ST_DEV` explicitly left alone here and its resolution deferred to the star-tracker configuration decision (`AINOS3-86` / `AINOS3-91`).
+- [x] `AC5` Post-change subscription count recorded against the 48 cap, with the headroom available to `AINOS3-110` and `AINOS3-120` stated.
+- [x] `AC6` A live check that no *surviving* subscription became silent as a side effect.
 
 ## Log
 
@@ -113,3 +113,55 @@ rebuilds the model anyway — dropping nine constant columns costs nothing there
 impossible here. This ticket then becomes the *analysis of record* plus a one-line change to
 the retrain's column list. ⚠ Net cap relief was never the point: it is 3 slots, and the
 arithmetic already showed the remaining MID work fits at 45/48 without them.
+
+### 2026-09-10 · RESOLVED at the schema freeze — pruned, not unsubscribed
+
+Unblocked by `AINOS3-124` on the observation that the Blocked note had the layering wrong.
+"Removal needs a retrain" is true of the **subscribed** schema and false of the **recorded**
+one, and only the recorded one is what a corpus bakes in. They are different sets, changed by
+different files:
+
+| | set by | who consumes it | can it change now? |
+|---|---|---|---|
+| **subscribed** schema | `nos3_security_tlm.json` | the live OnAIR frame → every plugin, incl. the deployed IF | ❌ pinned by the IF's `scalar_columns` (by NAME) |
+| **recorded** schema | that, minus `nos3_security.ini` `ExcludeColumns` | the CSV → the corpus → every FUTURE model | ✅ free — the prune is applied in the CSV writer only |
+
+`csv_output_plugin.render_reasoning` computes the exclusion mask over its own header list and
+writes the masked row; nothing upstream of it sees the prune. So pruning gets the corpus
+cleaned **now**, at collection time where `AINOS3-124` needs it, with the live frame — and the
+deployed IF's 894 features — untouched.
+
+**Applied:** the 9 columns of `CFE_SB_SUBS` (4), `SBN` (2) and `RADIO_DEV` (3) added to
+`ExcludeColumns`. Recorded schema **479 → 470** columns. Subscriptions retained.
+
+**`ST_DEV` deliberately untouched (`AC4`).** Beyond the "configuration, not a dead MID"
+argument the ticket already made, there is now a second and stronger one: `AINOS3-86`'s fix is
+to **enable the star tracker**, which makes these 5 columns start carrying data. A column that
+may go live during the sprint must ALREADY be in the frozen schema — pruning it would turn
+`AINOS3-86` landing into a forced re-collect. **Silent is not the same as droppable.**
+
+**Evidence, measured rather than argued (`AC1`, `AC3`, `AC6`).** Built
+`training/schema_audit.py`, which reads a recorded session and reports every column that is
+the `[0]` no-data sentinel in **100 %** of frames. Over 138,397 frames of the 2026-09-03
+session it found **exactly 14** such columns — the 9 above plus `ST_DEV`'s 5 — and nothing
+else. That is an independent confirmation of the disposition table from data, not from source
+reading, and it is the AC6 regression check going forward (`--require-no-new-silent`).
+
+⚠ A low sentinel fraction is normal, not a defect: any MID slower than the ~5 Hz frame rate
+shows sentinel frames between arrivals (`CS` sits at 0.0001). Only 100 % is a finding.
+
+**`AC5` — cap arithmetic.** Unchanged at **40/48 subscribed**, because nothing was
+unsubscribed. The 3 slots stay claimed until the next IF retrain; as the ticket already
+established, the remaining MID work (`AINOS3-110`, `AINOS3-120`) fits at 45/48 without them,
+so nothing is gated on reclaiming them.
+
+**Consequence to carry forward.** The deployed IF can no longer be replayed offline against a
+post-freeze CSV without synthesizing the 9 constant columns back — they are in its
+`scalar_columns` but no longer in the file. Live scoring is unaffected. The real unsubscribe
+is on the `schema-vNext` list with an explicit trigger: **the next IF retrain**, which will be
+fitted on the new corpus and therefore will not ask for them.
+
+**Live-verified 2026-09-10** on a fresh `make launch-quiet`: sidecar reports
+`kept_columns_count: 470`, OnAIR ran clean with no traceback, and `[iforest]` loaded and
+scored normally at `n_raw_features=458` — the crash-loop the August attempt produced does not
+occur, confirming the prune/unsubscribe distinction empirically.
