@@ -52,8 +52,47 @@ from cmd import (
     ADCS_HK_REQ_MID, ADCS_MODE_BDOT, ADCS_MODE_INERTIAL, ADCS_MODE_PASSIVE,
     ADCS_MODE_SUNSAFE, CSS_HK_REQ_MID, FSS_HK_REQ_MID, IMU_HK_REQ_MID,
     MAG_HK_REQ_MID, ST_HK_REQ_MID, TORQUER_HK_REQ_MID,
+    quat_inertial_hold_target,
     Commander,
 )
+
+# Seconds to wait after enabling the star tracker before commanding INERTIAL.
+# ST device telemetry publishes on the sim's own cadence; entering the mode
+# before a valid sample lands means qValid is false at mode entry and the
+# control law sits out its first frames. (AINOS3-86)
+ST_SETTLE_S = 10.0
+
+# ⚠ AINOS3-86: an INERTIAL hold entered from a TUMBLING state diverges instead of
+# capturing, and this is not a tuning problem. While the star tracker is
+# Earth-occluded `qValid` is false and `AC_inertial()` is skipped entirely, so
+# torque arrives in short bursts whenever the boresight happens to clear the
+# exclusion cone. Measured live 2026-09-10 at a ~6 % valid duty cycle:
+# |w| 0.64 -> 1.40 -> 2.31 deg/s in 60 s. Burst control PUMPS energy in.
+#
+# So the rates must be damped FIRST, by a mode with no star-tracker dependency.
+#
+# ⚠⚠ USE SUNSAFE, NOT BDOT — this is the counter-intuitive part, and it was
+# measured rather than reasoned. BDOT looks like the obvious choice (detumble IS
+# its purpose, and it is magnetorquer-only so it runs while blinded) and it does
+# NOT converge on this vehicle: over 4 minutes it limit-cycled between 1.16 and
+# 2.57 deg/s with no downward trend.
+#
+# The cause is control-authority mismatch, not a defect. `AC_bdot` is textbook and
+# correctly signed (`Mcmd = -Kb*bdot/|bvb|`, generic_adcs_adac.c:219-244; the
+# observed Mcmd 38.04 matches Kb=200 exactly), but MaxMcmd is 1.42 so the command
+# saturates 27x over, and the vehicle is 4 kg with I = [0.0067, 0.033, 0.033]
+# kg m^2 (SC_NOS3.txt:30-31). Saturated bang-bang against that inertia overshoots
+# every correction. Torquers were verified enabled and applying — BDOT was working
+# as designed and was still the wrong tool.
+#
+# SUNSAFE uses the sun sensors and reaction wheels: finer authority, no star
+# tracker either. Measured 1.66 -> 0.26 deg/s in 95 s. It is also what the FSW
+# boots into, which is why the vehicle's natural resting rate is ~0.2 deg/s.
+#
+# The target is therefore ~0.35 deg/s (near the natural floor), NOT 0.05 — SUNSAFE
+# settles around 0.2-0.3 deg/s and waiting for less than that never returns.
+DETUMBLE_TARGET_DEG_S = 0.35
+DETUMBLE_TIMEOUT_S = 600.0
 from run_baseline import (
     SCENARIOS,
     auto_discover_fsw_host,
@@ -112,7 +151,65 @@ def scenario_all_modes_dwell(c: Commander, duration_s: int) -> None:
             time.sleep(sleep_left if not c.dry_run else 0)
 
 
-def make_scenario_single_mode_hold(mode_label: str):
+def _detumble_before_inertial(c: Commander) -> None:
+    """Damp body rates in SUNSAFE before attempting an INERTIAL hold (AINOS3-86).
+
+    ⚠ This step is not optional and it is not tuning. Entering INERTIAL from a
+    tumbling state DIVERGES: while the star tracker is Earth-occluded `qValid`
+    is false and `AC_inertial()` is skipped, so torque lands in bursts whenever
+    the boresight happens to clear the exclusion cone, and burst control pumps
+    energy in. Measured live 2026-09-10 at ~6 % valid duty: |w| went
+    0.64 -> 1.40 -> 2.31 deg/s in 60 s.
+
+    ⚠ SUNSAFE, not BDOT. BDOT is the obvious choice and does not converge here --
+    it limit-cycles at 1.2-2.6 deg/s because its saturated bang-bang command is
+    far too coarse for a 4 kg vehicle. SUNSAFE damps via the wheels and has no
+    star-tracker dependency either. See the DETUMBLE_* block above.
+
+    Best-effort: if the live CSV cannot be found we still run BDOT for a fixed
+    spell rather than skipping the step, because skipping it is what produces a
+    silently-uncontrolled run.
+    """
+    print(f"  [single_mode_hold] INERTIAL: damping rates in SUNSAFE to "
+          f"|w| < {DETUMBLE_TARGET_DEG_S} deg/s before the hold")
+    c.adcs_set_mode(ADCS_MODE_SUNSAFE)
+    if c.dry_run:
+        return
+
+    try:
+        from inertial_capture import body_rate_deg_s, newest_csv, DEFAULT_CSV_GLOB
+    except Exception as exc:                       # pragma: no cover - import guard
+        print(f"  [single_mode_hold] ⚠ cannot import the rate check ({exc}); "
+              f"running BDOT open-loop for {DETUMBLE_TIMEOUT_S:.0f}s")
+        time.sleep(DETUMBLE_TIMEOUT_S)
+        return
+
+    path = newest_csv(DEFAULT_CSV_GLOB)
+    if not path:
+        print(f"  [single_mode_hold] ⚠ no live CSV found; running BDOT open-loop "
+              f"for {DETUMBLE_TIMEOUT_S:.0f}s")
+        time.sleep(DETUMBLE_TIMEOUT_S)
+        return
+
+    deadline = time.monotonic() + DETUMBLE_TIMEOUT_S
+    while time.monotonic() < deadline:
+        time.sleep(30)
+        try:
+            w = body_rate_deg_s(path)
+        except Exception:
+            continue
+        if w is None:
+            continue
+        print(f"  [single_mode_hold] detumble: |w| = {w:.4f} deg/s")
+        if w < DETUMBLE_TARGET_DEG_S:
+            print("  [single_mode_hold] detumbled")
+            return
+    print(f"  [single_mode_hold] ⚠ rate damping TIMED OUT after "
+          f"{DETUMBLE_TIMEOUT_S:.0f}s — the INERTIAL slice of this run is suspect; "
+          f"verify with inertial_capture.py before letting its data count")
+
+
+def make_scenario_single_mode_hold(mode_label: str, configure_inertial: bool = True):
     """Hold ONE ADCS mode for the whole bracket. Returns a scenario callable.
 
     Why this exists (AINOS3-77 follow-on, 2026-08-15)
@@ -136,6 +233,70 @@ def make_scenario_single_mode_hold(mode_label: str):
     SET_MODE handler — and this was demonstrated directly: one command, 17,670
     consecutive frames, zero drift. Not re-commanding additionally keeps the run
     from tripping the R14 flap rule, which 60 s cycling would fire continuously.
+
+    INERTIAL needs configuring before it is held (AINOS3-86, 2026-09-10)
+    -------------------------------------------------------------------
+    Commanding `SET_MODE INERTIAL` is NOT sufficient to put the vehicle into a
+    controlled inertial hold, and every INERTIAL run collected before this change
+    was uncontrolled tumble wearing the INERTIAL label:
+
+        ST.DeviceEnabled = 0  ->  ADCS_DI.Payload.St.valid = 0
+                              ->  ADCS_GNC.qValid = 0
+                              ->  `if (GNC->qValid)` is false
+                              ->  AC_inertial() NEVER EXECUTES
+
+    (`generic_adcs_adac.c:338`.) The star tracker boots disabled and no tooling
+    ever enabled it, so `qValid` is 0 across all 1.75 M rows ever collected. The
+    published 33.6 % INERTIAL nominal false-alarm rate is the detector correctly
+    flagging free drift — a plant misconfiguration, not a detector defect.
+
+    So for INERTIAL this scenario now, in order:
+
+      1. enables the star tracker (`ST_FC_ENABLE`), then waits for it to publish;
+      2. commands the ORBIT-NORMAL target attitude
+         (`GENERIC_ADCS_INERTIAL_QUATERNION_CC`, from
+         `cmd.quat_inertial_hold_target`);
+      3. only then commands `SET_MODE INERTIAL`.
+
+    ⚠ Step 2 must be the orbit normal, not identity, and that is the part that
+    took two sprints to find. Enabling the star tracker is NOT sufficient on its
+    own: 42 clears `ST->Valid` whenever the boresight falls within
+    (Earth-limb + 10 deg) = **80.4 deg of nadir** (`42sensors.c:304-342`). At any
+    FIXED inertial attitude the nadir direction sweeps a full circle in the body
+    frame once per ~92 min orbit, so the star tracker is blinded for ~40 % of
+    every orbit in one unbroken ~35-minute stretch -- and `qValid` gates
+    `AC_inertial()`, so for that stretch the control law does not run and the
+    "INERTIAL hold" is free drift wearing the INERTIAL label.
+
+    Identity is an arbitrary attitude with no relationship to the orbit, so it
+    inherits that duty cycle. The orbit normal is perpendicular to nadir BY
+    CONSTRUCTION, so boresight-to-nadir is pinned at 90 deg -- a permanent
+    9.6 deg margin, every orbit. See `cmd.orbit_normal_from_config`.
+
+    ⚠ There is a bootstrap: the controller cannot slew while blinded, because
+    the control law is exactly what `qValid` gates. Starting inside a blind
+    stretch the vehicle must WAIT (up to ~35 min) for the orbit to carry the
+    boresight out of the Earth cone; only then does it capture and hold, after
+    which it stays valid indefinitely. Callers must therefore verify capture --
+    `ST.DeviceEnabled = 1` is NOT evidence the loop closed. Use
+    `inertial_capture.py`.
+
+    Proven live 2026-09-10: damp -> command -> wait -> capture, ending at
+    boresight 0.4-0.6 deg off the orbit normal, boresight-to-nadir 89.4-89.9 deg
+    against the 80.5 deg threshold, qValid 100 %, held. Because the hold is
+    stable once captured, a BATCH of runs on one stack pays the wait only once --
+    do the setup at the start of a batch, not per run.
+
+    ⚠ Pass ``configure_inertial=False`` to reproduce the OLD condition. That is
+    not a legacy escape hatch to leave lying around — it is the control arm of
+    the A/B this change has to be judged by, since the "before" corpus was
+    collected under exactly that condition.
+
+    ⚠ Known and NOT fixed here: with the ST enabled `qValid` still latches in
+    only ~56 of 80 frames, so the control law runs intermittently (AINOS3-91),
+    and `Ki = [0,0,0]` leaves `sumtherr` winding up inert. Both are separate
+    tickets. This change establishes *closed-loop at all*, which is the
+    precondition for measuring anything else.
     """
     mode_const = {
         "INERTIAL": ADCS_MODE_INERTIAL, "SUNSAFE": ADCS_MODE_SUNSAFE,
@@ -149,6 +310,26 @@ def make_scenario_single_mode_hold(mode_label: str):
             (MAG_HK_REQ_MID, "MAG"), (ST_HK_REQ_MID, "ST"),
             (TORQUER_HK_REQ_MID, "TORQUER"),
         ]
+        if mode_label == "INERTIAL" and configure_inertial:
+            _detumble_before_inertial(c)
+            print("  [single_mode_hold] INERTIAL: enabling star tracker "
+                  "(qValid gates AC_inertial)")
+            c.st_enable(True)
+            # Let the ST publish at least one valid sample before the control
+            # law is switched on, so qValid is already true at mode entry
+            # rather than latching some frames later.
+            time.sleep(ST_SETTLE_S if not c.dry_run else 0)
+            q_target = quat_inertial_hold_target()
+            print(f"  [single_mode_hold] INERTIAL: commanding ORBIT-NORMAL target "
+                  f"attitude {tuple(round(x, 6) for x in q_target)} "
+                  f"(keeps the ST 90 deg off nadir all orbit)")
+            c.adcs_set_inertial_quaternion(q_target)
+            time.sleep(1.0 if not c.dry_run else 0)
+        elif mode_label == "INERTIAL":
+            print("  [single_mode_hold] INERTIAL: ⚠ CONTROL ARM — star tracker "
+                  "left disabled, no target attitude (reproduces the "
+                  "uncontrolled-drift condition of the pre-2026-09-10 corpus)")
+
         print(f"  [single_mode_hold] holding {mode_label} for {duration_s}s "
               f"(commanded once, no re-command)")
         c.adcs_set_mode(mode_const)
@@ -173,6 +354,13 @@ LOCAL_SCENARIOS = list(SCENARIOS) + [
     # single_mode_hold_<MODE>: one mode, held throughout, commanded once.
     (f"single_mode_hold_{m}", 300, make_scenario_single_mode_hold(m))
     for m in ("INERTIAL", "SUNSAFE", "BDOT", "PASSIVE")
+] + [
+    # The AINOS3-86 A/B control arm: INERTIAL held the way the pre-2026-09-10
+    # corpus held it — star tracker disabled, no target attitude, so the control
+    # law never runs. Named rather than flagged so a run's scenario field records
+    # which arm it was, and a manifest can never be ambiguous about it.
+    ("single_mode_hold_INERTIAL_uncontrolled", 300,
+     make_scenario_single_mode_hold("INERTIAL", configure_inertial=False)),
 ]
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))

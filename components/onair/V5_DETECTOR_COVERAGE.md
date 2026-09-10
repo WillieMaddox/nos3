@@ -24,8 +24,10 @@ and the mitigation is recommended but **not deployed** (Section B.1). Detection 
 catch rates only measure manoeuvre transients (they do not; boxed note in Section 2), but
 found that the Catch column **credits the IF with rule-gate detections** and that
 `EX-0012.09` is now caught by rule **R17:eps-command** (AINOS3-87); previously detected by nothing. Added R14 mode-force + flapping
-detection, the AINOS3-80 provenance tags, and the AINOS3-81 soak results including an
-INERTIAL false-alarm problem now measured at **33.6 %** nominal.
+detection, the AINOS3-80 provenance tags, and the AINOS3-81 soak results. The INERTIAL
+false-alarm problem is **RESOLVED** (AINOS3-86, 2026-09-10): the mode had never been flown
+closed-loop; flown properly it measures **0.00 %** nominal, and the old 33.6 % is now
+identified as a raw-not-operational figure measured against uncontrolled tumble.
 
 **Previously:** 2026-07-30 (Sprint 26 — folded in the Section-B detections
 EX-0010.01/.02, EXF-0003.02, DE-0001, DE-0006; resolved the watchdog pair +
@@ -103,23 +105,43 @@ in any fit.
 | SUNSAFE | 0.20 % | **0.02 %** ✅ | **0.74 %** raw (0.35–1.00 % across runs) |
 | PASSIVE | 0.00 % | **0.00 %** ✅ | not re-measured |
 | BDOT | 0.00 % | **0.00 %** ✅ | not re-measured |
-| **INERTIAL** | ~~0.00 %~~ | 0.54 % op / 7.5 % raw | ⚠ **33.6 %** (21.1–48.5 %) |
+| **INERTIAL** | ~~0.00 %~~ | 0.54 % op / 7.5 % raw | ✅ **0.00 % op / 0.00 % raw** (controlled, AINOS3-86) |
 
-**Three of four modes are well inside the 1 % design target. INERTIAL is not**, and the
-figure has grown with every measurement (0.00 % → 7.5 % → 33.6 %). An earlier worry that
-INERTIAL and BDOT were "too noisy to use" was previously recorded as *disproved*; for BDOT
-that still holds, **for INERTIAL it does not**.
+**All four modes are now inside the 1 % design target.** INERTIAL's escalating history
+(0.00 % → 7.5 % → 33.6 %) is closed: `AINOS3-86` found the mode had **never once been flown
+closed-loop** — the star tracker boots disabled and nothing enabled it, so `qValid` was 0 and
+`AC_inertial()` never executed. Every prior "INERTIAL" measurement described uncontrolled
+tumble at ~2.5 deg/s. Flown properly, the same deployed model measures **0.00 % / 0.00 %**.
 
-> ⚠ **INERTIAL is currently unusable for detection (updated 2026-08-17).** The nominal
-> false-alarm rate has grown with every measurement: 0.00 % published (116 min) → 7.5 % raw
-> over a 7 h soak → **33.6 % across 12 runs at a 600 s hold**. The "short-run settling
-> transient" explanation offered for the middle figure is **refuted** — 10 minutes is not
-> enough for it to subside. Every INERTIAL attack-detection measurement sits on this noise
-> floor and is uninterpretable, so the mode cannot presently be evaluated for coverage at
-> all. In-sample threshold calibration (AINOS3-80 **F1**) contributes but does not explain
-> 33.6 %; candidate second factors are a training gap (19,641 rows from a single 116-min
-> session), a missing commanded target quaternion that our tooling never sends, or genuinely
-> long settling. Ticketed as AINOS3-86 (High).
+> ✅ **RESOLVED 2026-09-10 (AINOS3-86).** INERTIAL nominal FP is **0.00 % operational and
+> 0.00 % raw** over 7,230 controlled frames (19.2 min, zero events; 95 % upper bound 0.04 %).
+> Provenance: `live-soak`, single session, sample rate derived from `CFE_TIME.SecondsMET`
+> (6.26 Hz) per AINOS3-92. Artifact:
+> `data/onair/results/ainos3_86_ac3_controlled_inertial_fp.json`.
+>
+> ⚠ **The old 33.6 % was a RAW `is_anomaly` figure and was never comparable to the 1 %
+> design target**, which is an *operational* (`alert`) rate. Re-measured with one tool across
+> the 15 archived replication sessions, loop-open INERTIAL is **36.2 % raw / 1.71 %
+> operational**. The raw number is what this doc published, in a column naming neither — next
+> to an AINOS3-81 cell that did say "op / raw". Both are now stated explicitly.
+>
+> **Root cause was not detector noise.** 42 clears `ST->Valid` whenever the star-tracker
+> boresight is within (Earth-limb + 10 deg) = **80.4 deg of nadir** (`42sensors.c:304-342`),
+> and at any FIXED inertial attitude nadir sweeps a full circle in the body frame once per
+> ~92 min orbit — so the tracker is blinded ~40 % of every orbit in one unbroken ~35 min
+> stretch, and `qValid` gates the control law. The fix is to point the boresight along the
+> **orbit normal**, which is perpendicular to nadir by construction: boresight-to-nadir is
+> then pinned at 90 deg, a permanent 9.6 deg margin. Verified live at 0.4–0.6 deg pointing
+> error, `qValid` 100 %.
+>
+> ⚠ **Two caveats before citing this.** (1) The deployed INERTIAL model is still trained on
+> 19,641 rows of *uncontrolled* drift; controlled flight scores p50 **+0.055** against a
+> training p50 of **+0.179** — it passes, but sits in the lower tail, so a retrain on a
+> controlled corpus should restore headroom (`AINOS3-100`/`AINOS3-101`). (2) Attack
+> **detection** in controlled INERTIAL has **not** been re-measured — every prior figure sat
+> on the 36 % noise floor and is uninterpretable, but a quiet baseline does not by itself
+> prove the mode detects anything.
+>
 > ⚠ **Do not fix by tightening the threshold** — that drives INERTIAL's false alarms to 0.00 %
 > but collapses its attack detection 60×. Earlier AINOS3-81 detail:
 > [`AINOS3_81_HYBRID_DRIFT_SOAK.md`](AINOS3_81_HYBRID_DRIFT_SOAK.md).
