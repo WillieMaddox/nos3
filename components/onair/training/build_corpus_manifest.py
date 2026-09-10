@@ -311,6 +311,24 @@ def main():
             runs.append(rec)
             total_frames += n or 0
 
+    # ⚠ A corpus must not contain the same (technique, mode, instance) twice —
+    # re-chunking after a partial run, or re-running a chunk without clearing its
+    # results, silently double-weights that cell in training. Checked, not hoped.
+    seen = {}
+    duplicates = []
+    for r in runs:
+        k = (r["technique"], r["mode"], r["instance"])
+        if k in seen:
+            duplicates.append(k)
+        seen[k] = True
+
+    # A rejected run whose key was later collected successfully is SUPERSEDED,
+    # not an outstanding gap — label it so a reader is not left to work that out.
+    accepted_keys = set(seen)
+    for r in rejected:
+        r["superseded_by_successful_run"] = (
+            (r["technique"], r["mode"], r["instance"]) in accepted_keys)
+
     out = {
         "corpus_name": args.name or f"corpus_{datetime.date.today().isoformat()}",
         "built_at": datetime.datetime.now(datetime.timezone.utc)
@@ -330,6 +348,9 @@ def main():
         "counts": {
             "runs_accepted": len(runs),
             "runs_rejected": len(rejected),
+            "runs_rejected_superseded": sum(
+                1 for r in rejected if r["superseded_by_successful_run"]),
+            "duplicate_run_keys": [list(k) for k in duplicates],
             "frames_accepted": total_frames,
             "techniques": len({r["technique"] for r in runs if r["technique"]}),
             "modes": sorted({r["mode"] for r in runs if r["mode"]}),
@@ -355,10 +376,38 @@ def main():
         out["counts"]["alert_eligible_attack_fraction_mean"] = mean_e
         print(f"AC1 alert-eligible attack frames: {mean_e:.1%} "
               f"(n={len(elig)} runs; pilot reference 84.4%)")
+    if duplicates:
+        print(f"\n⚠⚠ DUPLICATE runs — the same cell is collected more than once, "
+              f"which double-weights it in training. FIX BEFORE TRAINING:")
+        for k in duplicates:
+            print(f"    {k[0]}/{k[1]}/inst{k[2]}")
     if rejected:
-        print(f"⚠ REJECTED : {len(rejected)} run(s)")
+        n_sup = sum(1 for r in rejected if r["superseded_by_successful_run"])
+        print(f"⚠ REJECTED : {len(rejected)} run(s)"
+              + (f" — {n_sup} superseded by a later successful run (not a gap)"
+                 if n_sup else ""))
         for r in rejected:
-            print(f"    {r['technique']}/{r['mode']}/inst{r['instance']}: {'; '.join(r['problems'])}")
+            tag = " [superseded]" if r["superseded_by_successful_run"] else ""
+            print(f"    {r['technique']}/{r['mode']}/inst{r['instance']}{tag}: "
+                  f"{'; '.join(r['problems'])}")
+
+    # What the corpus still OWES, as a first-class output rather than arithmetic
+    # left to the reader.
+    missing = []
+    if runs:
+        techs = sorted({r["technique"] for r in runs if r["technique"]})
+        for m in sorted({r["mode"] for r in runs if r["mode"]}):
+            insts = sorted({r["instance"] for r in runs if r["mode"] == m})
+            have = {(r["technique"], r["instance"]) for r in runs if r["mode"] == m}
+            for i in insts:
+                gap = [t for t in techs if (t, i) not in have]
+                if gap:
+                    missing.append({"mode": m, "instance": i, "techniques": gap})
+    out["incomplete_cells"] = missing
+    if missing:
+        print(f"\nincomplete instances (partial collection in progress):")
+        for g in missing:
+            print(f"    {g['mode']} inst{g['instance']}: missing {len(g['techniques'])} technique(s)")
     print(f"\nwrote {args.out}")
     return 0
 
