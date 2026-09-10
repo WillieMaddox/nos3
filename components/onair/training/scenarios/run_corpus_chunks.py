@@ -6,9 +6,14 @@
 `nohup &` — the driver stays a tracked foreground child so a hang is visible
 rather than silently detached.
 
-Resumable by design: a chunk whose results file already exists is SKIPPED, so
-re-invoking after an interruption continues where it stopped instead of
-recollecting. Delete a chunk's results file to force it to re-run.
+Resumable by design: a chunk is SKIPPED only when its results file is COMPLETE —
+one entry per run in the chunk. Delete a chunk's results file to force a re-run.
+
+⚠ Completeness, not mere existence. `run_attack_batch.py` saves results
+incrementally after every run so an abort preserves prior work, which means a
+killed chunk leaves a SHORT results file behind. Treating that as "done" would
+silently drop the uncollected runs — the same fail-quietly shape as the level and
+chain defects. A partial chunk is instead re-run for its MISSING entries only.
 
     python3 run_corpus_chunks.py --base data/onair/corpus/rebuild_2026-09-10
     python3 run_corpus_chunks.py --base <dir> --only sunsafe --max-chunks 3
@@ -53,19 +58,47 @@ def main():
     for c in chunks:
         name = os.path.splitext(os.path.basename(c))[0]
         out = os.path.join(resdir, f"{name}_results.json")
+        entries = json.load(open(c))
+        done_keys, done_rows = set(), []
         if os.path.exists(out):
-            log(f"SKIP {name} (results exist)")
+            try:
+                done_rows = json.load(open(out))
+            except json.JSONDecodeError:
+                log(f"⚠ {name}: results file is corrupt — re-running the whole chunk")
+                done_rows = []
+            done_keys = {(r.get("_technique"), r.get("_mode"), r.get("_rep"))
+                         for r in done_rows}
+        todo = [e for e in entries
+                if (e.get("_technique"), e.get("_mode"), e.get("_rep")) not in done_keys]
+        if not todo:
+            log(f"SKIP {name} (complete: {len(done_rows)}/{len(entries)})")
             continue
+        if done_rows:
+            log(f"RESUME {name}: {len(done_rows)}/{len(entries)} already collected, "
+                f"{len(todo)} to go")
+            # Run only the remainder, into a part file, then merge.
+            c = os.path.join(resdir, f"{name}_remainder.json")
+            with open(c, "w") as fh:
+                json.dump(todo, fh, indent=1)
+            out_part = os.path.join(resdir, f"{name}_remainder_results.json")
+        else:
+            out_part = out
         if args.max_chunks is not None and ran >= args.max_chunks:
             log(f"stopping: --max-chunks {args.max_chunks} reached")
             break
-        n = len(json.load(open(c)))
-        log(f"=== {name}: {n} runs ===")
+        log(f"=== {name}: {len(todo)} run(s) ===")
         logf = os.path.join(resdir, f"{name}.log")
-        with open(logf, "wb") as fh:
+        with open(logf, "ab") as fh:
             rc = subprocess.run(
-                [sys.executable, "-u", BATCH, "--input", c, "--out", out],
+                [sys.executable, "-u", BATCH, "--input", c, "--out", out_part],
                 cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT).returncode
+        if out_part != out:
+            merged = done_rows + (json.load(open(out_part))
+                                  if os.path.exists(out_part) else [])
+            with open(out, "w") as fh:
+                json.dump(merged, fh, indent=2)
+            log(f"  merged remainder into {os.path.basename(out)} "
+                f"({len(merged)}/{len(entries)})")
         ok = 0
         if os.path.exists(out):
             rows = json.load(open(out))
