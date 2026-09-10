@@ -83,10 +83,32 @@ def stack_restart() -> Path:
     subprocess.run(["make", "stop"], check=True, cwd=str(REPO_ROOT),
                    stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     pre_csvs = set(CSV_DIR.glob("csv_out_*.csv"))
-    launch_log = open(f"/tmp/batch_attacks_launch.log", "wb")
-    subprocess.Popen(["make", "launch-quiet"], cwd=str(REPO_ROOT),
-                     stdout=launch_log, stderr=subprocess.STDOUT,
-                     start_new_session=True)
+    # ⚠ Run the launch as a TRACKED CHILD, not a detached session.
+    #
+    # This used to be Popen(..., start_new_session=True) — fire-and-forget, never
+    # waited on, escaping the process group. That is the same shape as `nohup &`:
+    # the launch keeps running while nothing owns it, so a failure inside it is
+    # invisible and the harness cannot account for its children. During the
+    # 2026-09-10 collection every batch invocation was killed within seconds of
+    # `make stop`, while an otherwise identical `make stop && make launch-quiet`
+    # run directly from the shell completed fine — this detach was the only
+    # structural difference between the two.
+    #
+    # `make launch-quiet` does terminate on its own (measured: it exits 0 once
+    # the headless script finishes), so there is no reason to detach it. Waiting
+    # also means a launch failure surfaces here instead of as a downstream
+    # "no fresh CSV" timeout.
+    with open("/tmp/batch_attacks_launch.log", "wb") as launch_log:
+        try:
+            rc = subprocess.run(["make", "launch-quiet"], cwd=str(REPO_ROOT),
+                                stdout=launch_log, stderr=subprocess.STDOUT,
+                                timeout=600).returncode
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("make launch-quiet did not finish within 600s "
+                               "— see /tmp/batch_attacks_launch.log")
+    if rc != 0:
+        raise RuntimeError(f"make launch-quiet exited {rc} "
+                           f"— see /tmp/batch_attacks_launch.log")
     wait_for_fsw()
     return wait_for_fresh_csv(pre_csvs)
 
