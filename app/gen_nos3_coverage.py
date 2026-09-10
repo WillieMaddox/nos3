@@ -80,34 +80,11 @@ ENRICH = {
 # dot when any sub-technique under it changed, so a reader scanning the matrix can
 # see where to look without diffing. Reason strings surface in the tooltip.
 # Clear this dict at the start of each sprint.
-UPDATED_SPRINT = "Sprint 28"
+UPDATED_SPRINT = "Sprint 29"
 UPDATED = {
-    # Cleared at Sprint 28 kickoff (2026-08-23). Sprint 27 markers served their
-    # readout (AINOS3-76, delivered 2026-08-23). Add entries as this sprint changes
-    # coverage assessments.
-    # --- AINOS3-95 (2026-08-25) ---
-    "EXF-0003.02": "rule-gate R16 added — a CFDP transfer command is now a second, "
-                   "independent exfiltration signal alongside R12/R13 (live-validated)",
-    "EX-0010.01": "rule-gate R16 added — CFDP file-operation faults corroborate R11's "
-                  "FM command burst",
-    "EX-0010.02": "rule-gate R16 added — CFDP file-operation faults corroborate R11's "
-                  "FM command burst",
-    "EX-0012.12": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), "
-                  "live-validated against a real SET_TIME injection",
-    "EX-0014.01": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), "
-                  "live-validated against a real SET_TIME injection",
-    "EX-0001.01": "Out-of-scope rationale corrected — SPARTA's logging workbook proposes "
-                  "ground/spacecraft command-counter reconciliation, which we have not tried",
-    "EX-0006":    "Out-of-scope rationale corrected — the workbook asks for the bypass "
-                  "COMMAND, not the CryptoLib state; re-openable as a rule candidate",
-    "PER-0004":   "Out-of-scope rationale corrected — the workbook asks for the key-change "
-                  "COMMAND, not the key material",
-    "EX-0012.11": "Rationale sharpened — the HS app is a BUILD gap (loaded + scheduled, no "
-                  ".so), not a design limit; re-openable once built",
-    "DE-0003.11": "Rationale sharpened — same HS build gap as EX-0012.11",
-    "EX-0012.01": "Rationale sharpened — MM/MD are in the same not-built cluster",
-    "EX-0012.13": "Narrowed — the workbook's live control (training-data drift) is a "
-                  "corpus-integrity item, not an FSW observability gap",
+    # Cleared at Sprint 29 kickoff (2026-09-10). Sprint 28's markers (AINOS3-95
+    # rationale corrections, R15/R16 gate additions) served their purpose and are
+    # retired. Add entries as this sprint changes coverage assessments.
 }
 
 # ── Section-A gate-detected techniques (coverage-validation campaign, AINOS3-50…62,

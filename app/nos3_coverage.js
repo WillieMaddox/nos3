@@ -9,21 +9,8 @@ window.NOS3_COVERAGE_META = {
   "model": "iforest_per_mode_v5 + xgb_attack_classifier_v3_hybrid (AINOS3-37 selective per-mode)",
   "incident_recall_headline": 0.6783,
   "n_techniques": 68,
-  "updated_sprint": "Sprint 28",
-  "updated_techniques": [
-    "DE-0003.11",
-    "EX-0001.01",
-    "EX-0006",
-    "EX-0010.01",
-    "EX-0010.02",
-    "EX-0012.01",
-    "EX-0012.11",
-    "EX-0012.12",
-    "EX-0012.13",
-    "EX-0014.01",
-    "EXF-0003.02",
-    "PER-0004"
-  ],
+  "updated_sprint": "Sprint 29",
+  "updated_techniques": [],
   "provenance": {
     "label_ok": "OOF \u2014 leave-one-instance-out over the 3-instance frozen corpus, rescored through the deployed hybrid's routing (export_hybrid_oof.py). Replaced an in-sample figure that was >2x optimistic (76.9% -> 42.3%).",
     "incident_recall": "unverifiable \u2014 the attack rows were never fitted (the IF trains on nominal only), but the deployed IF artifact records no training-corpus identity, so disjointness cannot be proven. See AINOS3-80 F2.",
@@ -174,8 +161,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
-    "updated": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), live-validated against a real SET_TIME injection",
-    "updated_sprint": "Sprint 28",
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 1,
     "cluster": "EX-0012.12/EX-0014.01",
     "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:37%|CFE_SB.MsgSendErrorCounter:24%|SCH.SameSlotCount:11%|SCH.UnexpectedMajorFrameCount:7%|ADCS_GNC.HwhlB:3%|ADCS_DI.Payload.Rw.HwhlB:2%",
@@ -191,8 +178,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 6,
     "incident_total": 6,
     "incident_recall": 1.0,
-    "updated": "Now gate-detected by rule-gate R15 (GPS-vs-FSW clock divergence), live-validated against a real SET_TIME injection",
-    "updated_sprint": "Sprint 28",
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 2,
     "cluster": "EX-0012.12/EX-0014.01",
     "explanation": "CFE_EVS_HK.AppData[CFE_TIME].AppMessageSentCounter:25%|CFE_SB.MsgSendErrorCounter:16%|SCH.SameSlotCount:6%|SCH.UnexpectedMajorFrameCount:6%|CFE_SB.MemInUse:4%|ADCS_GNC.bvb:4%",
@@ -432,8 +419,8 @@ window.NOS3_COVERAGE = {
     "incident_detected": 0,
     "incident_total": 3,
     "incident_recall": 0.0,
-    "updated": "Out-of-scope rationale corrected \u2014 SPARTA's logging workbook proposes ground/spacecraft command-counter reconciliation, which we have not tried",
-    "updated_sprint": "Sprint 28",
+    "updated": null,
+    "updated_sprint": null,
     "label_ok": 0,
     "cluster": null,
     "explanation": "",
@@ -752,8 +739,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
-    "updated": "rule-gate R16 added \u2014 CFDP file-operation faults corroborate R11's FM command burst",
-    "updated_sprint": "Sprint 28",
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R11 (FM command) + R16 (CFDP file-operation faults) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
@@ -768,8 +755,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
-    "updated": "rule-gate R16 added \u2014 CFDP file-operation faults corroborate R11's FM command burst",
-    "updated_sprint": "Sprint 28",
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R11 (FM command) + R16 (CFDP file-operation faults) \u2192 EX-0010 file-op-burst incident (dynamics-IF blind by design).",
@@ -784,8 +771,8 @@ window.NOS3_COVERAGE = {
     "incident_total": null,
     "incident_recall": null,
     "label_ok": null,
-    "updated": "rule-gate R16 added \u2014 a CFDP transfer command is now a second, independent exfiltration signal alongside R12/R13 (live-validated)",
-    "updated_sprint": "Sprint 28",
+    "updated": null,
+    "updated_sprint": null,
     "cluster": null,
     "explanation": "",
     "review": "Caught by rule-gate R12 (TO command) + R13 (downlink route-mask change) + R16 (CFDP transfer command) \u2192 EXF-0003.02 incident; R16 live-validated 2026-08-25 (dynamics-IF blind by design).",
@@ -850,8 +837,8 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). The encryptor STATE is indeed internal to CryptoLib \u2014 but the workbook (TT&C rows 22/24) asks for the COMMAND, not the state: 'any received bypass commands / disable encryptor \u2014 log and alert under all circumstances'. A command arriving at CI is exactly the static-in-nominal counter signal rules R6-R13 exploit. Re-openable as a RULE candidate, not a subscription \u2014 ticket `AINOS3-105`.",
-    "updated": "Out-of-scope rationale corrected \u2014 the workbook asks for the bypass COMMAND, not the CryptoLib state; re-openable as a rule candidate",
-    "updated_sprint": "Sprint 28"
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0009.02": {
     "name": "Operating System",
@@ -925,8 +912,8 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95). True of this build, but the standard cFS answer exists and is in the same not-built cluster as the watchdog: MM (Memory Manager) and MD (Memory Dwell) are loaded in cfe_es_startup.scr and their HK is scheduled, with no .so present. The workbook asks for 'log the memory register and the new value' on 12 of 13 subsystem sheets. Re-openable once `AINOS3-113` lands. \u26a0 Note that building MM also hands an attacker a supported memory-write path.",
-    "updated": "Rationale sharpened \u2014 MM/MD are in the same not-built cluster",
-    "updated_sprint": "Sprint 28"
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0012.13": {
     "name": "Poison AI/ML Training Data",
@@ -940,8 +927,8 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "\u26a0 Narrowed 2026-08-25 (AINOS3-95). Still largely offline, but the workbook (C&DH row 25) adds a live control we had not considered: 'input data drift from the distribution of training data should also be monitored'. The ML service in question is OURS, so this is a corpus-integrity item (epic AINOS3-98), not an FSW observability gap.",
-    "updated": "Narrowed \u2014 the workbook's live control (training-data drift) is a corpus-integrity item, not an FSW observability gap",
-    "updated_sprint": "Sprint 28"
+    "updated": null,
+    "updated_sprint": null
   },
   "PER-0002.01": {
     "name": "Hardware Backdoor",
@@ -985,8 +972,8 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "\u26a0 Rationale corrected 2026-08-25 (AINOS3-95). Key material is internal to CryptoLib's SADB, but the workbook (TT&C row 23) asks for 'any received key change commands' \u2014 the command, not the material. Same re-open shape as EX-0006; ticket `AINOS3-105`.",
-    "updated": "Out-of-scope rationale corrected \u2014 the workbook asks for the key-change COMMAND, not the key material",
-    "updated_sprint": "Sprint 28"
+    "updated": null,
+    "updated_sprint": null
   },
   "PER-0005": {
     "name": "Credentialed Persistence",
@@ -1075,8 +1062,8 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95) \u2014 see DE-0003.11. The PSP watchdog is a no-op stub, but the missing HS app is a BUILD gap (loaded in the startup script and scheduled, no .so) rather than a design limit. Re-openable once `AINOS3-112` lands.",
-    "updated": "Rationale sharpened \u2014 the HS app is a BUILD gap (loaded + scheduled, no .so), not a design limit; re-openable once built",
-    "updated_sprint": "Sprint 28"
+    "updated": null,
+    "updated_sprint": null
   },
   "DE-0003.11": {
     "name": "Watchdog State for Evasion",
@@ -1090,8 +1077,8 @@ window.NOS3_COVERAGE = {
     "cluster": null,
     "explanation": "",
     "review": "\u26a0 Sharpened 2026-08-25 (AINOS3-95). AINOS3-74 was right about the BUILD, and the reason is more specific than 'there is no HS app': cfe_es_startup.scr DOES load `hs` and sch_def_msgtbl.c DOES request HS_SEND_HK_MID \u2014 there is simply no hs.so in fsw/build/exe/cpu1/cf/ (nor cs/mm/md/hk). The workbook (C&DH row 4) rates watchdog-service logging Medium and names exactly what to log. So this is out-of-scope for the build, NOT out-of-scope by design: re-openable if and only if the app is built \u2014 ticket `AINOS3-112`, then `AINOS3-119`.",
-    "updated": "Rationale sharpened \u2014 same HS build gap as EX-0012.11",
-    "updated_sprint": "Sprint 28"
+    "updated": null,
+    "updated_sprint": null
   },
   "EX-0001.02": {
     "name": "Bus Traffic Replay",
