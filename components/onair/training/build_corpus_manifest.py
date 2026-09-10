@@ -141,6 +141,12 @@ def frame_stats(csv_path, check_capture=False, attacks=(), hz=None):
             return n, frac, None
         tot = elig = 0
         for a in attacks:
+            # ⚠ AC6 / AINOS3-122 AC4: a chained prerequisite is logged as
+            # "<id> [prereq]" and is deliberately NOT a technique of its own.
+            # Its frames are setup, not the labelled attack, so they must not
+            # dilute the AC1 alert-eligible fraction.
+            if "[prereq]" in (a.get("id") or ""):
+                continue
             st = a.get("start_utc")
             en = a.get("corruption_end_utc") or a.get("end_utc")
             if not st or not en:
@@ -263,6 +269,9 @@ def main():
                                 + ") — no attack in this CSV")
         elif mf:
             problems.append("run manifest records NO attack window")
+        if attacks and not [a for a in attacks if "[prereq]" not in (a.get("id") or "")]:
+            problems.append("run manifest records ONLY prereq windows — "
+                            "the labelled technique never fired")
         if r.get("exit_code") not in (0, None):
             problems.append(f"run_attack exited {r.get('exit_code')}")
 
@@ -286,6 +295,8 @@ def main():
             "pre_seconds": r.get("pre_seconds"),
             "post_seconds": r.get("post_seconds"),
             "exit_code": r.get("exit_code"),
+            "prereq_windows": [a.get("id") for a in attacks
+                               if "[prereq]" in (a.get("id") or "")],
             "attack_windows": [{"id": a.get("id"), "start_utc": a.get("start_utc"),
                                 "end_utc": a.get("end_utc"),
                                 "exit_code": a.get("exit_code")} for a in attacks],

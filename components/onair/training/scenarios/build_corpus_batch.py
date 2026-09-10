@@ -186,10 +186,18 @@ def main():
         for rep in range(1, n_inst + 1):
             for t in techs:
                 key = tech_to_key[t][0]
+                # ⚠ Some attacks declare prerequisites in the catalog's
+                # `requires` and EXIT 1 IMMEDIATELY without --chain — the
+                # declared footprint does not manifest without them. Caught by
+                # chunk 1 of the 2026-09-10 collection: EX-0008.01 and .02 both
+                # failed in 0.1 s because the batch hardcoded chain=False.
+                # Chaining is also what AC6 wants: the prereq RUNS but is logged
+                # as "<id> [prereq]" and never becomes a technique label of its
+                # own (AINOS3-122 AC4).
                 entries.append({
                     "key": key,
                     "level": levels[key],
-                    "chain": False,
+                    "chain": bool(catalog[key].get("requires")),
                     "during": f"single_mode_hold_{mode}",
                     "pre_seconds": args.pre_seconds,
                     "post_seconds": args.post_seconds,
@@ -219,6 +227,11 @@ def main():
     bylv = {}
     for e in entries:
         bylv.setdefault(e["level"], set()).add(e["key"])
+    n_chain = sum(1 for e in entries if e["chain"])
+    if n_chain:
+        keys = sorted({e["key"] for e in entries if e["chain"]})
+        print(f"chained     : {n_chain} runs across {len(keys)} script(s) with "
+              f"catalog prerequisites: {keys}")
     print(f"levels      : " + ", ".join(f"L{k}x{len(v)} scripts" for k, v in sorted(bylv.items()))
           + "  (max accepted per script)")
     print(f"windows     : pre {args.pre_seconds}s / post {args.post_seconds}s")
