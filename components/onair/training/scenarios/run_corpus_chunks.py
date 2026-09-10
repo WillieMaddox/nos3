@@ -59,6 +59,31 @@ def main():
         name = os.path.splitext(os.path.basename(c))[0]
         out = os.path.join(resdir, f"{name}_results.json")
         entries = json.load(open(c))
+
+        # ⚠ Fold any stranded remainder results back in FIRST.
+        #
+        # A resumed chunk runs its missing entries into <name>_remainder_results.json
+        # and merges at chunk end. If the driver is killed mid-chunk — which the
+        # low-memory guard does — those completed runs sit unmerged, and a resume
+        # that reads only the main file re-runs them: ~10 minutes of stack time
+        # each, and a duplicate cell if the merge later picks up both. Observed
+        # for real on 2026-09-10 (EX-0008.02 and EX-0012.07 stranded). Merging
+        # here makes a kill cost at most the single in-flight run.
+        part = os.path.join(resdir, f"{name}_remainder_results.json")
+        if os.path.exists(part):
+            base = json.load(open(out)) if os.path.exists(out) else []
+            have = {(r.get("_technique"), r.get("_mode"), r.get("_rep")) for r in base}
+            try:
+                extra = [r for r in json.load(open(part))
+                         if (r.get("_technique"), r.get("_mode"), r.get("_rep")) not in have]
+            except json.JSONDecodeError:
+                extra = []
+            if extra:
+                with open(out, "w") as fh:
+                    json.dump(base + extra, fh, indent=2)
+                log(f"recovered {len(extra)} stranded run(s) into {os.path.basename(out)}")
+            os.remove(part)
+
         done_keys, done_rows = set(), []
         if os.path.exists(out):
             try:
