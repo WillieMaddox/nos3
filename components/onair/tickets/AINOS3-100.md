@@ -3,10 +3,10 @@ key: AINOS3-100
 slug: corpus-rebuild-steadyflight
 type: Story
 epic: AINOS3-98 (corpus-integrity)
-status: Backlog
-priority: Medium
+status: In Progress
+priority: High
 opened: 2026-08-23
-sprints: [28]
+sprints: [28, 29]
 ---
 
 # AINOS3-100 — Recollect the classified attack set under the steady-flight protocol
@@ -38,3 +38,68 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 ## Log
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
+
+### 2026-09-10 · Scope set, tooling built, and a pilot that caught a corpus-killing defect
+
+**Scope (owner decision): SUNSAFE x5 + INERTIAL x1 = 114 runs, est. 35.8 h.**
+
+19 techniques, generated from the frozen label set: 13 `confirmed` attacks + 6 `deferred`.
+`nominal` is not emitted (it comes from every run's pre-attack window) and the 6 `dropped`
+classes cannot be emitted at all. Windows pre 240 s / post 300 s. Cost model is per-entry
+(`pre + attack + catalog dwell + post + 2 min restart`), not a flat rate, so the estimate moves
+with the windows rather than hiding them.
+
+⚠ The INERTIAL slice is 1 instance rather than 5 because an INERTIAL run costs several times
+more (`AINOS3-86` exclusion-window wait). It is a **characterisation slice** exercising the
+closed-loop path on real attacks, not a training-depth slice. Depth stays in SUNSAFE, which is
+the right lever: `AINOS3-99` found the fold spread is a footprint-reproducibility limit, so
+INSTANCES help the evaluation and extra MODES do not.
+
+## ⚠ The pilot caught a defect that would have silently poisoned the whole corpus
+
+The first pilot run hardcoded `level: 4` for every attack. **The scripts do not share a level
+range** — variously `[1]`, `[1,2]`, `[1,2,3]`, `[1,2,3,4]` — so `de_0003_01` exited with
+`argparse: invalid choice: 4`.
+
+**The run still looked completely healthy.** The surrounding scenario blocks ran to completion,
+a full-length 2,247-frame CSV was written, and `run_attack.py` returned **exit 0**. The batch
+runner recorded `exit_code: 0`. Nothing in the run's own output said the attack never fired.
+At batch scale that produces **nominal frames labelled as attacks across 114 runs** — the worst
+possible corpus defect, and undetectable after the fact without re-running everything.
+
+Two independent fixes, because one was not enough:
+
+1. **Prevention** — `build_corpus_batch.py` now derives the level per script by reading its
+   own `--attack-level` choices and taking the maximum (`L2 x7, L3 x2, L4 x10` scripts). An
+   explicit `--level` is validated against each script and refused if out of range.
+2. **Detection** — `build_corpus_manifest.py` reads each run manifest's **per-attack**
+   `exit_code` and rejects the run. Verified against the real failed pilot:
+   `attack subprocess FAILED (exit 2) — no attack in this CSV`. ⚠ The run-level exit code is
+   **not** sufficient; only the manifest's attack record reveals this.
+
+## Tooling built
+
+- **`scenarios/build_corpus_batch.py`** — generates the batch **from
+  `label_set.json`** (`AC6` by construction: dropped classes filtered and the filter asserted;
+  `[prereq]` ids never emitted as techniques). Per-mode instance counts
+  (`--modes SUNSAFE:5 INERTIAL:1`), per-script level resolution, and a wall-clock estimate.
+- **`training/build_corpus_manifest.py`** — the `AC2` deliverable. Per run: technique, mode,
+  instance, scenario, attack window, CSV, frame count. Pins the frozen
+  `recorded_schema_sha256` (`AINOS3-124`), FSW build sha, and git rev. **Rejects** rather than
+  annotates: wrong/dropped label, schema mismatch against the freeze, missing sidecar, failed
+  attack, and — for INERTIAL — a controlled fraction below 90 % (`AINOS3-86`: a run reporting
+  `ST.DeviceEnabled=1` may have been in free drift throughout). All rejection paths tested.
+- **`scenarios/run_attack_batch.py`** — now carries `_technique`/`_mode`/`_rep` and the
+  produced **CSV name** through to its results. Without those a result row cannot be traced
+  back to its frames, which is exactly what made four `AINOS3-80` metrics unverifiable.
+- Batch + 15 chunks of <= 8 runs (`AC5`) under `data/onair/corpus/rebuild_2026-09-10/`,
+  SUNSAFE and INERTIAL chunked separately so the INERTIAL block can be gated on capture.
+
+## Measured, for planning
+
+- **End-to-end per run: 14.3 min** at pre=600/post=300 (40 archived 2026-08-15 manifests:
+  12.4 min in-run + **2.0 min** stack restart).
+- ⚠ **42 restarts from a FIXED epoch every launch** (`2025-293T17:43:3x`, confirmed on two
+  independent launches). So the orbit phase at launch is deterministic and the INERTIAL
+  exclusion window is a **repeatable offset**, not a random 0–35 min wait. The 17 min/run
+  INERTIAL allowance is therefore an upper bound that characterisation should reduce.

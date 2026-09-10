@@ -91,7 +91,7 @@ def stack_restart() -> Path:
     return wait_for_fresh_csv(pre_csvs)
 
 
-def run_one(entry: dict, idx: int, total: int) -> dict:
+def run_one(entry: dict, idx: int, total: int, csv_name: str | None = None) -> dict:
     key = entry["key"]
     level = int(entry["level"])
     chain = bool(entry.get("chain", False))
@@ -128,7 +128,7 @@ def run_one(entry: dict, idx: int, total: int) -> dict:
     wallclock = time.time() - t0
     new_manifests = sorted(set(MANIFEST_DIR.glob("manifest_*.json")) - pre_manifests)
     manifest = new_manifests[-1].name if new_manifests else None
-    return {
+    out = {
         "key": key,
         "level": level,
         "chain": chain,
@@ -138,7 +138,17 @@ def run_one(entry: dict, idx: int, total: int) -> dict:
         "exit_code": ret.returncode,
         "wallclock_s": round(wallclock, 1),
         "manifest": manifest,
+        # ⚠ AINOS3-100 AC2: the corpus manifest needs to know WHICH csv a run
+        # produced and WHAT it was collecting. Without these a result row cannot
+        # be traced back to its frames, which is exactly what made four
+        # AINOS3-80 metrics permanently unverifiable.
+        "csv": csv_name,
     }
+    # Carry the batch entry's provenance fields through verbatim.
+    for k in ("_technique", "_mode", "_rep"):
+        if k in entry:
+            out[k] = entry[k]
+    return out
 
 
 def main() -> None:
@@ -189,7 +199,7 @@ def main() -> None:
             log(f"FATAL: stack restart failed: {e}")
             sys.exit(1)
         log(f"fresh CSV: {csv.name}")
-        result = run_one(entry, i, total)
+        result = run_one(entry, i, total, csv_name=csv.name)
         results.append(result)
         # Save incrementally so a mid-run abort preserves prior results.
         with args.out.open("w") as f:
