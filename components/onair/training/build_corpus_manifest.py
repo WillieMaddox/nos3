@@ -81,119 +81,113 @@ def git_rev():
 MODE_SWITCH_WARMUP_FRAMES = 250
 
 
-def frame_stats(csv_path, check_capture=False, attacks=(), hz=None):
-    """Row count, controlled fraction (INERTIAL), and the AC1 alert-eligible fraction.
+def scan_csv(csv_path, check_capture=False):
+    """ONE streaming pass: row count, MET span, last mode switch, capture fraction.
 
-    ⚠ `AC1` asks for the **alert-eligible attack frame fraction** against the
-    84.4 % pilot figure. "Eligible" means the frame is more than
-    MODE_SWITCH_WARMUP_FRAMES past the last ADCS mode change — inside that window
-    the detector cannot alert, so an attack frame there is unusable regardless of
-    how good the attack was. `single_mode_hold_<MODE>` commands the mode once at
-    the start of the pre-window precisely so the attack lands outside it.
-
-    Frames are located by index, not wall clock: the CSV carries no clock, so the
-    attack window is mapped through the DERIVED sample rate (AINOS3-92).
+    ⚠ Streams. An earlier version did `rows = [r for r in DictReader]`, which
+    materialises a whole session CSV as dicts — these files run 50-700 MB and a
+    470-column dict row is far larger than its text, so a single call could take
+    tens of GB and a corpus walk could take the machine down. The 2026-09-10
+    collection driver was killed for low memory while this tool was in the loop.
+    Nothing here needs random access: counts and extents are accumulators, and
+    the alert-eligible fraction is index arithmetic once the extents are known.
     """
-    rows = []
+    n = 0
+    met_lo = met_hi = None
+    last_switch = 0
+    prev_mode = None
+    qv_live = qv_true = 0
     try:
         with open(csv_path, newline="") as fh:
             rd = csv.DictReader(fh)
             fields = rd.fieldnames or []
             has_q = "ADCS_GNC.qValid" in fields
             has_mode = "ADCS_GNC.Mode" in fields
+            has_met = "CFE_TIME.SecondsMET" in fields
             for r in rd:
-                rows.append(r)
-    except FileNotFoundError:
-        return None, None, None
-    n = len(rows)
-    if n == 0:
-        return 0, None, None
-
-    qv_live = qv_true = 0
-    if check_capture and has_q:
-        for r in rows:
-            v = r.get("ADCS_GNC.qValid", SENTINEL)
-            if v != SENTINEL:
-                qv_live += 1
-                qv_true += int(v == "1")
-    frac = (qv_true / qv_live) if qv_live else None
-
-    # last ADCS mode change, by index
-    last_switch = 0
-    if has_mode:
-        prev = None
-        for i, r in enumerate(rows):
-            v = r.get("ADCS_GNC.Mode", SENTINEL)
-            if v == SENTINEL:
-                continue
-            if prev is not None and v != prev:
-                last_switch = i
-            prev = v
-
-    eligible = None
-    if attacks and hz:
-        # CSV start time from the filename timestamp; attack times from the manifest.
-        base = os.path.basename(csv_path)
-        try:
-            ts = base.split("csv_out_")[1].rsplit("_pid", 1)[0]
-            t0 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H-%M-%S-%f")
-        except Exception:
-            return n, frac, None
-        tot = elig = 0
-        for a in attacks:
-            # ⚠ AC6 / AINOS3-122 AC4: a chained prerequisite is logged as
-            # "<id> [prereq]" and is deliberately NOT a technique of its own.
-            # Its frames are setup, not the labelled attack, so they must not
-            # dilute the AC1 alert-eligible fraction.
-            if "[prereq]" in (a.get("id") or ""):
-                continue
-            st = a.get("start_utc")
-            en = a.get("corruption_end_utc") or a.get("end_utc")
-            if not st or not en:
-                continue
-            try:
-                s_dt = datetime.datetime.fromisoformat(st.replace("Z", ""))
-                e_dt = datetime.datetime.fromisoformat(en.replace("Z", ""))
-            except ValueError:
-                continue
-            i0 = int((s_dt - t0).total_seconds() * hz)
-            i1 = int((e_dt - t0).total_seconds() * hz)
-            i0, i1 = max(i0, 0), min(i1, n - 1)
-            if i1 < i0:
-                continue
-            tot += i1 - i0 + 1
-            elig += sum(1 for i in range(i0, i1 + 1)
-                        if i - last_switch > MODE_SWITCH_WARMUP_FRAMES)
-        eligible = (elig / tot) if tot else None
-    return n, frac, eligible
-
-
-def derive_hz(csv_path):
-    """Sample rate from CFE_TIME.SecondsMET (AINOS3-92: derive, never assume).
-
-    MET is ~0.25 Hz-granular and NON-monotonic (OnAIR double buffer), so use the
-    max-min span across the file, not consecutive diffs.
-    """
-    mets, n = [], 0
-    try:
-        with open(csv_path, newline="") as fh:
-            for r in csv.DictReader(fh):
+                i = n
                 n += 1
-                v = r.get("CFE_TIME.SecondsMET", SENTINEL)
-                if v not in (SENTINEL, ""):
-                    try:
-                        mets.append(float(v))
-                    except ValueError:
-                        pass
+                if has_met:
+                    v = r.get("CFE_TIME.SecondsMET", SENTINEL)
+                    if v not in (SENTINEL, ""):
+                        try:
+                            f = float(v)
+                            met_lo = f if met_lo is None or f < met_lo else met_lo
+                            met_hi = f if met_hi is None or f > met_hi else met_hi
+                        except ValueError:
+                            pass
+                if has_mode:
+                    v = r.get("ADCS_GNC.Mode", SENTINEL)
+                    if v != SENTINEL:
+                        if prev_mode is not None and v != prev_mode:
+                            last_switch = i
+                        prev_mode = v
+                if check_capture and has_q:
+                    v = r.get("ADCS_GNC.qValid", SENTINEL)
+                    if v != SENTINEL:
+                        qv_live += 1
+                        qv_true += int(v == "1")
     except FileNotFoundError:
         return None
-    if len(mets) < 2:
+    # AINOS3-92: derive the rate; MET is non-monotonic so use the max-min span.
+    hz = None
+    if met_lo is not None and met_hi is not None:
+        span = met_hi - met_lo
+        if span >= 60.0 and n > 1:
+            cand = n / span
+            hz = cand if 1.0 <= cand <= 20.0 else None
+    return {
+        "n": n,
+        "hz": hz,
+        "last_switch": last_switch,
+        "controlled_fraction": (qv_true / qv_live) if qv_live else None,
+    }
+
+
+def alert_eligible_fraction(scan, csv_path, attacks):
+    """Fraction of labelled attack frames outside the detector's blind window.
+
+    ⚠ `AC1`'s metric, against the 84.4 % pilot figure. "Eligible" means more than
+    MODE_SWITCH_WARMUP_FRAMES past the last ADCS mode change — inside that window
+    the detector cannot alert, so an attack frame there is unusable no matter how
+    good the attack. `single_mode_hold_<MODE>` commands the mode once at the start
+    of the pre-window precisely so the attack lands clear of it.
+
+    Pure index arithmetic over the extents from `scan_csv` — the rows are not
+    revisited.
+    """
+    if not attacks or not scan or not scan["hz"]:
         return None
-    span = max(mets) - min(mets)
-    if span < 60.0:
+    base = os.path.basename(csv_path)
+    try:
+        ts = base.split("csv_out_")[1].rsplit("_pid", 1)[0]
+        t0 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H-%M-%S-%f")
+    except Exception:
         return None
-    hz = n / span
-    return hz if 1.0 <= hz <= 20.0 else None
+    n, hz, sw = scan["n"], scan["hz"], scan["last_switch"]
+    tot = elig = 0
+    for a in attacks:
+        # AC6 / AINOS3-122 AC4: a chained prerequisite is logged "<id> [prereq]"
+        # and is setup, not the labelled attack. It must not dilute this.
+        if "[prereq]" in (a.get("id") or ""):
+            continue
+        st, en = a.get("start_utc"), a.get("corruption_end_utc") or a.get("end_utc")
+        if not st or not en:
+            continue
+        try:
+            s_dt = datetime.datetime.fromisoformat(st.replace("Z", ""))
+            e_dt = datetime.datetime.fromisoformat(en.replace("Z", ""))
+        except ValueError:
+            continue
+        i0 = max(int((s_dt - t0).total_seconds() * hz), 0)
+        i1 = min(int((e_dt - t0).total_seconds() * hz), n - 1)
+        if i1 < i0:
+            continue
+        tot += i1 - i0 + 1
+        lo_elig = max(i0, sw + MODE_SWITCH_WARMUP_FRAMES + 1)
+        if i1 >= lo_elig:
+            elig += i1 - lo_elig + 1
+    return (elig / tot) if tot else None
 
 
 def main():
@@ -275,10 +269,11 @@ def main():
         if r.get("exit_code") not in (0, None):
             problems.append(f"run_attack exited {r.get('exit_code')}")
 
-        hz = derive_hz(csv_path) if csv_path else None
-        n, frac, eligible = frame_stats(
-            csv_path, check_capture=(mode == "INERTIAL"), attacks=attacks, hz=hz) \
-            if csv_path else (None, None, None)
+        scan = scan_csv(csv_path, check_capture=(mode == "INERTIAL")) if csv_path else None
+        n = scan["n"] if scan else None
+        frac = scan["controlled_fraction"] if scan else None
+        hz = scan["hz"] if scan else None
+        eligible = alert_eligible_fraction(scan, csv_path, attacks) if scan else None
         if mode == "INERTIAL" and frac is not None and frac < args.capture_min:
             problems.append(f"INERTIAL capture only {frac:.1%} (< {args.capture_min:.0%}) "
                             f"— free drift, not a controlled hold (AINOS3-86)")
