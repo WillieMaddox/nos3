@@ -94,7 +94,7 @@ def scan_csv(csv_path, check_capture=False):
     """
     n = 0
     met_lo = met_hi = None
-    last_switch = 0
+    switches = []          # every ADCS mode-change index, in order
     prev_mode = None
     qv_live = qv_true = 0
     try:
@@ -120,7 +120,7 @@ def scan_csv(csv_path, check_capture=False):
                     v = r.get("ADCS_GNC.Mode", SENTINEL)
                     if v != SENTINEL:
                         if prev_mode is not None and v != prev_mode:
-                            last_switch = i
+                            switches.append(i)
                         prev_mode = v
                 if check_capture and has_q:
                     v = r.get("ADCS_GNC.qValid", SENTINEL)
@@ -139,7 +139,8 @@ def scan_csv(csv_path, check_capture=False):
     return {
         "n": n,
         "hz": hz,
-        "last_switch": last_switch,
+        "switches": switches,
+        "mode_switch_count": len(switches),
         "controlled_fraction": (qv_true / qv_live) if qv_live else None,
     }
 
@@ -164,7 +165,27 @@ def alert_eligible_fraction(scan, csv_path, attacks):
         t0 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H-%M-%S-%f")
     except Exception:
         return None
-    n, hz, sw = scan["n"], scan["hz"], scan["last_switch"]
+    n, hz, switches = scan["n"], scan["hz"], scan["switches"]
+
+    def preceding_switch(idx):
+        """Index of the most recent mode change at or before `idx` (0 if none).
+
+        ⚠ Must be per-frame, not "the last switch in the file". An attack that
+        FLAPS the mode as part of its own footprint — EX-0012.08 drives
+        SUNSAFE<->PASSIVE from frame 1345 — puts switches after some of its own
+        attack frames, and using the file's final switch marks those earlier
+        frames ineligible when the detector was in fact free to alert on them.
+        """
+        lo, hi, best = 0, len(switches) - 1, None
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            if switches[mid] <= idx:
+                best = switches[mid]
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        return best if best is not None else 0
+
     tot = elig = 0
     for a in attacks:
         # AC6 / AINOS3-122 AC4: a chained prerequisite is logged "<id> [prereq]"
@@ -184,9 +205,9 @@ def alert_eligible_fraction(scan, csv_path, attacks):
         if i1 < i0:
             continue
         tot += i1 - i0 + 1
-        lo_elig = max(i0, sw + MODE_SWITCH_WARMUP_FRAMES + 1)
-        if i1 >= lo_elig:
-            elig += i1 - lo_elig + 1
+        for i in range(i0, i1 + 1):
+            if i - preceding_switch(i) > MODE_SWITCH_WARMUP_FRAMES:
+                elig += 1
     return (elig / tot) if tot else None
 
 
@@ -297,6 +318,7 @@ def main():
                                 "exit_code": a.get("exit_code")} for a in attacks],
             "controlled_fraction": frac,
             "sample_hz": round(hz, 3) if hz else None,
+            "mode_switch_count": scan["mode_switch_count"] if scan else None,
             "alert_eligible_attack_fraction": eligible,
             "problems": problems,
         }
@@ -354,6 +376,26 @@ def main():
         "runs": runs,
         "rejected_runs": rejected,
     }
+    # ⚠ Aggregates must be computed BEFORE the write. The AC1 mean and the
+    # incomplete-cell list used to be added to `out` inside the reporting block
+    # below, which runs after json.dump — so they printed to the terminal and
+    # were silently absent from the artifact anyone reads later.
+    elig_all = [r["alert_eligible_attack_fraction"] for r in runs
+                if r.get("alert_eligible_attack_fraction") is not None]
+    if elig_all:
+        out["counts"]["alert_eligible_attack_fraction_mean"] = sum(elig_all) / len(elig_all)
+        out["counts"]["alert_eligible_attack_fraction_min"] = min(elig_all)
+    incomplete = []
+    if runs:
+        techs_all = sorted({r["technique"] for r in runs if r["technique"]})
+        for m_ in sorted({r["mode"] for r in runs if r["mode"]}):
+            for i_ in sorted({r["instance"] for r in runs if r["mode"] == m_}):
+                have_ = {(r["technique"], r["instance"]) for r in runs if r["mode"] == m_}
+                gap_ = [t for t in techs_all if (t, i_) not in have_]
+                if gap_:
+                    incomplete.append({"mode": m_, "instance": i_, "techniques": gap_})
+    out["incomplete_cells"] = incomplete
+
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with open(args.out, "w") as fh:
         json.dump(out, fh, indent=2)
@@ -364,13 +406,11 @@ def main():
           f"({schema['column_count']} cols, {schema['recorded_schema_sha256'][:12]}…)")
     print(f"accepted   : {c['runs_accepted']} runs, {c['frames_accepted']} frames, "
           f"{c['techniques']} techniques, modes {c['modes']}, instances {c['instances']}")
-    elig = [r["alert_eligible_attack_fraction"] for r in runs
-            if r.get("alert_eligible_attack_fraction") is not None]
-    if elig:
-        mean_e = sum(elig) / len(elig)
-        out["counts"]["alert_eligible_attack_fraction_mean"] = mean_e
-        print(f"AC1 alert-eligible attack frames: {mean_e:.1%} "
-              f"(n={len(elig)} runs; pilot reference 84.4%)")
+    if elig_all:
+        print(f"AC1 alert-eligible attack frames: "
+              f"{out['counts']['alert_eligible_attack_fraction_mean']:.1%} mean, "
+              f"{out['counts']['alert_eligible_attack_fraction_min']:.1%} min "
+              f"(n={len(elig_all)} runs; pilot reference 84.4%)")
     if duplicates:
         print(f"\n⚠⚠ DUPLICATE runs — the same cell is collected more than once, "
               f"which double-weights it in training. FIX BEFORE TRAINING:")
@@ -388,20 +428,9 @@ def main():
 
     # What the corpus still OWES, as a first-class output rather than arithmetic
     # left to the reader.
-    missing = []
-    if runs:
-        techs = sorted({r["technique"] for r in runs if r["technique"]})
-        for m in sorted({r["mode"] for r in runs if r["mode"]}):
-            insts = sorted({r["instance"] for r in runs if r["mode"] == m})
-            have = {(r["technique"], r["instance"]) for r in runs if r["mode"] == m}
-            for i in insts:
-                gap = [t for t in techs if (t, i) not in have]
-                if gap:
-                    missing.append({"mode": m, "instance": i, "techniques": gap})
-    out["incomplete_cells"] = missing
-    if missing:
+    if incomplete:
         print(f"\nincomplete instances (partial collection in progress):")
-        for g in missing:
+        for g in incomplete:
             print(f"    {g['mode']} inst{g['instance']}: missing {len(g['techniques'])} technique(s)")
     print(f"\nwrote {args.out}")
     return 0
