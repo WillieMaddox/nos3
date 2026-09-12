@@ -210,3 +210,51 @@ Carry to Sprint 30 as its own scoped problem — options, none of them free:
    result would need its provenance noted.
 3. **Accept SUNSAFE-only coverage** and record INERTIAL as structurally uncollectable on this
    vehicle configuration, which is itself a defensible finding for the coverage doc.
+
+### 2026-09-12 · ✅ SOLVED — the damping step was the cause; removing it makes INERTIAL collectable
+
+⚠ **My previous entry's disposition was wrong and is retracted.** The INERTIAL slice is not
+"structurally uncollectable" and does not cost 29–62 h. A run now completes in **12 minutes**
+and passes the capture gate.
+
+**First INERTIAL run ever accepted:** `DE-0003.01`, capture **92.4 %**, AC1 alert-eligible
+**100 %**, 4,000 frames, 719.6 s wall-clock.
+
+## The mechanism — three regimes, and the damp aims at the worst one
+
+| body rate | behaviour |
+|---|---|
+| **~orbital rate (0.05–0.15 deg/s)** | near-LVLH lock: body rotation nearly cancels the orbital sweep, nadir crawls at **0.25 deg/min**, blind for hours ← **what damping produced** |
+| **fast tumble (~2 deg/s)** | boresight sweeps through the cone in minutes, tracker validates, controller takes hold and damps ITSELF ← **what works** |
+| truly inertial (< 0.0065 deg/s) | nadir sweeps at 3.9 deg/min, window inside ~40 min ← unreachable; SUNSAFE's measured floor is 0.05–0.14 deg/s |
+
+`_detumble_before_inertial` was added to stop burst control "pumping" the rates (measured
+0.64 → 2.31 deg/s in 60 s while blinded). **That pumping is the mechanism that achieves
+capture, not a pathology.** Damping first parks the vehicle squarely in the resonance band.
+
+Measured live 2026-09-12: entering INERTIAL while tumbling at ~1.95 deg/s, boresight-to-nadir
+went **18.1 → 94.1 deg in five minutes** (~15 deg/min), cleared the 82.5 deg threshold, 42
+reported `Valid=1`, the controller captured and then **damped itself to 0.229 deg/s** while
+holding ~90 deg off nadir. Capture then held at `qValid` 100 % on re-check 5 min later.
+
+**The fix is to REMOVE the step I added, not tune it.** `_detumble_before_inertial` is retained
+but no longer called, with the full reasoning in its docstring — the wrong turn is more
+instructive than the fix, and the control arm may still want it.
+
+## Corrections to the record
+
+Five successive claims of mine about this were wrong, each from extrapolating too little data:
+
+1. "Sun cone arrives first" — a straight-line fit through a turning point. The Sun angle
+   bottomed at 32.8 deg and reversed; it never entered the 30 deg cone.
+2. "Locked, waiting cannot help" — the lock is real but conditional on low rates.
+3. "3.3 h per run / 62 h for 19" then "91 min / 29 h" — both superseded; the real figure is
+   **12 min per run**, ~4 h for 19.
+4. "Not collectable at any sane budget" — retracted outright.
+
+What survived every correction and is directly measured: the geometry model agrees with 42
+exactly, the near-LVLH lock is real at low rates, and the damp target (0.35 deg/s, 5.4x the
+0.0649 deg/s orbital rate) was chosen without reference to the rate it had to beat.
+
+⚠ The capture gate is what made this findable. Every one of the 26 bad runs reported `exit 0`
+and would have entered the corpus as controlled INERTIAL data.

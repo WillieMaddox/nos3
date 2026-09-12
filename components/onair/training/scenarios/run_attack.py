@@ -217,7 +217,38 @@ def _wait_for_inertial_capture(c: Commander) -> None:
 
 
 def _detumble_before_inertial(c: Commander) -> None:
-    """Damp body rates in SUNSAFE before attempting an INERTIAL hold (AINOS3-86).
+    """⚠ NO LONGER CALLED — damping before INERTIAL is COUNTERPRODUCTIVE.
+
+    Kept for the record because the reasoning that put it here was wrong in an
+    instructive way, and because the control arm may still want it.
+
+    The step was added to stop burst control "pumping" the rates (measured
+    0.64 -> 2.31 deg/s in 60 s while the star tracker was blinded). That pumping
+    is real — but it is the MECHANISM THAT ACHIEVES CAPTURE, not a pathology.
+    A fast-tumbling vehicle sweeps the boresight through the Earth exclusion cone
+    quickly; measured 2026-09-12, nadir went 18.1 -> 94.1 deg in FIVE MINUTES at
+    ~1.95 deg/s, cleared the cone, the tracker validated, the controller took hold
+    and then damped itself to 0.229 deg/s while holding ~90 deg off nadir.
+
+    Damping first does the opposite. It parks the vehicle at 0.05-0.15 deg/s —
+    comparable to the 0.0649 deg/s orbital rate — where body rotation nearly
+    cancels the orbital sweep and nadir crawls at ~0.25 deg/min instead of the
+    3.9 deg/min an inertially-fixed vehicle would see. That near-LVLH lock is what
+    made all 26 collected INERTIAL runs free drift: capture 0-49.8%, never
+    sustained.
+
+    Three regimes, for whoever revisits this:
+      ~orbital rate (0.05-0.15 deg/s) : LVLH lock, blind for hours   <- the damp
+      fast tumble (~2 deg/s)          : sweeps to a window in minutes <- works
+      truly inertial (<0.0065 deg/s)  : nadir sweeps 3.9 deg/min, window < 40 min
+
+    The third regime is unreachable — SUNSAFE's measured floor is 0.05-0.14 deg/s
+    — so the working answer is to NOT damp and let the control law find its own
+    window.
+
+    Original docstring follows.
+
+    Damp body rates in SUNSAFE before attempting an INERTIAL hold (AINOS3-86).
 
     ⚠ This step is not optional and it is not tuning. Entering INERTIAL from a
     tumbling state DIVERGES: while the star tracker is Earth-occluded `qValid`
@@ -376,7 +407,8 @@ def make_scenario_single_mode_hold(mode_label: str, configure_inertial: bool = T
             (TORQUER_HK_REQ_MID, "TORQUER"),
         ]
         if mode_label == "INERTIAL" and configure_inertial:
-            _detumble_before_inertial(c)
+            # ⚠ NO damping step here, and that is deliberate — see
+            # _detumble_before_inertial's docstring for why it was removed.
             print("  [single_mode_hold] INERTIAL: enabling star tracker "
                   "(qValid gates AC_inertial)")
             c.st_enable(True)
