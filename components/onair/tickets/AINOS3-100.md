@@ -147,6 +147,22 @@ sweep at the orbital rate — **3.9 deg/min, ~23 deg over that window**. Meanwhi
 boresight-to-Sun moved **15 deg**, so the body *is* rotating: at close to orbit rate, in the
 sense that holds nadir fixed in the body frame. A near-LVLH lock.
 
+⚠ **Corrected on a longer baseline.** A 9-sample, 16.3-minute least-squares fit supersedes the
+first 4-point estimate — that baseline was too short and its slope too noisy:
+
+| quantity | slope | note |
+|---|--:|---|
+| boresight → nadir | **+0.239 deg/min** | vs **3.9** if inertially fixed — **16x** short |
+| boresight → Sun | **-1.876 deg/min** | sweeping ~8x faster than nadir |
+| Earth threshold | +0.031 deg/min | orbit radius drifting |
+
+So the Earth cone would clear in **~91 min**, not the 196 min the short baseline implied. But
+⚠ **the Sun cone arrives first**: boresight-to-Sun was 32.8 deg and closing at 1.9 deg/min,
+crossing the 30 deg exclusion within ~1 minute. The tracker goes **sun-blind before it clears
+the Earth cone**, and with the Sun sweeping at 1.9 deg/min it cycles in and out on a ~3.2 h
+period. A usable window needs BOTH cones clear simultaneously, which is far rarer than either
+alone.
+
 **Why the damp step causes it.** The orbital rate is **0.0649 deg/s**. For nadir to sweep the
 body frame once per orbit the residual rate must be well BELOW that. Every rate the damp step
 actually leaves is comparable to it:
@@ -177,10 +193,10 @@ collection protocol requires.
 ## Disposition
 
 The INERTIAL slice is **not collectable** under the current protocol at any sane run budget.
-Measured over a 7.8 min baseline (sim 19:17 -> 27:08), boresight-to-nadir drifts
-**+0.108 deg/min** against the **3.9 deg/min** an inertially-fixed vehicle would see — a **36x**
-shortfall. At that drift, clearing 59.2 deg -> 80.5 deg takes **196 min (3.3 h) per run**, i.e.
-**~62 h for 19 runs**, and only if the drift stays linear and the lock breaks at all.
+On the corrected 9-sample fit the Earth cone alone clears in **~91 min per run** (~29 h for 19
+runs), but that is a floor rather than an estimate: the Sun cone must be clear at the same
+moment, and it cycles on a ~3.2 h period, so the true per-run wait is longer and not reliably
+bounded. Either way the slice is not collectable at a sane budget.
 
 **The SUNSAFE arm is unaffected and complete** (95 runs, 19 techniques x 5 instances, AC1
 97.0 %) — that is the trainable corpus and `AINOS3-101` can proceed on it.
