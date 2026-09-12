@@ -93,6 +93,19 @@ ST_SETTLE_S = 10.0
 # settles around 0.2-0.3 deg/s and waiting for less than that never returns.
 DETUMBLE_TARGET_DEG_S = 0.35
 DETUMBLE_TIMEOUT_S = 600.0
+
+# ⚠ After commanding INERTIAL the run must WAIT FOR CAPTURE before its timed
+# window starts. Damping and commanding the orbit-normal target are not enough:
+# the star tracker is Earth-occluded for ~40 % of every orbit, and while blinded
+# `qValid` is false so `AC_inertial()` never runs. A run that starts its window
+# immediately records free drift wearing the INERTIAL label — which is exactly
+# what the 2026-09-11 collection did to all 19 INERTIAL runs (capture 0-49.8 %,
+# every one rejected by the corpus manifest, while each reported exit 0).
+#
+# The blind stretch is one unbroken ~35 min arc, so the timeout must exceed it or
+# a run can fail purely on orbit phase.
+CAPTURE_TIMEOUT_S = 2700.0
+CAPTURE_POLL_S = 30.0
 from run_baseline import (
     SCENARIOS,
     auto_discover_fsw_host,
@@ -149,6 +162,58 @@ def scenario_all_modes_dwell(c: Commander, duration_s: int) -> None:
                 next_recmd = time.monotonic() + 30
             sleep_left = max(0.0, 8.0 - 0.2)
             time.sleep(sleep_left if not c.dry_run else 0)
+
+
+def _wait_for_inertial_capture(c: Commander) -> None:
+    """Block until the INERTIAL control loop is actually closed (AINOS3-86).
+
+    ⚠ This is the step whose absence invalidated the first INERTIAL collection.
+    `inertial_capture.py` existed, the bootstrap was documented, and the caller
+    was told to verify capture — but nothing in the scenario ever waited, so all
+    19 runs began their timed window while the star tracker was still blinded.
+
+    Capture means `qValid` sustained AND `ADCS_AC.Inertial.*` actually varying —
+    a run can show `ST.DeviceEnabled = 1` and still be in free drift the whole
+    time, so the device flag is not evidence.
+
+    Best-effort by design: if the check cannot run we still proceed, but say so
+    loudly. The corpus manifest independently rejects any INERTIAL run whose
+    controlled fraction is under 90 %, so a silent miss costs a run, not the
+    corpus.
+    """
+    if c.dry_run:
+        return
+    try:
+        from inertial_capture import newest_csv, sample, verdict, DEFAULT_CSV_GLOB
+    except Exception as exc:                       # pragma: no cover - import guard
+        print(f"  [single_mode_hold] ⚠ cannot import the capture check ({exc}); "
+              f"proceeding UNVERIFIED — this run may be free drift")
+        return
+
+    path = newest_csv(DEFAULT_CSV_GLOB)
+    if not path:
+        print("  [single_mode_hold] ⚠ no live CSV; proceeding UNVERIFIED")
+        return
+
+    print(f"  [single_mode_hold] INERTIAL: waiting for star-tracker capture "
+          f"(blind arc is one unbroken ~35 min, timeout "
+          f"{CAPTURE_TIMEOUT_S / 60:.0f} min)")
+    deadline = time.monotonic() + CAPTURE_TIMEOUT_S
+    while time.monotonic() < deadline:
+        try:
+            ok, why = verdict(sample(path))
+        except Exception:
+            time.sleep(CAPTURE_POLL_S)
+            continue
+        if ok:
+            waited = CAPTURE_TIMEOUT_S - (deadline - time.monotonic())
+            print(f"  [single_mode_hold] INERTIAL: CAPTURED after {waited / 60:.1f} min "
+                  f"— starting the measurement window")
+            return
+        time.sleep(CAPTURE_POLL_S)
+    print(f"  [single_mode_hold] ⚠ INERTIAL capture TIMED OUT after "
+          f"{CAPTURE_TIMEOUT_S / 60:.0f} min — this run is free drift and the "
+          f"corpus manifest will reject it")
 
 
 def _detumble_before_inertial(c: Commander) -> None:
@@ -333,6 +398,9 @@ def make_scenario_single_mode_hold(mode_label: str, configure_inertial: bool = T
         print(f"  [single_mode_hold] holding {mode_label} for {duration_s}s "
               f"(commanded once, no re-command)")
         c.adcs_set_mode(mode_const)
+
+        if mode_label == "INERTIAL" and configure_inertial:
+            _wait_for_inertial_capture(c)
         t_end = time.monotonic() + duration_s
         hk_idx = 0
         while time.monotonic() < t_end:

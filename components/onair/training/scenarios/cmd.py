@@ -166,10 +166,41 @@ def quat_boresight_to(vec_eci, ref=(1.0, 0.0, 0.0)):
     return (q1 / n, q2 / n, q3 / n, q4 / n)
 
 
-NOS3_42_INOUT = os.path.expanduser("~/.nos3/42/NOS3InOut")
+# ⚠ Read the REPO config, not the deployed copy.
+#
+# `~/.nos3/42/NOS3InOut` exists only while the stack is up: scripts/stop.sh:40
+# does `rm -rf $USER_NOS3_DIR/42/NOS3InOut`, and ci_launch.sh re-copies it from
+# `cfg/build/InOut` at launch. Pointing at the deployed path made the INERTIAL
+# target derivation — and its tests — fail with FileNotFoundError whenever the
+# stack happened to be down, which is most of the time.
+#
+# `cfg/build/InOut` is the source that gets copied, is always present, and is
+# what the running sim actually uses. The deployed path stays as a fallback for
+# anyone running against a hand-modified live config.
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                          "..", "..", "..", ".."))
+NOS3_42_INOUT_CANDIDATES = (
+    os.path.join(_REPO_ROOT, "cfg", "build", "InOut"),
+    os.path.join(_REPO_ROOT, "cfg", "InOut"),
+    os.path.expanduser("~/.nos3/42/NOS3InOut"),
+)
 
 
-def orbit_normal_from_config(inout_dir=NOS3_42_INOUT):
+def _resolve_inout(inout_dir=None):
+    """First candidate that actually holds Inp_Sim.txt."""
+    cands = (inout_dir,) if inout_dir else NOS3_42_INOUT_CANDIDATES
+    for d in cands:
+        if d and os.path.exists(os.path.join(d, "Inp_Sim.txt")):
+            return d
+    raise FileNotFoundError(
+        "no 42 InOut directory with Inp_Sim.txt; looked in: "
+        + ", ".join(str(c) for c in cands))
+
+
+NOS3_42_INOUT = NOS3_42_INOUT_CANDIDATES[0]
+
+
+def orbit_normal_from_config(inout_dir=None):
     """The ECI orbit normal, read from 42's mission configuration.
 
     Returns a unit 3-tuple in the same inertial frame the FSW's `qbn` uses.
@@ -199,6 +230,7 @@ def orbit_normal_from_config(inout_dir=NOS3_42_INOUT):
     """
     import math
 
+    inout_dir = _resolve_inout(inout_dir)
     orb_file = None
     sim_inp = os.path.join(inout_dir, "Inp_Sim.txt")
     with open(sim_inp) as f:
@@ -227,7 +259,7 @@ def orbit_normal_from_config(inout_dir=NOS3_42_INOUT):
     return (math.sin(i) * math.sin(o), -math.sin(i) * math.cos(o), math.cos(i))
 
 
-def quat_inertial_hold_target(inout_dir=NOS3_42_INOUT):
+def quat_inertial_hold_target(inout_dir=None):
     """The INERTIAL target attitude that keeps the star tracker usable.
 
     Boresight (+Z body) on the orbit normal -> nadir stays 90 deg away for the
