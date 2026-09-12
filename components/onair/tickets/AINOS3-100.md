@@ -103,3 +103,94 @@ Two independent fixes, because one was not enough:
   independent launches). So the orbit phase at launch is deterministic and the INERTIAL
   exclusion window is a **repeatable offset**, not a random 0–35 min wait. The 17 min/run
   INERTIAL allowance is therefore an upper bound that characterisation should reduce.
+
+### 2026-09-12 · ⚠ INERTIAL slice BLOCKED — the star tracker is locked inside the Earth cone
+
+The INERTIAL arm does not work, and the reason is now measured rather than guessed. **All 19
+runs of the first attempt, and 7/7 of the second, were rejected by the capture gate.**
+
+## First attempt — my omission
+
+`inertial_capture.py` existed, the ~35 min exclusion-window bootstrap was documented, and the
+docstring told callers to verify capture — **but the scenario never waited**. It damped,
+commanded the orbit-normal target, entered INERTIAL and started its timed window immediately.
+Capture 0–49.8 %; every run reported `exit 0`. Only the corpus manifest's capture gate caught
+it. Fixed: `single_mode_hold_INERTIAL` now blocks on sustained `qValid` **and** varying
+`ADCS_AC.Inertial.*`, 30 s poll, 45 min ceiling.
+
+## Second attempt — the real mechanism
+
+With the wait in place, runs cost **~62 min each** and still yielded **0 accepted of 7**. Four
+logged `CAPTURED` (0.6–31.1 min) but capture was never *sustained*: 9.8 %, 11.9 %, 33.6 %.
+
+Ruled out by measurement, not argument:
+
+| candidate | evidence |
+|---|---|
+| damping failure | ✗ timed-out runs damped fine, \|w\| 0.08–0.10 deg/s |
+| Sun exclusion | ✗ boresight-to-Sun stayed 40–107 deg, never inside the 30 deg cone |
+| orbit phase / bad luck | ✗ one run held `qValid = 0` across **40,854 frames — over a full orbit**, ST enabled and `DeviceCount` incrementing throughout |
+| my geometry model | ✗ live probe reads boresight-nadir **58.4 deg** vs threshold **80.4 deg** and 42 independently reports `Valid = 0` — the model agrees with 42 exactly |
+
+**The boresight is LOCKED, not sweeping.** Probed live every 2 min:
+
+```
+simUTC        |w|     bore-nadir  limb+10   bore-sun   42 Valid
+19:17.09     0.057      58.36      80.35     62.50        0
+21:19.29     0.140      58.00      80.36     56.63        0
+23:20.99     0.057      58.86      80.38     52.11        0
+25:22.49     0.128      59.15      80.42     47.62        0
+```
+
+Boresight-to-nadir moved **0.8 deg in 6 minutes**. An inertially-fixed vehicle would see nadir
+sweep at the orbital rate — **3.9 deg/min, ~23 deg over that window**. Meanwhile
+boresight-to-Sun moved **15 deg**, so the body *is* rotating: at close to orbit rate, in the
+sense that holds nadir fixed in the body frame. A near-LVLH lock.
+
+**Why the damp step causes it.** The orbital rate is **0.0649 deg/s**. For nadir to sweep the
+body frame once per orbit the residual rate must be well BELOW that. Every rate the damp step
+actually leaves is comparable to it:
+
+| observed \|w\| | vs orbital rate |
+|--:|--:|
+| 0.115 | 1.77x |
+| 0.097 | 1.49x |
+| 0.089 | 1.38x |
+| 0.048 | 0.75x |
+
+`DETUMBLE_TARGET_DEG_S = 0.35` is **5.4x the orbital rate**. I set it at "the natural SUNSAFE
+floor" without considering the rate it had to beat. To be inertially fixed to within 10 % the
+target would need to be **< 0.0065 deg/s**, ~54x tighter — and the measured SUNSAFE floor is
+0.05–0.14 deg/s, so **SUNSAFE cannot reach it**. Damping harder is not available.
+
+⚠ **This is a catch-22 in the plant, not a tuning problem.** Escaping the lock needs attitude
+control; INERTIAL attitude control is gated on `qValid`; `qValid` needs the star tracker out of
+the Earth cone. The only actuator that works while blinded is SUNSAFE, and SUNSAFE is what
+leaves the vehicle in the lock.
+
+⚠ The 2026-09-10 manual capture (0.4–0.6 deg pointing, `qValid` 100 %, held) is **not
+contradicted** — it reached INERTIAL from a *different* attitude/rate state, after the
+intermittent-control episode had pumped rates to ~2 deg/s. Closed-loop INERTIAL is reachable;
+it is not reachable **from the state the damp step leaves**, which is what a repeatable
+collection protocol requires.
+
+## Disposition
+
+The INERTIAL slice is **not collectable** under the current protocol at any sane run budget.
+Measured over a 7.8 min baseline (sim 19:17 -> 27:08), boresight-to-nadir drifts
+**+0.108 deg/min** against the **3.9 deg/min** an inertially-fixed vehicle would see — a **36x**
+shortfall. At that drift, clearing 59.2 deg -> 80.5 deg takes **196 min (3.3 h) per run**, i.e.
+**~62 h for 19 runs**, and only if the drift stays linear and the lock breaks at all.
+
+**The SUNSAFE arm is unaffected and complete** (95 runs, 19 techniques x 5 instances, AC1
+97.0 %) — that is the trainable corpus and `AINOS3-101` can proceed on it.
+
+Carry to Sprint 30 as its own scoped problem — options, none of them free:
+
+1. **Enter INERTIAL from a non-SUNSAFE state.** The lock is a property of what the damp leaves;
+   a different entry state may not lock. Needs characterisation, not a guess.
+2. **Re-mount the star tracker in `SC_NOS3.txt`** (boresight axis, or Earth exclusion angle).
+   Cheapest and most reliable, but it changes the simulated plant — every prior ST-related
+   result would need its provenance noted.
+3. **Accept SUNSAFE-only coverage** and record INERTIAL as structurally uncollectable on this
+   vehicle configuration, which is itself a defensible finding for the coverage doc.
