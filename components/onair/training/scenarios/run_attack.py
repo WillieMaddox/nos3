@@ -106,6 +106,21 @@ DETUMBLE_TIMEOUT_S = 600.0
 # a run can fail purely on orbit phase.
 CAPTURE_TIMEOUT_S = 2700.0
 CAPTURE_POLL_S = 30.0
+
+# ⚠ Capture must be SETTLED, not merely reached, before the window starts.
+#
+# `verdict()` passes as soon as a 400-frame sample hits 90 % qValid, which is the
+# right test for "has the loop closed" and the wrong one for "is it stable enough
+# to record". Measured 2026-09-12 on the 6 runs that failed twice: capture during
+# and after the attack was 100 %, while the PRE-attack window sat at 47-79 % —
+# the controller was still converging when the measurement window opened. The
+# nominal pre-window is exactly the baseline AINOS3-101 trains on, so a 47 %
+# controlled baseline is bad data even though the attack itself was clean.
+#
+# Require the verdict to hold across consecutive polls at a tighter threshold, so
+# the run starts from a settled hold rather than a freshly-acquired one.
+CAPTURE_SETTLE_POLLS = 3
+CAPTURE_SETTLE_QVALID = 0.98
 from run_baseline import (
     SCENARIOS,
     auto_discover_fsw_host,
@@ -199,17 +214,28 @@ def _wait_for_inertial_capture(c: Commander) -> None:
           f"(blind arc is one unbroken ~35 min, timeout "
           f"{CAPTURE_TIMEOUT_S / 60:.0f} min)")
     deadline = time.monotonic() + CAPTURE_TIMEOUT_S
+    streak = 0
     while time.monotonic() < deadline:
         try:
-            ok, why = verdict(sample(path))
+            snap = sample(path)
+            ok, why = verdict(snap)
+            frac = (snap or {}).get("qvalid_frac", 0.0)
         except Exception:
             time.sleep(CAPTURE_POLL_S)
             continue
-        if ok:
-            waited = CAPTURE_TIMEOUT_S - (deadline - time.monotonic())
-            print(f"  [single_mode_hold] INERTIAL: CAPTURED after {waited / 60:.1f} min "
-                  f"— starting the measurement window")
-            return
+        if ok and frac >= CAPTURE_SETTLE_QVALID:
+            streak += 1
+            if streak >= CAPTURE_SETTLE_POLLS:
+                waited = CAPTURE_TIMEOUT_S - (deadline - time.monotonic())
+                print(f"  [single_mode_hold] INERTIAL: CAPTURED and SETTLED after "
+                      f"{waited / 60:.1f} min ({streak} consecutive polls at "
+                      f">={CAPTURE_SETTLE_QVALID:.0%} qValid) — starting the window")
+                return
+        else:
+            if streak:
+                print(f"  [single_mode_hold] INERTIAL: settle streak broken "
+                      f"(qValid {frac:.0%}) — restarting the count")
+            streak = 0
         time.sleep(CAPTURE_POLL_S)
     print(f"  [single_mode_hold] ⚠ INERTIAL capture TIMED OUT after "
           f"{CAPTURE_TIMEOUT_S / 60:.0f} min — this run is free drift and the "
