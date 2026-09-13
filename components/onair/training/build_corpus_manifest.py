@@ -81,6 +81,52 @@ def git_rev():
 MODE_SWITCH_WARMUP_FRAMES = 250
 
 
+def measurement_window(csv_path, attacks, pre_seconds, post_seconds, hz, n_frames):
+    """Frame range of the RECORDED SAMPLE, anchored on the attack window.
+
+    ⚠ The CSV is not the sample, and neither is the scenario block. OnAIR starts
+    recording at stack launch, so a session file contains FSW boot; and for
+    INERTIAL the scenario block itself opens BEFORE the capture wait runs inside
+    it, so it also contains 1-12 min of deliberately uncontrolled flight while
+    the vehicle tumbles toward a star-tracker window. Neither is part of the run's
+    data.
+
+    What the run declares as its sample is `pre_seconds` of nominal baseline, the
+    attack, and `post_seconds` after it. Anchoring on the attack window — the one
+    timestamp recorded exactly — gives precisely that span.
+
+    Measured 2026-09-12, qValid by decile for three rejected runs:
+        [8, 0, 28, 61, 100, 100, 100, 100, 100, 100]
+    The first 3-4 deciles are acquisition. Scoring capture over the whole file
+    rated those runs 67-70% and rejected them, while every frame of their
+    declared sample — including all attack frames — was 100% controlled.
+
+    ⚠ This narrows WHAT is measured, not the 90% bar it is measured against.
+    """
+    real = [a for a in (attacks or []) if "[prereq]" not in (a.get("id") or "")]
+    if not real or not hz:
+        return None
+    base = os.path.basename(csv_path)
+    try:
+        ts = base.split("csv_out_")[1].rsplit("_pid", 1)[0]
+        t0 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H-%M-%S-%f")
+    except Exception:
+        return None
+    starts = []
+    for a in real:
+        v = a.get("start_utc")
+        if v:
+            try:
+                starts.append(datetime.datetime.fromisoformat(v.replace("Z", "")))
+            except ValueError:
+                pass
+    if not starts:
+        return None
+    i_att = int((min(starts) - t0).total_seconds() * hz)
+    lo = max(i_att - int((pre_seconds or 240) * hz), 0)
+    return (lo, n_frames - 1)
+
+
 def scan_csv(csv_path, check_capture=False):
     """ONE streaming pass: row count, MET span, last mode switch, capture fraction.
 
@@ -96,7 +142,7 @@ def scan_csv(csv_path, check_capture=False):
     met_lo = met_hi = None
     switches = []          # every ADCS mode-change index, in order
     prev_mode = None
-    qv_live = qv_true = 0
+    qv_flags = bytearray()      # 0 = sentinel, 1 = qValid false, 2 = qValid true
     try:
         with open(csv_path, newline="") as fh:
             rd = csv.DictReader(fh)
@@ -124,9 +170,13 @@ def scan_csv(csv_path, check_capture=False):
                         prev_mode = v
                 if check_capture and has_q:
                     v = r.get("ADCS_GNC.qValid", SENTINEL)
-                    if v != SENTINEL:
-                        qv_live += 1
-                        qv_true += int(v == "1")
+                    # One byte per frame (~40 KB for a full session) so the
+                    # measurement window can be applied once hz is derived —
+                    # hz needs the FULL-file row count, so it cannot be scoped
+                    # during the pass.
+                    qv_flags.append(0 if v == SENTINEL else (2 if v == "1" else 1))
+                elif check_capture:
+                    qv_flags.append(0)
     except FileNotFoundError:
         return None
     # AINOS3-92: derive the rate; MET is non-monotonic so use the max-min span.
@@ -141,8 +191,23 @@ def scan_csv(csv_path, check_capture=False):
         "hz": hz,
         "switches": switches,
         "mode_switch_count": len(switches),
-        "controlled_fraction": (qv_true / qv_live) if qv_live else None,
+        "qv_flags": qv_flags,
     }
+
+
+def controlled_fraction(scan, window=None):
+    """qValid rate over the measurement window (or the whole file if unknown)."""
+    f = scan.get("qv_flags") or b""
+    if not f:
+        return None
+    lo, hi = (0, len(f) - 1) if not window else (max(window[0], 0), min(window[1], len(f) - 1))
+    if hi < lo:
+        return None
+    seg = f[lo:hi + 1]
+    live = sum(1 for x in seg if x)
+    if not live:
+        return None
+    return sum(1 for x in seg if x == 2) / live
 
 
 def alert_eligible_fraction(scan, csv_path, attacks):
@@ -266,12 +331,15 @@ def main():
         # yields NOMINAL frames labelled as an attack. Read the run manifest and
         # reject on the attack's own exit code.
         attacks = []
+        scenarios = []
         mf = r.get("manifest")
         if mf:
             mpath = os.path.join(ROOT, "data", "onair", "scenarios", os.path.basename(mf))
             if os.path.exists(mpath):
                 with open(mpath) as fh:
-                    attacks = json.load(fh).get("attacks", [])
+                    _mj = json.load(fh)
+                attacks = _mj.get("attacks", [])
+                scenarios = _mj.get("scenarios", [])
             else:
                 problems.append(f"run manifest {os.path.basename(mf)} not found")
         else:
@@ -292,8 +360,11 @@ def main():
 
         scan = scan_csv(csv_path, check_capture=(mode == "INERTIAL")) if csv_path else None
         n = scan["n"] if scan else None
-        frac = scan["controlled_fraction"] if scan else None
         hz = scan["hz"] if scan else None
+        win = measurement_window(csv_path, attacks, r.get("pre_seconds"),
+                                 r.get("post_seconds"), hz, scan["n"]) \
+            if (scan and hz) else None
+        frac = controlled_fraction(scan, win) if scan else None
         eligible = alert_eligible_fraction(scan, csv_path, attacks) if scan else None
         if mode == "INERTIAL" and frac is not None and frac < args.capture_min:
             problems.append(f"INERTIAL capture only {frac:.1%} (< {args.capture_min:.0%}) "

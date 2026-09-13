@@ -258,3 +258,54 @@ exactly, the near-LVLH lock is real at low rates, and the damp target (0.35 deg/
 
 ⚠ The capture gate is what made this findable. Every one of the 26 bad runs reported `exit 0`
 and would have entered the corpus as controlled INERTIAL data.
+
+### 2026-09-13 · ✅ CORPUS COMPLETE — 113 runs; the last gate failure was my window, not the data
+
+**113 accepted runs · 413,472 frames · 19 techniques.** SUNSAFE 95 (19 x 5 instances),
+INERTIAL 18, AC1 alert-eligible 97.2 %.
+
+## The capture gate was measuring the wrong span
+
+Five INERTIAL runs sat stubbornly at 67–70 % capture across three collection attempts. Profiling
+`qValid` by decile showed why:
+
+```
+DE-0003.01   [  8,   0,  28,  61, 100, 100, 100, 100, 100, 100]
+EX-0008.02   [  7,   0,  17,  61, 100, 100, 100, 100, 100, 100]
+```
+
+The first 3–4 deciles are **capture acquisition**, not the sample. OnAIR begins recording when
+the stack launches, so a session CSV also holds FSW boot and — for INERTIAL — the 1–12 min the
+vehicle spends deliberately tumbling toward a star-tracker window. Scoring capture over the
+whole file rated those runs 67–70 % while **every frame of their declared sample, including all
+attack frames, was 100 % controlled**.
+
+⚠ Scoping to the scenario block was **not** enough and is worth recording: the block's
+`start_utc` is stamped *before* the capture wait that runs inside it, so it still contains
+acquisition. The fix anchors on the attack window — the one timestamp recorded exactly — and
+takes `pre_seconds` before it through the end, which is precisely the span the run declares as
+its sample.
+
+⚠ **This narrows WHAT is measured, not the 90 % bar.** The threshold is untouched. The
+distinction matters: all 18 accepted INERTIAL runs score **100.0 %** on the corrected span — they
+are not marginal passes rescued by a redefinition.
+
+Same class of error as the AC1 window bug earlier in this ticket: the number was right about
+the wrong span. Twice now, so the lesson is worth stating plainly — **a metric over a session
+CSV must declare which frames are the sample**, because the file is always larger than the run.
+
+## The one genuine holdout
+
+`EX-0012.07` (propulsion) at **77.2 %** is a real result, not a defect. The attack fires
+thrusters and spins the vehicle to ~141 deg/s, which breaks the INERTIAL hold by physics — that
+is the technique's own footprint. It is the only one of the 19 whose attack destabilises the
+attitude it was flying. Recorded as a finding rather than retried: a controlled INERTIAL hold
+through a thruster burn is not a thing the vehicle can do.
+
+## Corrections
+
+The harness kills that punctuated this collection were **not** explained by any of my four
+successive theories — manifest memory use, environmental exhaustion, the detached launch, or
+commit-limit exhaustion. The last of those was a real measured defect (`Committed_AS` exceeded
+`CommitLimit`; raising `vm.overcommit_ratio` 50 -> 90 took headroom from -0.9 GB to +206 GB) and
+worth fixing on its own terms, but it did not stop the kills either. I never found their cause.
