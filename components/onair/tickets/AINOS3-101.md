@@ -3,10 +3,10 @@ key: AINOS3-101
 slug: retrain-clean-corpus
 type: Story
 epic: AINOS3-98 (corpus-integrity)
-status: Backlog
-priority: Medium
+status: Ready
+priority: High
 opened: 2026-08-23
-sprints: [28]
+sprints: [28, 29]
 ---
 
 # AINOS3-101 — Retrain + re-derive tiers on the clean corpus — is `ROBUST` reachable?
@@ -52,3 +52,51 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 ## Log
 
 Dated, append-only. Starts at the first real event — creation is implied by `opened:`. Results live here, not in a sprint plan.
+
+## Log
+
+Dated, append-only. Starts at the first real event — creation is implied by `opened:`.
+Results live here, not in a sprint plan.
+
+### 2026-09-13 · READY — upstream inputs are all in place
+
+Every dependency this ticket declares is now satisfied. Starting position:
+
+**The corpus (`AINOS3-100`, Done).** `data/onair/corpus/rebuild_2026-09-10/corpus_manifest.json`
+— **113 accepted runs / 413,472 frames / 19 techniques**. SUNSAFE **19 x 5 instances** (95 runs),
+INERTIAL 18 (all 100 % capture). AC1 alert-eligible **97.2 %** against the 84.4 % pilot
+reference; the corpus this replaces lost **83 %** of attack frames inside the detector's blind
+window. Every run is `schema-v1` verified, no duplicate cells, and the manifest carries per-run
+provenance (CSV, frames, attack windows, capture fraction, FSW build sha, git rev).
+
+⚠ **Mode scope is exactly what `AC3` exists to control for.** This corpus is SUNSAFE-deep
+(5 instances) and INERTIAL-shallow (1 instance, 18 techniques). The like-for-like control must
+restrict `csv_corpus_v3stage` to the **same** mode scope, or a `ROBUST` result confounds cleaner
+data with a narrower slice — the trap named in the Description.
+
+⚠ **`EX-0012.07` has no INERTIAL run**, deliberately: the attack fires thrusters to ~141 deg/s
+and breaks the INERTIAL hold by physics (77.2 % capture, gate-rejected). Its INERTIAL absence is
+a property of the technique, not a collection gap.
+
+⚠ **`EX-0012.08` self-masks.** It flaps ADCS mode 12–64 times per run (every other technique: 0),
+re-arming the 250-frame post-switch blind window, so **46–72 % of its own attack frames are
+alert-ineligible**. A weak `EX-0012.08` score is not evidence of model failure;
+`mode_switch_count` is recorded per run in the manifest.
+
+**The label set (`AINOS3-122`).** `data/onair/models/label_set.json`, frozen 2026-09-01. The
+corpus was generated FROM it, so the 6 `dropped` classes cannot appear. `AC6` still owns the
+true 17-class **deploy** — the live `xgb_attack_classifier_v3_hybrid.pkl` is still 26-class.
+
+**The schema (`AINOS3-124`).** `schema-v1`, 470 columns,
+`recorded_schema_sha256 = ff8a9e294362a02ab71a497c308a85d9f4ca4d42b29fd9401ce06206eccc926e`.
+Pin this, not the sidecar's `schema_sha256` — that one hashes the tlm metadata FILE and does not
+move when the CSV prune moves.
+
+**Instance count (`AINOS3-99`).** 5 SUNSAFE instances means `min`-over-5-folds, a **stricter**
+bar than the 3 folds behind the last tier table. Expect `ROBUST` to stay empty; `AC1`
+pre-registers that as the expected outcome and asks for *why*, tied to footprint reproducibility.
+
+⚠ **Operational, not technical:** background jobs on this machine are killed intermittently with
+"system is running low on memory" for reasons never identified across four investigated
+hypotheses. Checkpoint or make long retrains resumable. Do not spend time re-diagnosing it —
+[`AINOS3-100`](AINOS3-100.md) records what was already ruled out.
