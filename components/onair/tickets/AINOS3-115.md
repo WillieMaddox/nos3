@@ -3,7 +3,7 @@ key: AINOS3-115
 slug: mid-stix-observable-map
 type: Spike
 epic: AINOS3-41 (coverage-expansion)
-status: In Progress
+status: Backlog
 priority: High
 estimate: E 5 / T 1.5
 opened: 2026-08-26

@@ -3,7 +3,7 @@ key: AINOS3-100
 slug: corpus-rebuild-steadyflight
 type: Story
 epic: AINOS3-98 (corpus-integrity)
-status: Done
+status: In Progress
 priority: High
 opened: 2026-08-23
 sprints: [28, 29]
@@ -35,6 +35,25 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 - [x] `AC5` Operational discipline recorded: full `make stop` + `make launch-quiet` per run, chunks of ≤ 8 runs, never `nohup &`, parse with `csv.DictReader`.
 - [x] `AC6` ⚠ **Consume the frozen label set** (`data/onair/models/label_set.json`, `AINOS3-122 AC6`): collect only the `confirmed` + `deferred` techniques, label each run by its `label_set.json` id, and do **not** re-mint `dropped` classes (the 5 IMP, `EX-0012.04 [prereq]`) or auto-generate `[prereq]` technique labels (run chain prereqs without emitting a distinct technique label — the `AINOS3-122 AC4` finding).
 - [ ] `AC7` ⚠ **Balance the corpus across all four ADCS modes.** The original scope (`SUNSAFE x5 + INERTIAL x1`, no BDOT, no PASSIVE) rested on two premises that its own log then overturned: that an INERTIAL run costs ~17 min of exclusion-window wait (the 2026-09-12 fix reduced a run to **12 min**, so the cost argument for `INERTIAL x1` is gone), and that `AINOS3-99` showed "instances help the evaluation and extra MODES do not" — ⚠ a **misreading**: `AINOS3-99` is about *evaluation variance across folds*, and says nothing about *deployment mode coverage*. Collect **INERTIAL x4 more** (to 5 instances) and **BDOT x5** and **PASSIVE x5**, same 19 techniques, same frozen label set, same gates. ⚠ Both missing modes are live in the deployed router (`RoutingModeMap` covers all four), and on the v3 corpus BDOT is one of the two modes the classifier handles **best** (sub-technique accuracy on attack frames: BDOT 0.277, SUNSAFE 0.268, INERTIAL 0.169, PASSIVE 0.113) — so a corpus without BDOT trains away the model's strongest mode. ⚠ `build_corpus_batch.MIN_PER_RUN_INERTIAL_EXTRA = 17.0` is now stale and will over-plan INERTIAL; measured post-fix is ~0 extra.
+
+  ⚠ **Collection is FOUR separate runs, one per mode, with a verify-gate after each
+  (owner preference, 2026-09-20).** Run on the dual-output adapter (`AINOS3-126`); do not
+  proceed to the next mode until the finished one verifies. Order is deliberate — the two
+  proven-collectable modes go first so any surprise in the two never-collected ones surfaces
+  with known-good examples in hand.
+
+  | # | Mode | Runs | Verify before proceeding |
+  |---|---|--:|---|
+  | 1 | **SUNSAFE ×1** | 19 | `AINOS3-126 AC2` (`blend(raw) == native`) + `AC8` footprints. If it passes, **replace** one existing offline-blended SUNSAFE instance with this live one (keep SUNSAFE at 5 — do NOT add a 6th, which changes the LOIO fold count). If it fails, stop and fix the adapter. |
+  | 2 | **INERTIAL ×4** | 72 | equivalence + footprints + capture gate. Sharpest equivalence test (existing ×1 offline-blended, new ×4 live). ⚠ 18 techniques/instance — `EX-0012.07` breaks the INERTIAL hold by physics and is gate-rejected. |
+  | 3 | **BDOT ×5** | 95 | equivalence + footprints. First-ever `single_mode_hold_BDOT` collection. |
+  | 4 | **PASSIVE ×5** | 95 | equivalence + footprints. First-ever `single_mode_hold_PASSIVE` collection. |
+
+  **Total ≈ 281 runs, ~55 h** (BDOT/PASSIVE per-run time estimated as SUNSAFE-like, unmeasured).
+  ⚠ Each mode is its own `run_corpus_chunks` invocation, so a pause between modes is free — the
+  runner already resumes from `_remainder.json`.
+
+  ⚠ **The kills are the harness watchdog, not the machine** (proven 2026-09-19: no cgroup cap, memory PSI 0.00, zero OOM/oomd kills, 381 GB free). The Sprint-29 collection hit them and survived only because `run_corpus_chunks` is resumable (`_remainder.json`, skips completed runs). Run the collection from a normal terminal — where there is no watchdog — and the kills do not occur at all.
 - [ ] `AC8` ⚠ **Verify attack FOOTPRINTS, not just attack exit codes, before any corpus is trained on.** `AC2`'s gate checks label, schema, sidecar, subprocess exit and controlled fraction — none of which confirm that the telemetry a technique is *supposed* to move actually moved. ⚠ A generic novel-value check cannot substitute: measured 2026-09-19, the three **probe-only** techniques (which by definition change no state) score 39/45/49 novel columns, squarely inside the range of real attacks, because free-running fields generate novel values continuously. Required: a **per-technique expected-footprint table** (field + direction), asserted per run, failing the run in `build_corpus_manifest.py` when the footprint is absent, and **back-filled across the existing `rebuild_2026-09-10` runs** so `AINOS3-101`'s results inherit verified rather than assumed provenance.
 
 ## Log

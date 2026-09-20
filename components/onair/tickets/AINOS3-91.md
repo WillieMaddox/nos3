@@ -38,11 +38,16 @@ closed and the criteria below are scoped to what the finding left open.
       unpopulated sim field. Evidence: a 90 s per-MID arrival measurement showing zero packets,
       and a live `GENERIC_STAR_TRACKER_ENABLE` (`0x1935` FC 2) that starts the MID transmitting
       immediately. Recorded in the log below.
-- [ ] `AC2` The **intermittency** characterised — with the tracker enabled,
+- [~] `AC2` The **intermittency** characterised — with the tracker enabled,
       `ADCS_DI.Payload.St.valid` was true in only **56 of 80** frames. Establish whether that
       ~70 % duty cycle is modelled physics (Earth/sun exclusion, slew-rate limits) or a sim /
       adapter defect. ⚠ 80 frames is too small to conclude from; use a window long enough to see
-      the pattern repeat.
+      the pattern repeat. **→ Answered by `AINOS3-86`:** it is **modelled physics** — the tracker
+      is Earth-occulted (42 clears `St.Valid` within Earth-limb+10° of nadir), the exact 56/80
+      boundary was reconciled there, and orbit-normal pointing holds validity at 100 %. The one
+      thing left is AC2's own "window long enough to see it repeat", which the `AINOS3-100 AC7`
+      INERTIAL collect (72 runs, tracker-enabled, orbit-normal) supplies at scale. Closes when
+      that collect verifies.
 - [ ] `AC3` A decision recorded on whether the star tracker should be **enabled by default** in
       the headless launch, with the cost stated either way: every soak to date and the entire
       existing corpus ran with it **disabled**, so enabling it changes the nominal baseline and
@@ -86,3 +91,27 @@ still worth a spike, and it is a different question from the one this ticket ask
 
 **Recommendation:** re-scope to the intermittency question, or close as answered. Not closed
 here — that is the owner's call. ⚠ This also gates [`AINOS3-86`](AINOS3-86.md); see its log.
+
+### 2026-09-20 · Re-slotted onto the INERTIAL collect; AC2 answered by AINOS3-86
+
+#### In plain terms
+
+The hard question this ticket asks — is the star tracker's on-off flicker a real physics
+effect or a simulator bug — was already answered while fixing INERTIAL mode: it is real
+(the tracker is blocked by the Earth for part of each orbit). The upcoming INERTIAL data
+collection runs the tracker the correct way, so it confirms that at scale for free, and this
+ticket can close alongside it rather than needing its own work.
+
+⚠ Parked as "not sprinted" in the first Sprint-30 draft on the reasoning that the sprint's
+soaks are *collection*, not *characterisation*. That was wrong: the `AINOS3-100 AC7` INERTIAL
+collect runs tracker-enabled with orbit-normal pointing, so it **produces** the
+characterisation AC2 needs as a byproduct. Re-slotted to ride the INERTIAL-collect verify gate.
+
+- **AC2** — answered by `AINOS3-86` (Earth-occultation geometry, characterised and solved);
+  the INERTIAL collect supplies the repeat-window at scale. Closes on that verify.
+- **AC3** — the enable-by-default cost ("changes the nominal baseline") stops being
+  hypothetical once the new corpus is collected tracker-enabled; record the decision then.
+- **AC4/AC5/AC6** — reclassification + doc bookkeeping, doable once the collect confirms
+  behaviour.
+
+Expected outcome: closeable when the `AINOS3-100 AC7` INERTIAL run verifies.

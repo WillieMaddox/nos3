@@ -3,7 +3,7 @@ key: AINOS3-116
 slug: stix-iob-pattern-index
 type: Spike
 epic: AINOS3-41 (coverage-expansion)
-status: In Progress
+status: Backlog
 priority: Medium
 estimate: E 3 / T 0.75
 opened: 2026-08-26
