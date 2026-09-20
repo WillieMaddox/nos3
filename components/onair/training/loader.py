@@ -18,7 +18,7 @@ import glob
 import json
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
@@ -61,6 +61,9 @@ class LoadStats:
     files_skipped_alignment: int
     rows: int
     rows_skipped_warmup: int = 0
+    files_skipped_schema: int = 0
+    schema_columns: int = 0
+    schema_variants: dict[int, int] = field(default_factory=dict)
 
 
 def _file_is_clean(path: str) -> tuple[bool, str]:
@@ -80,14 +83,41 @@ def _file_is_clean(path: str) -> tuple[bool, str]:
     return True, "ok"
 
 
-def list_clean_csvs(csv_dir: str) -> tuple[list[str], LoadStats]:
+def _header_of(path: str) -> list[str]:
+    with open(path) as f:
+        return next(csv.reader(f), []) or []
+
+
+def list_clean_csvs(csv_dir: str, *, schema: list[str] | None = None,
+                    strict_schema: bool = False) -> tuple[list[str], LoadStats]:
+    """Clean telemetry CSVs in `csv_dir`, restricted to ONE recorded schema.
+
+    ⚠ THE SCHEMA GUARD, and why it is not optional.
+
+    `load()` concatenates with `pd.concat`, which OUTER-joins: a file recorded
+    under an older MID list silently contributes NaN for every column it lacks,
+    and `build_features` then coerces those to 0.0. The result is not an error
+    and not an exclusion — it is fabricated telemetry, a spacecraft reporting
+    hundreds of fields as exactly zero, mixed into training data.
+
+    Nothing caught this before. `_file_is_clean` checks byte-repr leaks and
+    row alignment WITHIN a file; no check ever compared headers BETWEEN files.
+    Measured on `data/onair/csv` (2026-09-19): 487 telemetry logs spanning
+    **11 distinct schemas** — 250, 256, 359, 360, 396, 442, 451, 452, 455, 470
+    (schema-v1) and 479 columns — with only 148 at schema-v1.
+
+    By default the majority schema wins and the rest are skipped and COUNTED, so
+    a heterogeneous directory degrades to a warning instead of silent corruption.
+    Pass `schema` to pin an explicit column list (the honest choice when a caller
+    knows which recording generation it wants), or `strict_schema=True` to raise
+    rather than skip.
+    """
     # Limit to telemetry rotations; sibling iforest_out_*.csv side-files share
     # the directory and would otherwise be flagged as "row_misalignment".
     paths = sorted(glob.glob(os.path.join(csv_dir, "csv_out_*.csv")))
-    kept: list[str] = []
+    clean: list[str] = []
     skip_leaks = 0
     skip_align = 0
-    rows_kept = 0
     for p in paths:
         ok, why = _file_is_clean(p)
         if not ok:
@@ -96,15 +126,50 @@ def list_clean_csvs(csv_dir: str) -> tuple[list[str], LoadStats]:
             else:
                 skip_align += 1
             continue
+        clean.append(p)
+
+    headers = {p: _header_of(p) for p in clean}
+    variants: dict[int, int] = {}
+    for h in headers.values():
+        variants[len(h)] = variants.get(len(h), 0) + 1
+
+    if schema is None and clean:
+        # Majority by file count; ties broken by the wider (newer) schema.
+        by_key: dict[tuple, int] = {}
+        for h in headers.values():
+            by_key[tuple(h)] = by_key.get(tuple(h), 0) + 1
+        schema = list(max(by_key, key=lambda k: (by_key[k], len(k))))
+
+    kept, skip_schema, rows_kept = [], 0, 0
+    for p in clean:
+        if schema is not None and headers[p] != list(schema):
+            skip_schema += 1
+            if strict_schema:
+                raise ValueError(
+                    f"{os.path.basename(p)} has {len(headers[p])} columns but the "
+                    f"expected schema has {len(schema)}. Mixing recording "
+                    f"generations fabricates zero-valued telemetry; quarantine the "
+                    f"file or load one generation at a time.")
+            continue
         kept.append(p)
         with open(p) as f:
             rows_kept += sum(1 for _ in f) - 1
+
+    if skip_schema:
+        print(f"  ⚠ schema guard: kept {len(kept)} file(s) at "
+              f"{len(schema or [])} columns; skipped {skip_schema} recorded under "
+              f"a different MID list (widths seen: "
+              f"{dict(sorted(variants.items()))})")
+
     stats = LoadStats(
         files_total=len(paths),
         files_kept=len(kept),
         files_skipped_leaks=skip_leaks,
         files_skipped_alignment=skip_align,
         rows=rows_kept,
+        files_skipped_schema=skip_schema,
+        schema_columns=len(schema or []),
+        schema_variants=dict(sorted(variants.items())),
     )
     return kept, stats
 
@@ -113,6 +178,8 @@ def load(
     csv_dir: str = DEFAULT_CSV_DIR,
     *,
     skip_warmup_rows: int = 0,
+    schema: list[str] | None = None,
+    strict_schema: bool = False,
 ) -> tuple[pd.DataFrame, LoadStats]:
     """Concatenate all clean CSVs.
 
@@ -130,7 +197,8 @@ def load(
     their first sample (placeholder values + huge first-arrival deltas). Files
     shorter than N+1 rows are dropped entirely.
     """
-    files, stats = list_clean_csvs(csv_dir)
+    files, stats = list_clean_csvs(csv_dir, schema=schema,
+                                   strict_schema=strict_schema)
     if not files:
         raise FileNotFoundError(f"No clean CSVs found under {csv_dir}")
 
@@ -158,6 +226,9 @@ def load(
         files_skipped_alignment=stats.files_skipped_alignment,
         rows=len(out),
         rows_skipped_warmup=rows_dropped,
+        files_skipped_schema=stats.files_skipped_schema,
+        schema_columns=stats.schema_columns,
+        schema_variants=stats.schema_variants,
     )
     return out, stats
 

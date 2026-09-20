@@ -82,7 +82,7 @@ applicable leaf carries a verdict.
   global head, identical by construction). ⚠ see the correction table — the INERTIAL
   component of that gain is now contested.
 - **Coverage-overlay honesty fix:** the overlay's incident-label number was in-sample
-  (76.9 %, ~2× optimistic per NOS3-302). Re-scored **out-of-fold for the deployed hybrid**:
+  (76.9 %, ~2× optimistic per AINOS3-34). Re-scored **out-of-fold for the deployed hybrid**:
   **42.3 %** label accuracy of detected attacks (vs the v3 global head's 34.6 % OOF). ⚠ when
   presenting: the displayed number went **down** (76.9 → 42.3) only because the methodology
   was corrected — 42.3 % honest beats the old 76.9 % fiction *and* beats honest v3.

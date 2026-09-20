@@ -1,4 +1,4 @@
-"""NOS3-303 — measure the mode-switch transient decay to size the IF warmup.
+"""AINOS3-35 — measure the mode-switch transient decay to size the IF warmup.
 
 The IF plugin re-arms an N-frame warmup (`ModeSwitchWarmupFrames`, default 600 ≈
 124 s at ~4.83 fps) on every routing scenario switch, suppressing ALERT/CLEAR

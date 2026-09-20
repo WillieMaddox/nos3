@@ -491,7 +491,7 @@ LOCAL_SCENARIOS = list(SCENARIOS) + [
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 ATTACK_SCRIPTS_ROOT = os.path.join(REPO_ROOT, "gsw", "attack_scripts", "sparta")
-# Log hygiene (NOS3-322 change A): route each attack's detection log into
+# Log hygiene: route each attack's detection log into
 # <repo>/logs/attack_runs/ instead of the CWD (which cluttered the repo root).
 # Persistent (outside fsw/build, survives rebuilds), git-ignored, NAS-backed.
 ATTACK_LOG_DIR = os.path.join(REPO_ROOT, "logs", "attack_runs")

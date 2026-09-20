@@ -98,3 +98,49 @@ output. **Immediate:** the 6 `?UNKNOWN` eval artifacts must be script-traced bef
 anything they might cite.
 
 **AC3/AC4 (the actual quarantine) not started** — the map is the prerequisite and is now in hand.
+
+### 2026-09-20 · AC1 partially done — 26.9 GB quarantined, and the schema survey that AC1 needs
+
+#### In plain terms
+
+Nearly 27 GB of telemetry that was recorded while the stack sat idle has been moved out of
+the way so it cannot be picked up by a future collection or training run. Separately, a
+survey found the logs are not one dataset at all — they span eleven different column
+layouts — and a guard now stops them being silently mixed.
+
+**Idle-logging quarantine → `data/onair/csv_idle_archive/`, 26.9 GB, 50 files.** Eight
+sessions whose telemetry was recorded with the stack up and nothing being exercised.
+Moved, not deleted; `README.md` and `archive_manifest.json` record what and why.
+
+⚠ **Selection needed care in both directions.** Coverage was computed against the union of
+all 1,243 scenario, attack AND **soak** windows — soak manifests key on
+`started_utc`/`ended_utc` rather than `start`/`end`, and the first pass missed them, which
+scored every deliberate soak at 0 % and would have archived `AINOS3-86`'s 86.9 h evidence.
+Every candidate was also checked against `artifact_corpus_map.json`, the `AINOS3-100`
+manifest, the `csv_corpus_v3stage` symlinks, and timestamp citations across tickets.
+
+⚠ **Quarantine decisions are better made per FILE than per session.** The 2026-08-15 soak
+is the case that proves it: its 6.3 GB telemetry log was archived (the star tracker was off,
+so it never flew closed-loop INERTIAL, and its FP row was superseded on 2026-09-10), while
+its 215 MB of side-files stayed — `AINOS3-90`'s 55.8 incidents/hour reads the 0.4 MB
+incident file, not the telemetry.
+
+**`AC1` inventory, partial — the corpus is ELEVEN schema generations, not one.** Of 487
+telemetry logs only **148** are at `schema-v1` (470 columns); the rest span 250, 256, 359,
+360, 396, 442, 451, 452, 455 and 479 columns.
+
+⚠ **Nothing detected this.** `list_clean_csvs` checked byte-repr leaks and row alignment
+*within* a file and never compared headers *between* files, and `load()` concatenates with
+an outer join — so a bare load over `data/onair/csv` merged eleven generations and filled
+the missing columns with zeros, silently. Fixed: the loader now keeps one schema, counts
+and names what it skipped, and accepts an explicit `schema=` or `strict_schema=True`
+(6 tests). Verified a no-op on every existing corpus view.
+
+⚠ `csv_corpus_v3stage` is built entirely on 250-column files, so the generations cannot be
+archived by width — `AINOS3-101`'s `AC3` control and `AINOS3-122`'s `AC7` both depend on
+them. Quarantining by generation is still open work under `AC3`.
+
+**Remaining:** `AC1` full inventory (date range, size, collecting scenario per collection),
+`AC3`/`AC4`/`AC5` (the generation-level moves and their verification), `AC6` torn-read
+filter.
+

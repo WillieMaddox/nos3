@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import loader
 from loader import (
     _derive_adcs_mode,
     _mode_transient_mask,
@@ -261,3 +262,84 @@ def test_attach_pid_mismatch_keeps_defaults(tmp_path, monkeypatch):
     assert out["if_score"].isna().all()
     assert (out["if_is_anomaly"] == 0).all()
     assert (out["if_scenario"] == "").all()
+
+
+# ───────────────────── the schema guard (added 2026-09-19) ────────────────────
+
+def _csv(path, header, nrows=3, fill="1"):
+    with open(path, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(header)
+        for _ in range(nrows):
+            w.writerow([fill] * len(header))
+
+
+def test_mixed_schemas_are_not_silently_concatenated(tmp_path):
+    """The defect this guard exists for: pd.concat OUTER-joins, so a file from an
+    older MID list contributes NaN for every column it lacks and build_features
+    turns those into 0.0 — fabricated zero telemetry, with no error anywhere."""
+    old = ["Time", "A", "B"]
+    new = ["Time", "A", "B", "C", "D"]
+    for i in range(3):
+        _csv(tmp_path / f"csv_out_2026-09-1{i}T00-00-0{i}-000000_pid11.csv", new)
+    _csv(tmp_path / "csv_out_2026-05-16T00-00-00-000000_pid11.csv", old)
+    kept, stats = loader.list_clean_csvs(str(tmp_path))
+    assert stats.files_skipped_schema == 1
+    assert stats.schema_columns == 5, "the majority (newer) schema must win"
+    assert all("2026-05-16" not in os.path.basename(k) for k in kept)
+    assert stats.schema_variants == {3: 1, 5: 3}
+
+
+def test_homogeneous_directory_is_unaffected(tmp_path):
+    """The guard must be a no-op on every existing corpus view, which is how
+    v3stage and the rebuild per-instance dirs are laid out."""
+    hdr = ["Time", "A", "B"]
+    for i in range(3):
+        _csv(tmp_path / f"csv_out_2026-09-1{i}T00-00-0{i}-000000_pid11.csv", hdr)
+    kept, stats = loader.list_clean_csvs(str(tmp_path))
+    assert len(kept) == 3
+    assert stats.files_skipped_schema == 0
+    assert stats.schema_variants == {3: 3}
+
+
+def test_explicit_schema_overrides_the_majority(tmp_path):
+    """A caller that knows which recording generation it wants must be able to
+    say so, even when that generation is the minority."""
+    old = ["Time", "A"]
+    new = ["Time", "A", "B"]
+    for i in range(3):
+        _csv(tmp_path / f"csv_out_2026-09-1{i}T00-00-0{i}-000000_pid11.csv", new)
+    _csv(tmp_path / "csv_out_2026-05-16T00-00-00-000000_pid11.csv", old)
+    kept, stats = loader.list_clean_csvs(str(tmp_path), schema=old)
+    assert len(kept) == 1 and stats.files_skipped_schema == 3
+    assert "2026-05-16" in os.path.basename(kept[0])
+
+
+def test_strict_schema_raises_instead_of_skipping(tmp_path):
+    _csv(tmp_path / "csv_out_2026-09-10T00-00-00-000000_pid11.csv", ["Time", "A", "B"])
+    _csv(tmp_path / "csv_out_2026-05-16T00-00-00-000000_pid11.csv", ["Time", "A"])
+    with pytest.raises(ValueError, match="columns"):
+        loader.list_clean_csvs(str(tmp_path), strict_schema=True)
+
+
+def test_same_width_different_names_is_still_a_mismatch(tmp_path):
+    """Two MID lists can coincide in width and differ in content. Comparing
+    column COUNT would pass them; the guard compares the header itself."""
+    for i in range(2):
+        _csv(tmp_path / f"csv_out_2026-09-1{i}T00-00-0{i}-000000_pid11.csv",
+             ["Time", "A", "B"])
+    _csv(tmp_path / "csv_out_2026-05-16T00-00-00-000000_pid11.csv",
+         ["Time", "A", "ZZZ"])
+    _, stats = loader.list_clean_csvs(str(tmp_path))
+    assert stats.files_skipped_schema == 1
+
+
+def test_load_propagates_the_guard(tmp_path):
+    new = ["Time", "A", "B"]
+    for i in range(2):
+        _csv(tmp_path / f"csv_out_2026-09-1{i}T00-00-0{i}-000000_pid11.csv", new)
+    _csv(tmp_path / "csv_out_2026-05-16T00-00-00-000000_pid11.csv", ["Time", "A"])
+    df, stats = loader.load(str(tmp_path))
+    assert stats.files_skipped_schema == 1
+    assert list(df.columns) == ["__file_id", "__row_idx"] + new
+    assert not df.isna().any().any(), "no NaN column may leak in from another schema"

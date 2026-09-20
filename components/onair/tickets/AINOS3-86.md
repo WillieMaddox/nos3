@@ -66,6 +66,14 @@ Dated, append-only. Starts at the first real event — creation is implied by `o
 
 ### 2026-08-24 · ROOT CAUSE FOUND — none of the three candidates; INERTIAL never ran closed-loop
 
+#### In plain terms
+
+The steering law for INERTIAL mode only runs when the star tracker — the camera that tells the
+spacecraft which way it is facing — reports a good fix. That device boots switched off, and
+nothing had ever switched it on, so across 1.75 million recorded rows it was never once valid.
+"INERTIAL mode" had therefore always been the spacecraft tumbling freely with no steering at
+all. The detector was not crying wolf; the spacecraft was misconfigured.
+
 `AC1` answered, and the answer is outside the three hypotheses. `AC_inertial()` is gated on
 `if (GNC->qValid)` (`components/generic_adcs/fsw/cfs/src/generic_adcs_adac.c:338`);
 `GNC->qValid = AD->ST.Valid` (`:215`) traces to the **star tracker**, which boots DISABLED
@@ -81,6 +89,12 @@ Candidate (2) is refuted on its own terms: commanding the target quaternion chan
 because the control law is gated on `qValid`, not on whether a target was set.
 
 ### 2026-08-24 · fix demonstrated on nominal — 0.13 % operational FP
+
+#### In plain terms
+
+Switching the star tracker on made the steering work, and false alarms fell five- to sixfold
+over a two-hour quiet run. Only the quiet side was measured, though — whether the change also
+hides real attacks was still untested.
 
 `GENERIC_STAR_TRACKER_ENABLE_CC` → `ST_DEV.Q0` populated, `IsValid` → 1, `qValid` → 1,
 `qErr` non-zero and varying, `Tcmd` unfrozen. 2 h soak, `arm: controlled-inertial`:
@@ -110,6 +124,12 @@ in its manifest.
 
 ### 2026-08-25 · PAUSED — attack-side A/B deferred, machine in use
 
+#### In plain terms
+
+Stopped because the machine was busy with unrelated work. Flagged that the follow-up comparison
+needs a tooling change first, or the "after" run would silently repeat the "before" conditions
+and prove nothing.
+
 `AC3` and `AC4` remain unmet and the fix stays **undeployed**. The blocker is not
 technical: an unrelated benchmark is running on this machine, and bringing the NOS3 stack up
 would perturb its wall-clock timings. Resume when the machine is free.
@@ -129,6 +149,13 @@ would perturb its wall-clock timings. Resume when the machine is free.
   same 12 runs answer at no extra cost.
 
 ### 2026-08-25 · ⚠ Possible configuration artifact — read before any tuning (via AINOS3-95)
+
+#### In plain terms
+
+Even with the star tracker on, the controller never settles: it is chasing a meaningless default
+target direction, and one of its tuning constants is set to zero. So the recommendation is to
+establish what a correctly configured hold actually looks like before tuning any detector
+against it.
 
 Found while validating the AINOS3-95 stage-2a subscription of `GENERIC_ADCS_AC_MID`
 (`0x0944`), which carries the INERTIAL controller's own gains and error state. Full detail in
@@ -183,6 +210,13 @@ held", which is a different and much cheaper fix.
 It is a reason not to spend the A/B until the plant configuration is settled.
 
 ### 2026-09-10 · ⚠ THE PLANNED FIX DOES NOT WORK — enabling the star tracker does not close the loop
+
+#### In plain terms
+
+Switching the star tracker on makes it start transmitting, but its readings still come back
+marked invalid, so the steering law still never runs. The physics simulator has never once
+reported this device as valid, in any session on record. That contradicts the 2026-08-25 entry
+above, and the disagreement is recorded here rather than quietly overwritten.
 
 Resumed (machine free). Ran the A/B the pause note specified, in miniature first: 180 s
 INERTIAL with the ST **off**, then 180 s with the ST **on** plus a commanded target attitude.
@@ -268,6 +302,15 @@ today would still be uncontrolled drift wearing the INERTIAL label.
 
 ### 2026-09-10 · ROOT CAUSE PROVEN — the star tracker is EARTH-OCCULTED, and the target attitude was wrong
 
+#### In plain terms
+
+The star tracker is staring at the Earth. The simulator blanks it whenever its line of sight
+comes within about 80 degrees of straight down, and we were at 63. The fix is to aim it along
+the orbit normal — perpendicular to the orbital plane — which keeps it a full 90 degrees from
+"down" for the entire orbit. The orientation maths was checked against the simulator's own
+published figures rather than assumed, because a sign error would have silently inverted the
+answer.
+
 The previous entry stopped one layer short. Chased to ground truth; the answer is
 geometry, and it is fixable.
 
@@ -303,7 +346,7 @@ observation (`qValid` true in 56/80 frames) caught an exclusion **boundary**; th
 run (0/723) landed **inside the blind stretch**. Both are correct measurements of the same
 system at different orbit phases. The earlier entry is not retracted — it is explained.
 
-## The fix — point the boresight along the ORBIT NORMAL
+#### The fix — point the boresight along the ORBIT NORMAL
 
 The orbit normal is perpendicular to nadir **by construction**, and stays perpendicular for
 the entire orbit. Hold the boresight there and the boresight-to-nadir angle is pinned at
@@ -321,7 +364,7 @@ from the Keplerian elements in `Orb_LEO.txt` (i = 52 deg, RAAN = 180 deg), which
 normal in closed form with no time conversion. Cross-checked against `r x v` from 42's truth
 state vector at two independent samples: **0.002 deg**.
 
-## ⚠ The bootstrap — and a second, separate defect it exposed
+#### ⚠ The bootstrap — and a second, separate defect it exposed
 
 The controller **cannot slew while blinded**, because `qValid` gates the very law that would
 move it. So a run starting inside a blind stretch must wait for the orbit to carry the
@@ -360,6 +403,14 @@ purpose). Commanded at 15:26Z; result in the next entry.
 
 ### 2026-09-10 · ✅ CLOSED-LOOP INERTIAL ACHIEVED AND HELD — live, end to end
 
+#### In plain terms
+
+The first properly controlled INERTIAL hold the project has ever recorded: pointing error under
+a degree, star tracker valid 100 percent of the time. The start-up order turned out to matter.
+The spin has to be slowed first using SUNSAFE mode, not BDOT — BDOT is the textbook choice, but
+its commands overshoot by 27 times on a vehicle this small, so it oscillates instead of
+settling.
+
 `AC1` and `AC2` complete. The first genuinely controlled INERTIAL hold this project has ever
 recorded.
 
@@ -376,7 +427,7 @@ recorded.
 The 9.6 deg margin the fix was designed around is exactly what the vehicle now holds, and it
 holds it by construction rather than by luck of orbit phase.
 
-## ⚠ The bootstrap needs SUNSAFE, not BDOT — measured, and it overturns the obvious choice
+#### ⚠ The bootstrap needs SUNSAFE, not BDOT — measured, and it overturns the obvious choice
 
 The first attempt used **BDOT** to damp rates, on the reasoning that detumble is its purpose
 and it is magnetorquer-only so it works while the star tracker is blinded. **BDOT does not
@@ -397,7 +448,7 @@ and no star-tracker dependency either. Measured: **1.66 → 0.26 deg/s in 95 sec
 also what the FSW boots into, and the session log shows it damping 2.09 → 0.32 deg/s in the
 first ~50 s unprompted, which is why the vehicle's natural resting rate is ~0.2 deg/s.
 
-## The working sequence
+#### The working sequence
 
 1. **`SET_MODE SUNSAFE`**, wait until `|w|` < ~0.35 deg/s (~95 s from a 1.7 deg/s tumble).
 2. **`ST_ENABLE`**, then command the **orbit-normal** target quaternion.
@@ -419,7 +470,7 @@ skips the damp diverges (burst control pumps: 0.64 → 2.31 deg/s in 60 s); a ru
 wait records free drift labelled INERTIAL. Both look like healthy runs in their own output.
 That is why `inertial_capture.py` exists and why every INERTIAL run must pass it.
 
-## Remaining — `AC3`/`AC4` still open
+#### Remaining — `AC3`/`AC4` still open
 
 The false-alarm rate has **not** yet been re-measured. That is the point of the work, and it
 now has, for the first time, a genuinely controlled INERTIAL baseline to measure against. ⚠ The
@@ -428,12 +479,20 @@ anything measured from here — a like-for-like re-measurement on captured INERT
 
 ### 2026-09-10 · ✅ AC3/AC4 — FP re-measured on the controlled baseline, and 33.6 % RECONCILED
 
+#### In plain terms
+
+False alarms on a properly controlled hold: zero, across 7,230 frames. The old 33.6 percent was
+explained rather than merely beaten — it was a raw count, and was never comparable to the
+1 percent target, which measures something different. The honest like-for-like old figure is
+1.71 percent. The zero was also checked for being a silenced detector: the same session raised
+28 alerts elsewhere, so it was genuinely watching.
+
 **Headline: `0.0000 %` operational and `0.0000 %` raw over 7,230 controlled INERTIAL frames
 (19.2 min, zero events).** Artifact:
 `data/onair/results/ainos3_86_ac3_controlled_inertial_fp.json`. With zero events in 7,230
 frames the 95 % upper bound is **0.04 %**, i.e. 24x inside the 1 % design target.
 
-## ⚠ First: 33.6 % was a RAW figure, and it was never comparable to the 1 % target
+#### ⚠ First: 33.6 % was a RAW figure, and it was never comparable to the 1 % target
 
 Before claiming any improvement, the old number had to be reproduced. Running **the same tool**
 over the 15 archived 2026-08-15 replication sessions, restricted to their nominal **pre-attack**
@@ -463,7 +522,7 @@ The reconciliation is exact at the score level:
 whole score distribution off the threshold: the **closest single frame** sits
 **+0.0146** above it, while the old p1 was **-0.0357** below.
 
-## The 0 % is real, not a suppression artifact
+#### The 0 % is real, not a suppression artifact
 
 Checked, because a warmup-suppressed detector also reports zero:
 
@@ -473,7 +532,7 @@ Checked, because a warmup-suppressed detector also reports zero:
 - the window starts 749 frames past the last mode change, well clear of the 250-frame
   mode-switch warmup.
 
-## What this does and does not mean
+#### What this does and does not mean
 
 ✅ **INERTIAL is no longer unusable for detection.** The defect was never detector noise — it
 was that the mode had never once been flown closed-loop, so every INERTIAL measurement was

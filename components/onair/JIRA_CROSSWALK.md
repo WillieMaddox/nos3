@@ -147,6 +147,10 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-122 | label-set-freeze | Story | corpus-integrity | Freeze the class label set | Sprint 28 → 29 · AC7 gated on the AINOS3-101 retrain |
 | AINOS3-123 | per-subsystem-consistency-primitive | Story | detector-gates | Per-subsystem consistency gate | Backlog |
 | AINOS3-124 | schema-freeze | Story | corpus-integrity | Freeze the recorded telemetry schema | Backlog |
+| AINOS3-125 | blended-log-format | Story | corpus-integrity | De-interleave OnAIR's double buffer into a single coherent stream | Backlog |
+| AINOS3-126 | sbn-adapter-blended-output | Story | detector-gates | Emit one coherent frame from the SBN double buffer | Backlog |
+| AINOS3-127 | gate-retune-blended | Story | detector-gates | Remove the flicker suppression the gates no longer need | Backlog |
+| AINOS3-128 | interleaved-claim-audit | Spike | detector-rigor | Re-derive the conclusions that rest on interleaved deltas | Backlog |
 
 ## Sprint 28 (planning)
 

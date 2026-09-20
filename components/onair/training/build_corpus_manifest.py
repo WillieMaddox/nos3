@@ -289,7 +289,13 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--capture-min", type=float, default=0.90,
                     help="minimum controlled fraction for an INERTIAL run to count")
+    ap.add_argument("--csv-dir", default=CSV_DIR,
+                    help="where the run CSVs live (default data/onair/csv). Point "
+                         "at a derived corpus such as csv_blended/ to manifest that "
+                         "variant; the scenario manifests are shared, so both "
+                         "variants label identically.")
     args = ap.parse_args()
+    csv_dir = args.csv_dir
 
     with open(args.batch_results) as fh:
         results = json.load(fh)
@@ -306,7 +312,7 @@ def main():
     total_frames = 0
     for r in results:
         csv_name = r.get("csv") or r.get("csv_file")
-        csv_path = os.path.join(CSV_DIR, os.path.basename(csv_name)) if csv_name else None
+        csv_path = os.path.join(csv_dir, os.path.basename(csv_name)) if csv_name else None
         side = sidecar_for(csv_path) if csv_path else None
         mode = r.get("_mode") or r.get("mode")
         tech = r.get("_technique") or r.get("technique")

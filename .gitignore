@@ -77,6 +77,32 @@ data/onair/csv_ainos3_30/
 # pointers are pointless to commit — same rule as csv_corpus_v3stage/.
 data/onair/csv_ainos3_30_s27/
 data/onair/scenarios_ainos3_30_s27/
+# De-interleaved corpus (AINOS3-125): one coherent stream rebuilt from the SBN
+# double buffer by deinterleave_csv.py. Derived from data/onair/csv/ — regenerable
+# from it at any time, and the sources are already ignored.
+data/onair/csv_blended/
+# Idle-logging archive (AINOS3-97): sessions recorded with the stack left running
+# and nothing being exercised. Moved out of data/onair/csv/ so a collection or
+# training glob cannot pick them up. Data, not tracked — but the README and
+# archive_manifest.json record what is in there and why.
+data/onair/csv_idle_archive/*
+!data/onair/csv_idle_archive/README.md
+!data/onair/csv_idle_archive/archive_manifest.json
+# Per-instance corpus views: symlink farms into data/onair/csv/ and csv_blended/.
+# Same rule as csv_corpus_v3stage — the targets are ignored, so the pointers are
+# pointless to commit. Rebuilt on demand from the corpus manifest.
+data/onair/corpus/*/views/
+data/onair/corpus/*/views_blended/
+# Sprint-29 evaluation outputs (AINOS3-101/125). Same rule as the rest of
+# data/onair/models: the small result JSONs are the record and are tracked; the
+# feature caches, fold checkpoints and prediction dumps are regenerable bulk
+# (~5 GB) and are not.
+data/onair/models/rebuild29/**/*.npy
+data/onair/models/rebuild29/**/*.npz
+data/onair/models/rebuild29/**/*.pkl
+data/onair/models/rebuild29/**/*.ini
+# Hand-built reference file used to verify the de-interleave logic (AINOS3-125).
+data/onair/csv_out_*.csv
 data/onair/batch_*_results.json
 # Third-party datasets fetched for benchmarking (AINOS3-82: CuCD-ID, CC BY 4.0,
 # Mendeley 10.17632/7n2d42pm3n.3). Redistributable but not ours to vendor;

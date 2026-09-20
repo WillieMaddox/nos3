@@ -66,12 +66,26 @@ Results live here, not in a sprint plan.
 
 ### 2026-08-25 · scope corrected before the ticket was ever worked
 
+#### In plain terms
+
+The ticket was written as "delete four feeds that never send anything". Tracing each one back to
+its source changed that: one must be kept, one is a judgement call, and one would be actively
+dangerous to switch on, because its single identifier carries five different payload layouts and
+four of them would be read as garbage.
+
 Written as "drop 4 dead MIDs"; corrected on review when each production path was traced to
 source. One of the four must not be dropped, one is a judgement call, and one carries a
 payload-overloading hazard that makes the obvious "just schedule it" fix actively dangerous.
 The net cap relief drops from 4 slots to 2-3, which does not change the plan it feeds.
 
 ### 2026-08-25 · ⚠ BLOCKED — dropping any column breaks the deployed IF model
+
+#### In plain terms
+
+Deleting the empty columns killed the live detector on the very first frame — it expects exactly
+894 inputs, matched by name, and the deleted columns were among them. The detector was down about
+four minutes until the change was reverted. The lesson, previously unwritten anywhere: adding a
+column is safe, removing one is a retraining job rather than a configuration edit.
 
 `AC1` and `AC3` are answered (below). `AC2` was attempted and **reverted**: the three drops
 deploy cleanly and then kill OnAIR on the first frame.
@@ -115,6 +129,16 @@ the retrain's column list. ⚠ Net cap relief was never the point: it is 3 slots
 arithmetic already showed the remaining MID work fits at 45/48 without them.
 
 ### 2026-09-10 · RESOLVED at the schema freeze — pruned, not unsubscribed
+
+#### In plain terms
+
+Unblocked by noticing that two different things had been treated as one. What we listen to feeds
+the live detector and cannot change; what we write to the data file feeds future training and is
+free to change. Writing stopped for the nine dead columns while the subscriptions stayed, so the
+file dropped from 479 to 470 columns with the live detector untouched. The star tracker's five
+columns were deliberately kept, because another ticket was about to switch that device on and
+they would start carrying real data. A new scanner then confirmed from the data — not from
+reading code — that exactly 14 columns are empty in every frame, and no others.
 
 Unblocked by `AINOS3-124` on the observation that the Blocked note had the layering wrong.
 "Removal needs a retrain" is true of the **subscribed** schema and false of the **recorded**

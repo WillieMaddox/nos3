@@ -142,3 +142,85 @@ corpus **and** a new retrain (the mistake that cost `EX-0012` wave-1 a full re-d
 | AINOS3-115/116/118 | STIX coverage | Feed a *future* increment; the rebuild uses the current validated scripts, so they do not gate collection. Second-track / Sprint 30. |
 | AINOS3-123 | per-subsystem-consistency-primitive | New detector build, stack-dependent; competes with the rebuild for the stack. Sprint 30. |
 | AINOS3-94 | coverage-table-schema | Stages 3–5 remain gated on `AINOS3-86`; stages 1–2 are stretch. |
+
+---
+
+## ✅ Sprint 29 closeout — 2026-09-20
+
+**Signed off: 3 of 8.** `AINOS3-86`, `AINOS3-108`, `AINOS3-124` — all Done and unaffected by
+what follows. The rest carry to Sprint 30.
+
+| Jira | Outcome |
+|---|---|
+| AINOS3-86 | ✅ Done — INERTIAL flown closed-loop for the first time; FP **0.00 %** on 7,230 controlled frames, and the published 33.6 % reconciled as a RAW figure never comparable to the 1 % target |
+| AINOS3-108 | ✅ Done — 9 dead columns pruned from the recorded schema (479 → 470) without unsubscribing, so the deployed IF was untouched |
+| AINOS3-124 | ✅ Done — `schema-v1` frozen, 470 columns |
+| AINOS3-100 | ◑ Carry — 113 runs collected, but `AC7` (four-mode balance) and `AC8` (footprint verification) added and open |
+| AINOS3-101 | ◑ **Reset** — answered, then superseded; see below |
+| AINOS3-122 | ◑ Carry — `AC7` promotion still gated on the `AINOS3-101` deploy |
+| AINOS3-97 | ◑ Carry — 26.9 GB quarantined and the eleven-schema survey done; the generation-level moves remain |
+
+### The sprint goal was met, and then invalidated
+
+The goal was "collect a clean corpus, retrain on it, and answer whether `ROBUST` is
+reachable." All three happened. The answer — **3 classes reach ROBUST** — then turned out
+to rest on two defects the work itself uncovered:
+
+1. ⚠ **The recording format was wrong, and always had been.** Every CSV this project has
+   produced is two interleaved buffer snapshots, because OnAIR's SBN adapter never
+   reconciles its double buffer. Frame-to-frame deltas — what every model consumes — carry
+   **4–6× the noise** of same-buffer deltas on 49 of 454 changing columns. Now
+   `AINOS3-125`, with the corpus rebuilt through it.
+2. ⚠ **The mode scope was too narrow, for a reason that does not survive inspection.** The
+   SUNSAFE×5 + INERTIAL×1 scope cited `AINOS3-99` as showing "instances help, extra modes
+   do not" — but `AINOS3-99` is about *evaluation variance*, not *deployment coverage*, and
+   the live router handles four modes. On the v3 corpus BDOT is one of the two modes the
+   classifier handles best, and the rebuild has none of it.
+
+⚠ **The collection survives; only the analysis is void.** Blending is a deterministic
+re-expression of data already recorded, so the 30 h of `AINOS3-100` collection was
+re-derived rather than re-run (148 files, 113/113 runs, same rejections, same schema hash).
+What must actually be collected is what never was: BDOT ×5, PASSIVE ×5, INERTIAL ×4 more.
+
+### What the retrain established that is worth keeping
+
+- ⚠ **`AC4`'s premise is refuted** independently of representation: 3 → 5 folds took
+  `ROBUST` from 1 to 3, because more folds also means more training data per fold.
+- ⚠ **`ROBUST` is a within-mode claim.** The three ROBUST classes score 0.000 / 0.000 /
+  0.390 on held-out INERTIAL. The published prose says "reliable on EVERY run".
+- The tier table is **bimodal** — nothing between 0.364 and 0.887 — so the 0.85 bar's exact
+  value changes nothing.
+- Fold-minimum F1 is governed by **two** things, not one: footprint reproducibility
+  (Spearman +0.611) *and* separability from siblings.
+
+### Findings outside the plan
+
+- **The corpus is eleven schema generations**, 250 → 479 columns, only 148 of 487 files at
+  `schema-v1` — and nothing detected it, because `load()` outer-joins and fills the gaps
+  with zeros. Guard added.
+- **`ADCS_GNC.DT` reads 1.5e284** in 6 frames of 413,472 — harmless to a tree model, fatal
+  to any variance statistic.
+- ⚠ **The "harness kills" of `AINOS3-100` were never a machine problem.** Measured during
+  this sprint: no cgroup cap, memory PSI 0.00, zero kernel OOM kills, zero `systemd-oomd`
+  kills, 381 GB available. Four hypotheses in that ticket were aimed at the wrong layer.
+- ⚠ **`vm.overcommit_ratio` was a red herring** — with `vm.overcommit_memory = 0` the
+  CommitLimit is not enforced at all, so the "defect" was never in force. Reverted to 50.
+
+### New tickets
+
+| Jira | Slug | Why |
+|---|---|---|
+| AINOS3-125 | blended-log-format | The de-interleave transform and the corpus rebuilt through it — largely done, `AC8` (make it canonical) open |
+| AINOS3-126 | sbn-adapter-blended-output | Fix the live frame; forces an IF retrain and invalidates the live baselines |
+| AINOS3-127 | gate-retune-blended | Remove the flicker suppression the three gates carry; needs `EX-0014.02`/`EX-0012.02` collected first |
+| AINOS3-128 | interleaved-claim-audit | Re-derive the conclusions computed on interleaved deltas |
+
+Reported upstream to `nasa/OnAIR` as well — the defect is theirs, and #189 had the
+mechanism noted but the design question open.
+
+### Carried to Sprint 30
+
+`AINOS3-100` (AC7/AC8) → `AINOS3-125 AC8` → `AINOS3-101` redo → `AINOS3-122 AC7`, in that
+order; plus `AINOS3-97`, `AINOS3-126`/`127`/`128`, and the untouched second track
+(`AINOS3-115`/`116`/`118`) and stretch (`AINOS3-91`/`93`/`94`/`123`).
+

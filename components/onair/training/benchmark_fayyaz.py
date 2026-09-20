@@ -12,7 +12,7 @@ It is the closest published benchmark to our work: same simulator (NOS3 1.7.2 +
 cFS), same ground system family (COSMOS), SPARTA-aligned attack scenarios. This
 script does the *evaluation-honesty cross-check* the AINOS3-82 acceptance
 criteria call for — the external counterpart to our own 76.9 % -> 42.3 % OOF
-correction (see NOS3-302 and the Sprint-26 coverage-overlay fix).
+correction (see AINOS3-34 and the Sprint-26 coverage-overlay fix).
 
 What it measures
 ----------------

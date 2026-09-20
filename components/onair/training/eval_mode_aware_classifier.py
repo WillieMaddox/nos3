@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""NOS3-301 — compare mode-aware attack classifiers against the global v3.
+"""AINOS3-33 — compare mode-aware attack classifiers against the global v3.
 
-NOS3-302 established (frame-level, out-of-fold) that the single global v3
+AINOS3-34 established (frame-level, out-of-fold) that the single global v3
 classifier labels far worse in PASSIVE than in the other ADCS modes — and that
 this is intrinsic (the *same* technique cluster scores lower in PASSIVE), not a
 composition artifact. A single model trained across all modes is dominated by

@@ -376,7 +376,7 @@ feats) costs only **~4 pts** overall (0.629→0.589), broken down as:
 (a) **genuine** where the C&DH core app *is* the target — clock→`CFE_TIME` (EX-0012.12/.01),
 memory-write & scheduling→tables (EX-0012.03/.05); (b) **fragile activity-shortcut** for the
 impact-*outcome* labels that have no dedicated telemetry — IMP-0001 Deception collapses 0.55→0.00,
-IMP-0002/IMP-0005 drop hard (an **information limit**, per AINOS3-31/NOS3-301, not a feature bug);
+IMP-0002/IMP-0005 drop hard (an **information limit**, per AINOS3-31/AINOS3-33, not a feature bug);
 (c) **net-harmful** for a few where the generic *masks* real signal — EX-0014.04 PNT F1 **rises**
 when the `CFE_SB.MemInUse` shortcut is removed (+0.11 refined, +0.56 at full recipe), likewise
 IMP-0003 / IMP-0006. **Recommendation: leave deployed v3 as-is** (the generics net-contribute and

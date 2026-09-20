@@ -289,7 +289,7 @@ Collected a fresh mode-balanced corpus (32/32 attacks, new 256-col schema,
   `LastUpdatedTable`/`LastFileLoaded`/`LastTableLoaded` or the numeric
   `LastUpdateTimeSeconds`/`ValidationCounter`/`SuccessValCounter` (which move on any
   table activity) — that's the trigger for a real table-activity feature. Real
-  DEAD-class recovery still needs a different signal source (NOS3-321 thread). Code
+  DEAD-class recovery still needs a different signal source (AINOS3-30 thread). Code
   remains uncommitted (kept in tree, dormant).
 
 ---

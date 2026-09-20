@@ -95,7 +95,7 @@ AINOS3-68 is **gated** on signal-feasibility clearing.
 
 **Sprint 27 slice — the signal lever.** Sections A and B validated every technique whose
 footprint sits in a subscribed MID. The residual gap is *labeling* the DEAD/HIGH-VAR/
-PASSIVE classes, which the evidence (AINOS3-33/39, NOS3-302, the honest-OOF overlay) says
+PASSIVE classes, which the evidence (AINOS3-33/39, AINOS3-34, the honest-OOF overlay) says
 is information-limited. This slice tests, for real, whether the recorded Section-B MIDs
 carry the missing signal — and closes the two gaps this sprint's live work surfaced.
 

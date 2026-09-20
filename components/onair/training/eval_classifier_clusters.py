@@ -154,7 +154,7 @@ def load_instance(csv_dir: str, manifests: list[str], schema: dict,
                              drop_unlabeled=True, skip_warmup_rows=30)
     y = frame_labels(df)
     # Per-frame metadata, aligned to X/y rows, so the out-of-fold predictions can
-    # later drive incident aggregation keyed by (file_id, row_idx) (NOS3-302).
+    # later drive incident aggregation keyed by (file_id, row_idx) (AINOS3-34).
     meta = {
         "file_id": df["__file_id"].astype(str).to_numpy(),
         "row_idx": df["__row_idx"].to_numpy().astype(np.int64),
@@ -374,7 +374,7 @@ def main():
     # Persist raw per-fold predictions so tau / cluster-rule sweeps need no
     # retrain — recluster_from_cache.py loads y_true/y_pred/fold_of_row/labels.
     # The file_id/row_idx/mode/corruption/attack_id/confidence columns are the
-    # out-of-fold record NOS3-302's incident rescore joins on (file_id, row_idx).
+    # out-of-fold record AINOS3-34's incident rescore joins on (file_id, row_idx).
     np.savez(
         os.path.join(args.out_dir, "loio_predictions.npz"),
         fold_held=np.array(list(range(len(data)))),

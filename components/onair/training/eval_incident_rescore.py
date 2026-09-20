@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""NOS3-203 — re-score the labeled corpus at INCIDENT granularity.
+"""AINOS3-27 — re-score the labeled corpus at INCIDENT granularity.
 
 Frame-level metrics (e.g. "61% of SUNSAFE corruption rows flagged") undersell
 the operational picture: an operator cares whether *the attack* raised an
 alert, not what fraction of its frames did. This tool runs the deployed v5 IF
 gate + the same hysteresis-based `IncidentAggregator` the live plugin uses
-(NOS3-201) over the 3-instance corpus, then scores:
+(AINOS3-25) over the 3-instance corpus, then scores:
 
   - **Incident-level detection (recall):** an attack is DETECTED if ≥1 incident
     overlaps its corruption window. Reported overall + per ADCS mode + per
@@ -88,7 +88,7 @@ def main():
     if oof_mode:
         z = np.load(args.oof_predictions, allow_pickle=True)
         if "file_id" not in z.files:
-            sys.exit(f"{args.oof_predictions} predates NOS3-302 (no file_id/row_idx "
+            sys.exit(f"{args.oof_predictions} predates AINOS3-34 (no file_id/row_idx "
                      "columns); re-run eval_classifier_clusters.py to regenerate it.")
         oof_fid = z["file_id"].astype(str)
         oof_ridx = z["row_idx"].astype(np.int64)
