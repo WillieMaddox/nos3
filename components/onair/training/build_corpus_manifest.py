@@ -41,6 +41,9 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import check_footprints  # noqa: E402
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     "..", "..", ".."))
 CSV_DIR = os.path.join(ROOT, "data", "onair", "csv")
@@ -287,6 +290,17 @@ def main():
                     default=os.path.join(ROOT, "data", "onair", "models", "label_set.json"))
     ap.add_argument("--name", default=None, help="corpus name (default: derived from date)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--footprints", default=os.path.join(
+                        ROOT, "components", "onair", "attack_footprints.json"),
+                    help="per-technique expected-footprint table (AC8). "
+                         "Empty string disables the check.")
+    ap.add_argument("--footprint-warn-pct", type=float, default=10.0,
+                    help="if more than this %% of runs lack their footprint, say so "
+                         "loudly — an occasional miss is the known sampling floor, "
+                         "but a cluster means something is wrong with the "
+                         "collection and it is worth pausing to investigate.")
+    ap.add_argument("--blended-dir", default=os.path.join(ROOT, "data", "onair", "csv_blended"))
+    ap.add_argument("--manifest-dir", default=os.path.join(ROOT, "data", "onair", "scenarios"))
     ap.add_argument("--capture-min", type=float, default=0.90,
                     help="minimum controlled fraction for an INERTIAL run to count")
     ap.add_argument("--csv-dir", default=CSV_DIR,
@@ -296,6 +310,13 @@ def main():
                          "variants label identically.")
     args = ap.parse_args()
     csv_dir = args.csv_dir
+
+    footprints = None
+    if args.footprints:
+        try:
+            footprints = json.load(open(args.footprints))
+        except OSError as exc:
+            print(f"⚠ footprint table unreadable ({exc}); AC8 check SKIPPED", file=sys.stderr)
 
     with open(args.batch_results) as fh:
         results = json.load(fh)
@@ -364,6 +385,24 @@ def main():
         if r.get("exit_code") not in (0, None):
             problems.append(f"run_attack exited {r.get('exit_code')}")
 
+        # AINOS3-100 AC8 — ADVISORY, not a rejection.
+        # ⚠ A footprint miss means "not corroborated in telemetry", NOT "the
+        # attack did not run". Measured 2026-09-22: EX-0012.04 sends a 3.7 s
+        # CFE_TBL burst against a ~4 s HK cadence, so the 0->1->0 excursion fell
+        # entirely between samples in INERTIAL while landing in the other three
+        # modes — same script, same level, and the run was sound (exit 0, EVS
+        # 300->317, frames correctly labelled). Rejecting on this gate alone
+        # would discard good data. Recorded per run; the SUMMARY is what to
+        # watch, see --footprint-warn-pct.
+        fp = None
+        if footprints:
+            try:
+                fp = check_footprints.check_run(
+                    r, footprints, args.csv_dir, args.blended_dir, args.manifest_dir)
+                fp = {"ok": fp["ok"], "evidence": fp.get("why")}
+            except Exception as exc:               # noqa: BLE001
+                fp = {"ok": None, "evidence": f"check failed: {exc}"}
+
         scan = scan_csv(csv_path, check_capture=(mode == "INERTIAL")) if csv_path else None
         n = scan["n"] if scan else None
         hz = scan["hz"] if scan else None
@@ -397,6 +436,7 @@ def main():
             "sample_hz": round(hz, 3) if hz else None,
             "mode_switch_count": scan["mode_switch_count"] if scan else None,
             "alert_eligible_attack_fraction": eligible,
+            "footprint": fp,
             "problems": problems,
         }
         if problems:
@@ -404,6 +444,22 @@ def main():
         else:
             runs.append(rec)
             total_frames += n or 0
+
+    # AINOS3-100 AC8 summary. An occasional miss is the known sampling floor
+    # (a transient command completing between two HK samples); a CLUSTER means
+    # something is wrong with the collection itself and is worth pausing for.
+    scored = [x for x in (runs + rejected) if (x.get("footprint") or {}).get("ok") is not None]
+    missed = [x for x in scored if not x["footprint"]["ok"]]
+    if scored:
+        pct = len(missed) / len(scored) * 100
+        print(f"footprint   : {len(scored) - len(missed)}/{len(scored)} runs corroborated "
+              f"({pct:.1f}% missing) — ADVISORY, recorded per run, never a rejection")
+        for x in missed:
+            print(f"     no footprint: {x['technique']}/{x['mode']} inst {x.get('instance')}")
+        if pct > args.footprint_warn_pct:
+            print(f"⚠ {pct:.1f}% of runs lack their footprint, over the "
+                  f"{args.footprint_warn_pct:.0f}% threshold — PAUSE AND INVESTIGATE. "
+                  f"An occasional miss is the sampling floor; a cluster is not.")
 
     # ⚠ A corpus must not contain the same (technique, mode, instance) twice —
     # re-chunking after a partial run, or re-running a chunk without clearing its

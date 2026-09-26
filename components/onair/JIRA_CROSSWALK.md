@@ -151,6 +151,7 @@ Sorted by key; unkeyed slugs (`—`) last.
 | AINOS3-126 | sbn-adapter-blended-output | Story | detector-gates | Emit one coherent frame from the SBN double buffer | Sprint 30 · committed |
 | AINOS3-127 | gate-retune-blended | Story | detector-gates | Remove the flicker suppression the gates no longer need | Sprint 30 · stretch |
 | AINOS3-128 | interleaved-claim-audit | Spike | detector-rigor | Re-derive the conclusions that rest on interleaved deltas | Sprint 30 · stretch |
+| AINOS3-130 | sim-epoch-sweep | Spike | corpus-integrity | Find the orbital phase that minimises time-to-tracker-capture | Sprint 30 · committed |
 
 ## Sprint 28 (planning)
 

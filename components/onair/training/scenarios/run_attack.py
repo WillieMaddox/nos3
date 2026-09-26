@@ -421,22 +421,26 @@ def make_scenario_single_mode_hold(mode_label: str, configure_inertial: bool = T
     precondition for measuring anything else.
     """
     mode_const = {
-        "INERTIAL": ADCS_MODE_INERTIAL, "SUNSAFE": ADCS_MODE_SUNSAFE,
-        "BDOT": ADCS_MODE_BDOT, "PASSIVE": ADCS_MODE_PASSIVE,
+        "INERTIAL": ADCS_MODE_INERTIAL, 
+        "SUNSAFE": ADCS_MODE_SUNSAFE,
+        "BDOT": ADCS_MODE_BDOT, 
+        "PASSIVE": ADCS_MODE_PASSIVE,
     }[mode_label]
 
     def _scenario(c: Commander, duration_s: int) -> None:
         hk_targets = [
-            (ADCS_HK_REQ_MID, "ADCS"), (IMU_HK_REQ_MID, "IMU"),
-            (CSS_HK_REQ_MID, "CSS"), (FSS_HK_REQ_MID, "FSS"),
-            (MAG_HK_REQ_MID, "MAG"), (ST_HK_REQ_MID, "ST"),
+            (ADCS_HK_REQ_MID, "ADCS"), 
+            (IMU_HK_REQ_MID, "IMU"),
+            (CSS_HK_REQ_MID, "CSS"), 
+            (FSS_HK_REQ_MID, "FSS"),
+            (MAG_HK_REQ_MID, "MAG"), 
+            (ST_HK_REQ_MID, "ST"),
             (TORQUER_HK_REQ_MID, "TORQUER"),
         ]
         if mode_label == "INERTIAL" and configure_inertial:
             # ⚠ NO damping step here, and that is deliberate — see
             # _detumble_before_inertial's docstring for why it was removed.
-            print("  [single_mode_hold] INERTIAL: enabling star tracker "
-                  "(qValid gates AC_inertial)")
+            print("  [single_mode_hold] INERTIAL: enabling star tracker (qValid gates AC_inertial)")
             c.st_enable(True)
             # Let the ST publish at least one valid sample before the control
             # law is switched on, so qValid is already true at mode entry
@@ -453,8 +457,7 @@ def make_scenario_single_mode_hold(mode_label: str, configure_inertial: bool = T
                   "left disabled, no target attitude (reproduces the "
                   "uncontrolled-drift condition of the pre-2026-09-10 corpus)")
 
-        print(f"  [single_mode_hold] holding {mode_label} for {duration_s}s "
-              f"(commanded once, no re-command)")
+        print(f"  [single_mode_hold] holding {mode_label} for {duration_s}s (commanded once, no re-command)")
         c.adcs_set_mode(mode_const)
 
         if mode_label == "INERTIAL" and configure_inertial:
@@ -762,11 +765,7 @@ def run_attack_subprocess(
         stem = os.path.splitext(os.path.basename(script_path))[0]
         ts = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
         extra_args += ["--output", os.path.join(ATTACK_LOG_DIR, f"{stem}_log_{ts}.csv")]
-    cmd = [
-        sys.executable, script_path,
-        "--fsw-host", fsw_host,
-        "--attack-level", str(attack_level),
-    ] + extra_args
+    cmd = [sys.executable, script_path, "--fsw-host", fsw_host, "--attack-level", str(attack_level)] + extra_args
     print(f"  [attack] launching: {' '.join(cmd)}")
     start = now_utc_iso()
     if dry_run:

@@ -1,0 +1,355 @@
+{
+  "_comment": [
+    "AINOS3-100 AC8 \u2014 per-technique expected footprint: which telemetry field must move, and how.",
+    "",
+    "\u26a0 ANCHORED ON WHAT EACH SCRIPT COMMANDS, not on what the corpus happens to show.",
+    "Deriving the expected footprint from the same data it validates is circular, and a",
+    "generic novel-value check cannot substitute: measured 2026-09-19, the three probe-only",
+    "techniques scored 39/45/49 novel columns, squarely inside the range of real attacks,",
+    "because free-running fields (GPS position, scheduler counters) generate novel values",
+    "continuously. Each entry below names the command that produces it.",
+    "",
+    "direction: increase | reset | change   (reset = a counter zeroed, i.e. it goes DOWN)",
+    "any_of: the footprint holds if ANY listed field moves as specified \u2014 used where the",
+    "        script sends several commands and the corpus need only evidence one.",
+    "modes:  restricts the assertion to those ADCS modes. EX-0012.08 commands a mode change,",
+    "        which is invisible in the run whose hold mode IS the target mode.",
+    "",
+    "\u26a0 SAMPLING-RATE BLIND SPOT, measured 2026-09-22. Several techniques send a command and",
+    "then RESET the counter within the same second (DE-0003.01 does NOOP+RESET in 0.7 s), while",
+    "the owning HK packet updates every ~4 s. The counter returns to its old value before it is",
+    "ever sampled, so its net observable change is ZERO \u2014 CFE_ES.CommandCounter is flat 0 across",
+    "all 2,804 frames of a DE-0003.01 run. That is the technique SUCCEEDING (its whole premise is",
+    "hiding the command), not a failed attack. For those, the durable evidence is the EVS event",
+    "the command generates: CFE_EVS_HK.MessageSendCounter steps at the attack frame (193->197).",
+    "\u26a0 CI.usCmdCnt and TO.usCmdCnt are near-dead (1 change in 2,610 frames) \u2014 do not assert on",
+    "them; see AINOS3-72 on the lab-vs-full app re-point.",
+    "",
+    "\u26a0 A RESET is evidence, and an 'increase' test will never see it. DE-0003.08 zeroes the EVS",
+    "counter: CFE_EVS_HK.MessageSendCounter goes 192 -> 0 -> 2,3,4,5\u2026 The window max NEVER",
+    "exceeds the baseline max, because destroying that history IS the technique. Assert",
+    "direction 'reset' (a monotonic counter stepping backwards), not 'increase'.",
+    "",
+    "\u26a0 THE GATE HAS A KNOWN FLOOR, and it is a sampling limit, not a detection limit.",
+    "A command whose effect is transient can complete BETWEEN two HK samples and leave no",
+    "cadence: in SUNSAFE the counter moves at frames 882 and 930 (0->1->0), in INERTIAL it is",
+    "So a footprint MISS means 'not corroborated in telemetry', NOT 'the attack did not run' \u2014",
+    "check the EVS event and the subprocess exit before rejecting a run on this gate alone.",
+    "",
+    "\u26a0 RESOLVED 2026-09-24 (supersedes the 2026-09-23 'MECHANISM UNKNOWN' and the",
+    "earlier 'coin flip refuted' notes). A live reproduction with CFE_EVS.Message",
+    "temporarily un-excluded settled it: the FSW behaves IDENTICALLY in every mode.",
+    "The LOAD of the unstaged /cf/attacker_rts.tbl is rejected ('Unable to open file",
+    "... Status = -1'), the ACTIVATE is rejected ('Cannot activate table",
+    "'SC.RTS_TBL001'. No Inactive image available'), and CFE_TBL.CommandCounter goes",
+    "0->1 while CommandErrorCounter goes 0->2 -- in INERTIAL exactly as in the other",
+    "modes. There is NO INERTIAL-specific rejection.",
+    "The miss is the collection LEVEL: these three were collected at level 4, whose",
+    "cleanup(reset_counters=True) zeroes those counters ~2.8 s after ACTIVATE. That",
+    "observable window is shorter than the ~4 s CFE_TBL HK cadence, so ~30 % of runs",
+    "in ANY mode never sample the excursion. EX-0012.04/INERTIAL going 2/2 was",
+    "small-sample bad luck -- a 3rd INERTIAL instance caught it 0->1/0->2 -- and the",
+    "earlier '2/2 while siblings go 8/8' reasoning under-weighted how a ~30 % miss",
+    "distributes over n=2.",
+    "FIX: build_corpus_batch.restore_levels now treats cleanup(reset_counters=True)",
+    "as a restore, so .03/.04/.05 collect at LEVEL 3 (LOAD+ACTIVATE, no reset). The",
+    "counters then stay elevated for the rest of the run and are always sampled. The",
+    "CFE_TBL.Command*Counter fields below are therefore both robust AND attack-",
+    "specific at level 3; no EVS-counter fallback is added, because",
+    "CFE_EVS_HK.MessageSendCounter climbs continuously from background EVS traffic",
+    "(RADIO/ADCS events) and would make the gate pass even for a run that never fired."
+  ],
+  "techniques": {
+    "DE-0003.01": {
+      "command": "CFE_ES NOOP then CFE_ES RESET (zero the counter)",
+      "any_of": [
+        {
+          "field": "CFE_ES.CommandCounter",
+          "direction": "reset"
+        },
+        {
+          "field": "CFE_ES.CommandCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "reset"
+        }
+      ],
+      "note": "counter is reset faster than its ~4 s HK cadence, so the EVS event is the observable evidence"
+    },
+    "DE-0003.02": {
+      "command": "CFE_EVS bogus FC, CFE_ES RESET, CFE_EVS RESET_COUNTERS",
+      "any_of": [
+        {
+          "field": "CFE_EVS_HK.CommandErrorCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.CommandCounter",
+          "direction": "reset"
+        },
+        {
+          "field": "CFE_ES.CommandCounter",
+          "direction": "reset"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "reset"
+        }
+      ],
+      "note": "counter is reset faster than its ~4 s HK cadence, so the EVS event is the observable evidence"
+    },
+    "DE-0003.03": {
+      "command": "CI NOOP (command-receiver probe)",
+      "any_of": [
+        {
+          "field": "CI.usCmdCnt",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "reset"
+        }
+      ],
+      "note": "counter is reset faster than its ~4 s HK cadence, so the EVS event is the observable evidence"
+    },
+    "DE-0003.06": {
+      "command": "TO NOOP + CFE_EVS NOOP (downlink-mode probe)",
+      "any_of": [
+        {
+          "field": "TO.usCmdCnt",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.CommandCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "reset"
+        }
+      ],
+      "note": "counter is reset faster than its ~4 s HK cadence, so the EVS event is the observable evidence"
+    },
+    "DE-0003.08": {
+      "command": "CFE_EVS NOOP then RESET_COUNTERS (clear partial history)",
+      "any_of": [
+        {
+          "field": "CFE_EVS_HK.CommandCounter",
+          "direction": "reset"
+        },
+        {
+          "field": "CFE_EVS_HK.CommandCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "increase"
+        },
+        {
+          "field": "CFE_EVS_HK.MessageSendCounter",
+          "direction": "reset"
+        }
+      ],
+      "note": "counter is reset faster than its ~4 s HK cadence, so the EVS event is the observable evidence"
+    },
+    "DE-0003.09": {
+      "command": "CFE_TIME NOOP (clock probe)",
+      "any_of": [
+        {
+          "field": "CFE_TIME.CommandCounter",
+          "direction": "increase"
+        }
+      ]
+    },
+    "DE-0003.10": {
+      "command": "NOVATEL_OEM615 NOOP (GPS probe)",
+      "any_of": [
+        {
+          "field": "NOVATEL_HK.CommandCount",
+          "direction": "increase"
+        }
+      ]
+    },
+    "EX-0008.01": {
+      "command": "SC START_ATS / STOP_ATS / RESET_COUNTERS",
+      "any_of": [
+        {
+          "field": "SC.CmdCtr",
+          "direction": "change"
+        },
+        {
+          "field": "SC.AtsCmdCtr",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0008.02": {
+      "command": "SC ENABLE_RTS / START_RTS / STOP_RTS / RESET_COUNTERS",
+      "any_of": [
+        {
+          "field": "SC.RtsCmdCtr",
+          "direction": "change"
+        },
+        {
+          "field": "SC.RtsActiveCtr",
+          "direction": "change"
+        },
+        {
+          "field": "SC.CmdCtr",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0012.03": {
+      "command": "CFE_TBL LOAD + ACTIVATE (memory write)",
+      "any_of": [
+        {
+          "field": "CFE_TBL.CommandCounter",
+          "direction": "change"
+        },
+        {
+          "field": "CFE_TBL.CommandErrorCounter",
+          "direction": "change"
+        }
+      ],
+      "note": "Collected at level 3 (LOAD+ACTIVATE, no reset) so CFE_TBL.Command*Counter persist all run -- see the header RESOLVED 2026-09-24 note."
+    },
+    "EX-0012.04": {
+      "command": "CFE_TBL LOAD + ACTIVATE (app subscriber tables)",
+      "any_of": [
+        {
+          "field": "CFE_TBL.CommandCounter",
+          "direction": "change"
+        },
+        {
+          "field": "CFE_TBL.CommandErrorCounter",
+          "direction": "change"
+        }
+      ],
+      "note": "RESOLVED 2026-09-24: no INERTIAL-specific rejection; the 2/2 miss was the level-4 counter reset shrinking the footprint below the HK cadence. Now collected at level 3 (see header). CFE_TBL.Command*Counter persist all run."
+    },
+    "EX-0012.05": {
+      "command": "CFE_TBL LOAD + ACTIVATE (scheduling algorithm)",
+      "any_of": [
+        {
+          "field": "CFE_TBL.CommandCounter",
+          "direction": "change"
+        },
+        {
+          "field": "CFE_TBL.CommandErrorCounter",
+          "direction": "change"
+        }
+      ],
+      "note": "Collected at level 3 (LOAD+ACTIVATE, no reset) so CFE_TBL.Command*Counter persist all run -- see the header RESOLVED 2026-09-24 note."
+    },
+    "EX-0012.07": {
+      "command": "THRUSTER ENABLE + PERCENTAGE (propulsion)",
+      "any_of": [
+        {
+          "field": "THRUSTER.DeviceEnabled",
+          "direction": "change"
+        },
+        {
+          "field": "THRUSTER.CommandCount",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0012.08": {
+      "command": "ADCS SET_MODE + RST_COUNTERS",
+      "any_of": [
+        {
+          "field": "ADCS_HK.CommandCount",
+          "direction": "change"
+        },
+        {
+          "field": "ADCS_GNC.Mode",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0012.09": {
+      "command": "EPS SWITCH (unauthorized power toggle) + RST_COUNTERS",
+      "any_of": [
+        {
+          "field": "EPS.DeviceHK.Switch",
+          "direction": "change"
+        },
+        {
+          "field": "EPS.CommandCount",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0012.12": {
+      "command": "CFE_TIME SET_TIME + RESET_COUNTERS (system clock)",
+      "any_of": [
+        {
+          "field": "CFE_TIME.SecondsSTCF",
+          "direction": "change"
+        },
+        {
+          "field": "CFE_TIME.CommandCounter",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0014.01": {
+      "command": "CFE_TIME SET_TIME + NOVATEL 0x0871 GPS time spoof",
+      "any_of": [
+        {
+          "field": "CFE_TIME.SecondsSTCF",
+          "direction": "change"
+        },
+        {
+          "field": "CFE_TIME.CommandCounter",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0014.03": {
+      "command": "sensor DISABLE + IMU 0x0926 spoof",
+      "any_of": [
+        {
+          "field": "IMU.DeviceEnabled",
+          "direction": "change"
+        },
+        {
+          "field": "IMU.CommandCount",
+          "direction": "change"
+        }
+      ]
+    },
+    "EX-0014.04": {
+      "command": "NOVATEL DISABLE + 0x0871 position spoof",
+      "any_of": [
+        {
+          "field": "NOVATEL_HK.DeviceEnabled",
+          "direction": "change"
+        },
+        {
+          "field": "NOVATEL_HK.CommandCount",
+          "direction": "change"
+        }
+      ]
+    }
+  }
+}

@@ -172,8 +172,7 @@ def main():
         while True:
             w = body_rate_deg_s(path)
             stamp = time.strftime("%H:%M:%S")
-            print(f"  [{stamp}] |w| = {w:.4f} deg/s" if w is not None
-                  else f"  [{stamp}] no body-rate samples yet")
+            print(f"  [{stamp}] |w| = {w:.4f} deg/s" if w is not None else f"  [{stamp}] no body-rate samples yet")
             if args.rate_only:
                 return 0
             if w is not None and w < args.rate_below:
@@ -190,8 +189,7 @@ def main():
         ok, why = verdict(s)
         stamp = time.strftime("%H:%M:%S")
         if s:
-            print(f"  [{stamp}] qValid {s['qvalid_frac']:5.0%}  ST_DEV.IsValid "
-                  f"{s['stvalid_frac']:5.0%}  ctrl_active={s['ctrl_any_moving']}  -> {why}")
+            print(f"  [{stamp}] qValid {s['qvalid_frac']:5.0%}  ST_DEV.IsValid {s['stvalid_frac']:5.0%}  ctrl_active={s['ctrl_any_moving']}  -> {why}")
         else:
             print(f"  [{stamp}] {why}")
         if ok:

@@ -51,8 +51,7 @@ HELDOUT = 5
 
 def fold(cache_dir: str, inst: int):
     X = np.load(os.path.join(cache_dir, f"SUNSAFE_i{inst}_X.npy"), mmap_mode="r")
-    y = np.load(os.path.join(cache_dir, f"SUNSAFE_i{inst}_meta.npz"),
-                allow_pickle=True)["y"].astype(str)
+    y = np.load(os.path.join(cache_dir, f"SUNSAFE_i{inst}_meta.npz"), allow_pickle=True)["y"].astype(str)
     return X, y
 
 
@@ -65,8 +64,7 @@ def run(name: str, cache_dir: str, n_estimators: int, contamination: float):
     Xtr = np.vstack(parts)
     del parts
 
-    clf = IsolationForest(n_estimators=n_estimators, contamination=contamination,
-                          random_state=42, n_jobs=-1)
+    clf = IsolationForest(n_estimators=n_estimators, contamination=contamination, random_state=42, n_jobs=-1)
     clf.fit(Xtr)
     del Xtr
 
@@ -90,8 +88,7 @@ def run(name: str, cache_dir: str, n_estimators: int, contamination: float):
 
     return {
         "variant": name,
-        "train_nominal_frames": int(sum((fold(cache_dir, i)[1] == "nominal").sum()
-                                        for i in TRAIN_INSTANCES)),
+        "train_nominal_frames": int(sum((fold(cache_dir, i)[1] == "nominal").sum() for i in TRAIN_INSTANCES)),
         "heldout_nominal": int(nom.sum()),
         "heldout_attack": int((~nom).sum()),
         "fp_native": round(fp_native, 4),
@@ -106,8 +103,7 @@ def run(name: str, cache_dir: str, n_estimators: int, contamination: float):
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--n-estimators", type=int, default=200)
     p.add_argument("--contamination", type=float, default=0.01)
     p.add_argument("--out", required=True)
@@ -127,8 +123,7 @@ def main():
         results[name] = run(name, d, args.n_estimators, args.contamination)
         os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
         json.dump(results, open(args.out, "w"), indent=1)
-        print(f"  done: {results[name]['recall_at_1pct_fp']:.4f} recall @1% FP",
-              flush=True)
+        print(f"  done: {results[name]['recall_at_1pct_fp']:.4f} recall @1% FP", flush=True)
 
     if len(results) == 2:
         a, b = results["interleaved"], results["blended"]
@@ -145,8 +140,7 @@ def main():
         print("-" * 47)
         pa, pb = a["per_class_recall_at_1pct_fp"], b["per_class_recall_at_1pct_fp"]
         for c in sorted(set(pa) | set(pb), key=lambda c: -(pb.get(c, 0) - pa.get(c, 0))):
-            print(f"{c:<14}{pa.get(c, 0):>13.3f}{pb.get(c, 0):>11.3f}"
-                  f"{pb.get(c, 0)-pa.get(c, 0):>+9.3f}")
+            print(f"{c:<14}{pa.get(c, 0):>13.3f}{pb.get(c, 0):>11.3f}{pb.get(c, 0)-pa.get(c, 0):>+9.3f}")
     print(f"\nwrote {args.out}")
 
 

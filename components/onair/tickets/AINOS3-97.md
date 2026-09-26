@@ -41,6 +41,38 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
 
 - [ ] `AC1` Inventory of `data/onair/csv` by collection: date range, size, collecting scenario, and
       the defect (if any) that supersedes it.
+
+      ⚠ **Measured 2026-09-21 — worse than the "11 generations" the code comments cite.**
+      **12 distinct recorded schemas, 486 `csv_out_*.csv`, 19.0 GB**, plus 2,094 plugin
+      side-files (0.9 GB) for 3,068 entries total:
+
+      | cols | sha12 | files | GB | dates |
+      |--:|---|--:|--:|---|
+      | 250 | `146e4514a9fa` | 169 | 4.7 | 2026-05-14 … 07-05 |
+      | 470 | `ff8a9e294362` | 148 | 5.4 | 2026-09-10 … 09-13 |
+      | 359 | `ba844a6b6650` | 69 | 4.0 | 2026-07-29 … 08-25 |
+      | 256 | `a017fde944f9` | 35 | 1.0 | 2026-07-15 |
+      | 360 | `2d37f0d0cce2` | 27 | 1.8 | 2026-07-16 … 07-29 |
+      | 479 | `bbd2d2260747` | 15 | 1.0 | 2026-09-02 … 09-03 |
+      | 451 | `6e1471ca025a` | 12 | 0.9 | 2026-08-25 … 09-02 |
+      | 396 | `de1fc0718f7b` | 7 | 0.1 | 2026-08-25 |
+      | 396 | `3b2763f722f9` | 1 | 0.0 | 2026-08-25 |
+      | 455 / 442 / 452 | — | 3 | 0.1 | 2026-08-25 |
+
+      ⚠ **Two schemas share 396 columns and differ in header CONTENT.** Any code that
+      separates generations by column count rather than header hash merges them silently.
+      Group by sha, never by width.
+- [ ] `AC7` ⚠ **Per-schema subfolders: `data/onair/csv/schema_<sha12>/`**, with the NEWEST
+      generation left at top level so an in-flight collection's `OutputDir` does not move.
+      `loader.list_clean_csvs` degrades safely (keeps one schema, counts the rest), but
+      `build_corpus_manifest.py` globs this directory and currently rejects 486 off-schema
+      files on every run — correct, but only because the sha gate is right.
+      ⚠ Do this AFTER the `AINOS3-100` collection has a chunk or two banked: moving 19 GB
+      while a collection is starting adds risk for no benefit, and the manifest gate already
+      protects the corpus.
+      ⚠ **Must NOT move:** `csv_corpus_v3stage` (load-bearing for `AINOS3-101 AC3`'s
+      like-for-like control) and the 470-col `rebuild_2026-09-10` set (the comparison baseline
+      for the rebuilt corpus). Quarantine, never delete.
 - [x] `AC2` **Artifact→corpus dependency map** produced *before* anything moves; every artifact in
       `data/onair/models/` traced to the corpus it was built from.
 - [ ] `AC3` Superseded collections moved to `data/onair/csv_stale/` with a per-collection README.

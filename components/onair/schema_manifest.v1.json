@@ -1,8 +1,8 @@
 {
-  "label": "schema-v2",
-  "frozen_at": "2026-09-22T23:51:01Z",
-  "recorded_schema_sha256": "0f7073ad7f3de7f796886b7af18377f05441027ef2629ecbf9153dbbe2c5b77d",
-  "column_count": 472,
+  "label": "schema-v1",
+  "frozen_at": "2026-09-10T14:34:59Z",
+  "recorded_schema_sha256": "ff8a9e294362a02ab71a497c308a85d9f4ca4d42b29fd9401ce06206eccc926e",
+  "column_count": 470,
   "columns": [
     "CFE_EVS.PacketID.EventID",
     "CFE_EVS.PacketID.EventType",
@@ -473,9 +473,7 @@
     "CFE_TBL.TableUpdateChanged",
     "CFE_TBL.TableUpdateCount",
     "CFE_TBL.TableLoadChanged",
-    "CFE_TBL.TableLoadCount",
-    "OnAIR.FrameRecvUTC",
-    "OnAIR.SimTimeUTC"
+    "CFE_TBL.TableLoadCount"
   ],
   "pruned_columns": [
     "CFE_ES.BootSource",
@@ -514,8 +512,8 @@
   "source": {
     "tlm": "nos3_security_tlm.json",
     "ini": "nos3_security.ini",
-    "verified_against_csv": "csv_out_2026-09-22T02-28-11-720663_pid11.csv",
-    "frames_verified": 2804
+    "verified_against_csv": "csv_out_2026-09-10T14-32-16-687046_pid10.csv",
+    "frames_verified": 883
   },
   "silent_columns": [
     "ST_DEV.Generic_star_tracker.Q0",
@@ -563,17 +561,5 @@
       "why_deferred": "the imagery payload is switched off in this NOS3 build \u2014 arducam sits below the startup-script `!` terminator AND CAM_EXP has no TransmitMsg, so subscribing it would record nothing (AINOS3-102 AC4 decided: do not subscribe)",
       "trigger": "the CAM publish path being written \u2014 config alone is not enough"
     }
-  ],
-  "supersedes": {
-    "label": "schema-v1",
-    "recorded_schema_sha256": "ff8a9e294362a02ab71a497c308a85d9f4ca4d42b29fd9401ce06206eccc926e",
-    "column_count": 470,
-    "archived_as": "schema_manifest.v1.json",
-    "why": "AINOS3-126 added two derived columns. \u26a0 They are added by the ADAPTER (sbn_adapter_blended.py), NOT by nos3_security_tlm.json \u2014 a column the stock sbn_adapter cannot produce must not live in the tlm file, or running the stock adapter against this schema hands csv_output a row one shorter than its headers and silently mis-labels every column. So schema_sha256 (the tlm file) is UNCHANGED; only recorded_schema_sha256 moves, which is correct \u2014 the RECORDED schema really did gain columns.",
-    "added_columns": [
-      "OnAIR.FrameRecvUTC",
-      "OnAIR.SimTimeUTC"
-    ],
-    "removed_columns": []
-  }
+  ]
 }

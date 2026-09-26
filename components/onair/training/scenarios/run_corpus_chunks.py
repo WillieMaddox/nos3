@@ -74,8 +74,7 @@ def main():
             base = json.load(open(out)) if os.path.exists(out) else []
             have = {(r.get("_technique"), r.get("_mode"), r.get("_rep")) for r in base}
             try:
-                extra = [r for r in json.load(open(part))
-                         if (r.get("_technique"), r.get("_mode"), r.get("_rep")) not in have]
+                extra = [r for r in json.load(open(part)) if (r.get("_technique"), r.get("_mode"), r.get("_rep")) not in have]
             except json.JSONDecodeError:
                 extra = []
             if extra:
@@ -91,16 +90,13 @@ def main():
             except json.JSONDecodeError:
                 log(f"⚠ {name}: results file is corrupt — re-running the whole chunk")
                 done_rows = []
-            done_keys = {(r.get("_technique"), r.get("_mode"), r.get("_rep"))
-                         for r in done_rows}
-        todo = [e for e in entries
-                if (e.get("_technique"), e.get("_mode"), e.get("_rep")) not in done_keys]
+            done_keys = {(r.get("_technique"), r.get("_mode"), r.get("_rep")) for r in done_rows}
+        todo = [e for e in entries if (e.get("_technique"), e.get("_mode"), e.get("_rep")) not in done_keys]
         if not todo:
             log(f"SKIP {name} (complete: {len(done_rows)}/{len(entries)})")
             continue
         if done_rows:
-            log(f"RESUME {name}: {len(done_rows)}/{len(entries)} already collected, "
-                f"{len(todo)} to go")
+            log(f"RESUME {name}: {len(done_rows)}/{len(entries)} already collected, {len(todo)} to go")
             # Run only the remainder, into a part file, then merge.
             c = os.path.join(resdir, f"{name}_remainder.json")
             with open(c, "w") as fh:
@@ -114,16 +110,12 @@ def main():
         log(f"=== {name}: {len(todo)} run(s) ===")
         logf = os.path.join(resdir, f"{name}.log")
         with open(logf, "ab") as fh:
-            rc = subprocess.run(
-                [sys.executable, "-u", BATCH, "--input", c, "--out", out_part],
-                cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT).returncode
+            rc = subprocess.run([sys.executable, "-u", BATCH, "--input", c, "--out", out_part], cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT).returncode
         if out_part != out:
-            merged = done_rows + (json.load(open(out_part))
-                                  if os.path.exists(out_part) else [])
+            merged = done_rows + (json.load(open(out_part)) if os.path.exists(out_part) else [])
             with open(out, "w") as fh:
                 json.dump(merged, fh, indent=2)
-            log(f"  merged remainder into {os.path.basename(out)} "
-                f"({len(merged)}/{len(entries)})")
+            log(f"  merged remainder into {os.path.basename(out)} ({len(merged)}/{len(entries)})")
         ok = 0
         if os.path.exists(out):
             rows = json.load(open(out))

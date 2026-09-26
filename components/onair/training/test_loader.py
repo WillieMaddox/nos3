@@ -343,3 +343,64 @@ def test_load_propagates_the_guard(tmp_path):
     assert stats.files_skipped_schema == 1
     assert list(df.columns) == ["__file_id", "__row_idx"] + new
     assert not df.isna().any().any(), "no NaN column may leak in from another schema"
+
+
+# ── AINOS3-126: the RECORDED per-frame clock ──────────────────────────────
+# ⚠ The fallback these guard against is not a rounding error: a synthesized row
+# time is off by a median of 57 s at end-of-file (worst 187.5 s, measured over
+# the 113 rebuild_2026-09-10 runs), which is enough to label attack frames
+# nominal and vice versa.
+
+import pandas as pd  # noqa: E402
+from loader import RECV_TIME_COLUMN, _apply_row_times  # noqa: E402
+
+
+def _df(file_ids, n, with_col=True, bad_rows=()):
+    rows = []
+    for fid in file_ids:
+        for i in range(n):
+            r = {"__file_id": fid, "__row_idx": i}
+            if with_col:
+                r[RECV_TIME_COLUMN] = (
+                    "oops" if (fid, i) in bad_rows
+                    else f"2026-09-21T08:23:{48 + i:02d}.100000+00:00")
+            rows.append(r)
+    return pd.DataFrame(rows)
+
+
+def _recs(file_ids, n):
+    import datetime as _dt
+    base = _dt.datetime(2026, 9, 21, 8, 23, 48)
+    return [(f, base + _dt.timedelta(minutes=10 * k), n)
+            for k, f in enumerate(file_ids)]
+
+
+def test_row_times_use_the_recorded_clock_when_present():
+    ids = ["csv_out_2026-09-21T08-23-48-100000_pid11.csv"]
+    df, src, counts = _apply_row_times(_df(ids, 4), _recs(ids, 4))
+    assert src == "recorded"
+    assert counts == {"recorded": 1, "synthesized": 0}
+    # exactly the recorded values, not an estimate
+    assert df["__time"].iloc[0] == pd.Timestamp("2026-09-21T08:23:48.1", tz="UTC")
+    assert df["__time"].iloc[3] == pd.Timestamp("2026-09-21T08:23:51.1", tz="UTC")
+
+
+def test_row_times_fall_back_when_the_column_is_absent():
+    """Pre-AINOS3-126 corpora must still load."""
+    ids = ["csv_out_2026-09-21T08-23-48-100000_pid11.csv"]
+    df, src, counts = _apply_row_times(_df(ids, 4, with_col=False), _recs(ids, 4))
+    assert src == "synthesized"
+    assert counts == {"recorded": 0, "synthesized": 1}
+    assert df["__time"].notna().all()
+
+
+def test_a_partially_written_column_counts_as_absent_for_that_file():
+    """⚠ A half-recorded clock is worse than a consistently estimated one —
+    it would mix two time bases inside one file with nothing marking the seam."""
+    ids = ["csv_out_2026-09-21T08-23-48-100000_pid11.csv",
+           "csv_out_2026-09-21T08-33-48-100000_pid11.csv"]
+    bad = {(ids[0], 2)}
+    df, src, counts = _apply_row_times(_df(ids, 4, bad_rows=bad), _recs(ids, 4))
+    assert counts == {"recorded": 1, "synthesized": 1}
+    assert src == "mixed"
+    assert df["__time"].notna().all()

@@ -192,9 +192,7 @@ def _resolve_inout(inout_dir=None):
     for d in cands:
         if d and os.path.exists(os.path.join(d, "Inp_Sim.txt")):
             return d
-    raise FileNotFoundError(
-        "no 42 InOut directory with Inp_Sim.txt; looked in: "
-        + ", ".join(str(c) for c in cands))
+    raise FileNotFoundError("no 42 InOut directory with Inp_Sim.txt; looked in: " + ", ".join(str(c) for c in cands))
 
 
 NOS3_42_INOUT = NOS3_42_INOUT_CANDIDATES[0]
@@ -319,8 +317,7 @@ class Commander:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.log: list[dict] = []
 
-    def send(self, description: str, mid: int, fc: int, payload: bytes = b"",
-             post_delay: float = 0.2) -> None:
+    def send(self, description: str, mid: int, fc: int, payload: bytes = b"", post_delay: float = 0.2) -> None:
         pkt = build_ccsds_cmd(mid, fc, payload)
         entry = {
             "description": description,
@@ -377,11 +374,9 @@ class Commander:
             raise ValueError(f"quaternion needs 4 components, got {len(q)}")
         norm = sum(c * c for c in q) ** 0.5
         if abs(norm - 1.0) > 1e-6:
-            raise ValueError(f"quaternion {q} is not unit-norm (|q|={norm:.6f}); "
-                             "the controller expects a normalised attitude")
+            raise ValueError(f"quaternion {q} is not unit-norm (|q|={norm:.6f}); the controller expects a normalised attitude")
         payload = struct.pack("<4d", *(float(c) for c in q))
-        self.send(f"ADCS INERTIAL_QUATERNION {q}", ADCS_CMD_MID,
-                  ADCS_FC_INERTIAL_QUATERNION, payload)
+        self.send(f"ADCS INERTIAL_QUATERNION {q}", ADCS_CMD_MID, ADCS_FC_INERTIAL_QUATERNION, payload)
 
     def thruster_pct(self, pct: int) -> None:
         """Fire thruster at given duty cycle (0-100). Note: long-form payload depends on
@@ -397,8 +392,7 @@ class Commander:
     def eps_switch(self, switch_num: int, on: bool) -> None:
         state = EPS_STATE_ON if on else EPS_STATE_OFF
         payload = struct.pack("BB", switch_num, state)
-        self.send(f"EPS SWITCH {switch_num} {'ON' if on else 'OFF'}",
-                  EPS_CMD_MID, EPS_FC_SWITCH, payload)
+        self.send(f"EPS SWITCH {switch_num} {'ON' if on else 'OFF'}", EPS_CMD_MID, EPS_FC_SWITCH, payload)
 
     def radio_config(self, cfg: int) -> None:
         payload = struct.pack(">I", cfg)

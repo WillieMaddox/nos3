@@ -49,10 +49,7 @@ def log(msg: str) -> None:
 
 def fsw_running() -> bool:
     for name in ("sc01-nos-fsw", "sc01-onair"):
-        r = subprocess.run(
-            ["docker", "inspect", name, "--format", "{{.State.Status}}"],
-            capture_output=True, text=True,
-        )
+        r = subprocess.run(["docker", "inspect", name, "--format", "{{.State.Status}}"], capture_output=True, text=True)
         if r.returncode != 0 or r.stdout.strip() != "running":
             return False
     return True
@@ -80,8 +77,7 @@ def wait_for_fresh_csv(pre: set[Path], deadline_s: int = 120) -> Path:
 
 def stack_restart() -> Path:
     """make stop + make launch-quiet, wait for FSW + fresh CSV."""
-    subprocess.run(["make", "stop"], check=True, cwd=str(REPO_ROOT),
-                   stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    subprocess.run(["make", "stop"], check=True, cwd=str(REPO_ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     pre_csvs = set(CSV_DIR.glob("csv_out_*.csv"))
     # ⚠ Run the launch as a TRACKED CHILD, not a detached session.
     #
@@ -100,17 +96,36 @@ def stack_restart() -> Path:
     # "no fresh CSV" timeout.
     with open("/tmp/batch_attacks_launch.log", "wb") as launch_log:
         try:
-            rc = subprocess.run(["make", "launch-quiet"], cwd=str(REPO_ROOT),
-                                stdout=launch_log, stderr=subprocess.STDOUT,
-                                timeout=600).returncode
+            rc = subprocess.run(["make", "launch-quiet"], cwd=str(REPO_ROOT), stdout=launch_log, stderr=subprocess.STDOUT, timeout=600).returncode
         except subprocess.TimeoutExpired:
-            raise RuntimeError("make launch-quiet did not finish within 600s "
-                               "— see /tmp/batch_attacks_launch.log")
+            raise RuntimeError("make launch-quiet did not finish within 600s — see /tmp/batch_attacks_launch.log")
     if rc != 0:
-        raise RuntimeError(f"make launch-quiet exited {rc} "
-                           f"— see /tmp/batch_attacks_launch.log")
+        raise RuntimeError(f"make launch-quiet exited {rc} — see /tmp/batch_attacks_launch.log")
     wait_for_fsw()
     return wait_for_fresh_csv(pre_csvs)
+
+
+def stack_stop() -> None:
+    """`make stop` once a run's data is on disk.
+
+    The next run opens with `make stop` + `make launch-quiet` anyway, so this is
+    redundant for every run but the LAST — and that is the point. Without it a
+    finished chunk leaves the whole stack running: OnAIR keeps appending to a
+    session CSV nobody will label, the sims keep burning CPU, and a later
+    `AINOS3-100 AC7` verify or corpus sweep runs against a directory that is
+    still being written to. That last hazard is not hypothetical — a sweep over
+    a live output directory silently captured an open file on 2026-09-21.
+
+    Two back-to-back `make stop`s are harmless, so this stays unconditional
+    rather than special-casing the final entry.
+    """
+    log("make stop (run complete)")
+    try:
+        subprocess.run(["make", "stop"], check=False, cwd=str(REPO_ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, timeout=300)
+    except subprocess.TimeoutExpired:
+        # Never fatal: the data for this run is already written, and the next
+        # run's own `make stop` gets another attempt.
+        log("⚠ make stop timed out after 300s; continuing")
 
 
 def run_one(entry: dict, idx: int, total: int, csv_name: str | None = None) -> dict:
@@ -118,8 +133,7 @@ def run_one(entry: dict, idx: int, total: int, csv_name: str | None = None) -> d
     level = int(entry["level"])
     chain = bool(entry.get("chain", False))
     sample_log = Path(f"/tmp/batch_attack_{idx:02d}_{key}.log")
-    log(f"attack {idx}/{total}: {key} (level={level}, chain={chain}"
-        f"{', during=' + str(entry['during']) if entry.get('during') else ''}) → {sample_log}")
+    log(f"attack {idx}/{total}: {key} (level={level}, chain={chain}{', during=' + str(entry['during']) if entry.get('during') else ''}) → {sample_log}")
 
     pre_manifests = set(MANIFEST_DIR.glob("manifest_*.json"))
 
@@ -182,8 +196,7 @@ def main() -> None:
                    help=("JSON list of {key, level, chain} entries. Default: "
                          "/tmp/batch_validate_all32_results.json (the 2026-05-15 "
                          "session-3 list)."))
-    p.add_argument("--out", type=Path,
-                   default=Path("/tmp/batch_attack_modes_results.json"),
+    p.add_argument("--out", type=Path, default=Path("/tmp/batch_attack_modes_results.json"),
                    help="Output JSON path. Default /tmp/batch_attack_modes_results.json")
     p.add_argument("--start-at", type=int, default=1,
                    help="1-indexed entry to start at (resume after a failure).")
@@ -226,8 +239,10 @@ def main() -> None:
         # Save incrementally so a mid-run abort preserves prior results.
         with args.out.open("w") as f:
             json.dump(results, f, indent=2)
-        log(f"  exit={result['exit_code']} wallclock={result['wallclock_s']}s "
-            f"manifest={result['manifest']}")
+        log(f"  exit={result['exit_code']} wallclock={result['wallclock_s']}s manifest={result['manifest']}")
+        # ⚠ AFTER the results file is written, so a hang in `make stop` cannot
+        # cost us the run we just collected.
+        stack_stop()
 
     n_ok = sum(1 for r in results if r["exit_code"] == 0)
     log(f"DONE: {n_ok}/{len(results)} succeeded. Results → {args.out}")

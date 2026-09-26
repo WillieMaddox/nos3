@@ -54,7 +54,38 @@ The single living list. Nothing here is superseded or extended by a sprint plan.
   runner already resumes from `_remainder.json`.
 
   ⚠ **The kills are the harness watchdog, not the machine** (proven 2026-09-19: no cgroup cap, memory PSI 0.00, zero OOM/oomd kills, 381 GB free). The Sprint-29 collection hit them and survived only because `run_corpus_chunks` is resumable (`_remainder.json`, skips completed runs). Run the collection from a normal terminal — where there is no watchdog — and the kills do not occur at all.
-- [ ] `AC8` ⚠ **Verify attack FOOTPRINTS, not just attack exit codes, before any corpus is trained on.** `AC2`'s gate checks label, schema, sidecar, subprocess exit and controlled fraction — none of which confirm that the telemetry a technique is *supposed* to move actually moved. ⚠ A generic novel-value check cannot substitute: measured 2026-09-19, the three **probe-only** techniques (which by definition change no state) score 39/45/49 novel columns, squarely inside the range of real attacks, because free-running fields generate novel values continuously. Required: a **per-technique expected-footprint table** (field + direction), asserted per run, failing the run in `build_corpus_manifest.py` when the footprint is absent, and **back-filled across the existing `rebuild_2026-09-10` runs** so `AINOS3-101`'s results inherit verified rather than assumed provenance.
+- [ ] `AC9` ⚠ **Rejecting a run means moving its MANIFEST too, not just its CSV.**
+      `loader.load_with_labels` never reads the collection's results files — it globs the CSV
+      directory and labels rows from the manifests' scenario windows. So deleting a run's row
+      from `<chunk>_results.json` removes it from the RESULTS while leaving its frames fully
+      labelled and trainable. A re-run then ADDS a good run without removing the bad one, and
+      nothing reports the duplicate.
+
+      A rejected run has files in **three** places, all of which must move together:
+
+      | location | files |
+      |---|---|
+      | `data/onair/csv/` | `csv_out_<ts>_pid<N>.csv` + `.meta.json`, and the five plugin side-files (`iforest_out_`, `attack_class_`, `rule_gate_out_`, `consistency_out_`, `staleness_out_`, `incident_`) |
+      | `data/onair/csv_blended/` | the blended pair + its `.meta.json` |
+      | `data/onair/scenarios/` | `manifest_<ts>Z.json` ⚠ **the one most easily missed, and the one that re-contaminates** |
+
+      ⚠ Timestamps differ across the three — each plugin stamps its own init time, spanning
+      ~1 s — so match on the second (`*<date>T<hh-mm-ss>*`), never on the full microsecond
+      stamp. Quarantine to `data/onair/csv_rejected/` with a README stating the reason;
+      do not delete, since a rejected run is often the only capture of the defect that
+      rejected it.
+
+      **Verify afterwards** that no CSV or manifest is left unreferenced by any results row.
+- [x] `AC8` ⚠ **Verify attack FOOTPRINTS, not just attack exit codes, before any corpus is trained on.** `AC2`'s gate checks label, schema, sidecar, subprocess exit and controlled fraction — none of which confirm that the telemetry a technique is *supposed* to move actually moved. ⚠ A generic novel-value check cannot substitute: measured 2026-09-19, the three **probe-only** techniques (which by definition change no state) score 39/45/49 novel columns, squarely inside the range of real attacks, because free-running fields generate novel values continuously. Required: a **per-technique expected-footprint table** (field + direction), asserted per run, failing the run in `build_corpus_manifest.py` when the footprint is absent, and **back-filled across the existing `rebuild_2026-09-10` runs** so `AINOS3-101`'s results inherit verified rather than assumed provenance.
+
+⚠ **Epoch/phase policy: collect at the DEFAULT, gate REMOVED 2026-09-21.**
+`AINOS3-130` was parked without a usable answer — see that ticket. The short version:
+`True Anomaly` in `cfg/build/InOut/Orb_LEO.txt` genuinely moves the start phase (verified
+geometrically), and it does produce eclipse variation, but **capture time varies ~2.2x at a
+FIXED phase** (225-498 s), so an 8-point 1-rep sweep could not separate a better phase from a
+lucky draw. Resolving it needs many reps per phase, which costs more stack time than the
+capture wait it would save. Collect at `True Anomaly = 0` / epoch `2025-10-20 17:43:20` and
+revisit only if the INERTIAL wait becomes the binding constraint.
 
 ## Log
 
@@ -421,3 +452,71 @@ rather than reopening this ticket — recorded here as the origin. Scope: assert
 expected footprint from a per-technique table, fail the run in `build_corpus_manifest.py` when
 it is absent, and back-fill the check across the `rebuild_2026-09-10` corpus so the
 `AINOS3-101` results inherit a verified provenance rather than an assumed one.
+
+### 2026-09-22 · AC7 + AC8 DONE — 76 runs collected, footprints asserted
+
+#### In plain terms
+
+The corpus is collected: every attack in all four flight modes, on the coherent log format,
+with a real timestamp on every row. A new check confirms each attack actually moved the
+telemetry it was supposed to, rather than merely exiting cleanly — the gap that let the
+previous corpus be trained on without anyone knowing whether the attacks did anything.
+
+**`AC7` — 76 runs, 19 techniques x 4 modes, 13.7 h.** Instance-major ordering, one chunk per
+technique holding all four modes. Every run: 472 columns, `OnAIR.FrameRecvUTC` on 100 % of
+rows, attack window located in telemetry, mode held pre-attack, and
+`deinterleave_csv(raw) == native blend` **76/76**.
+
+**`AC8` — `components/onair/attack_footprints.json` + `training/check_footprints.py`.**
+19 techniques, each anchored on the command its script SENDS, not on what the corpus shows;
+deriving the expectation from the data it validates would be circular, and
+`AINOS3-100`'s own 2026-09-19 measurement ruled out a generic novel-value check (the three
+probe-only techniques scored 39/45/49 novel columns, inside the range of real attacks).
+Result: **75/76 runs corroborate their expected footprint.**
+
+#### ⚠ Three findings from building it, each worth more than the gate
+
+1. **A sampling-rate blind spot.** `DE-0003.01` does NOOP+RESET in **0.7 s** against a ~4 s HK
+   cadence, so `CFE_ES.CommandCounter` is flat 0 across all 2,804 frames of the run. That is
+   the technique SUCCEEDING — hiding the command is its entire premise — not a failed attack.
+2. **A reset is evidence, and an `increase` test can never see it.** `DE-0003.08` drives
+   `CFE_EVS_HK.MessageSendCounter` **192 -> 0 -> 2,3,4,5…**. The window max never exceeds the
+   baseline max, because destroying that history IS the technique. Assert `reset`.
+3. **The gate has a floor** — ⚠ but NOT the one first recorded here. `EX-0012.04` misses its
+   footprint in INERTIAL, and the 2026-09-22 entry explained that as an HK-cadence coin flip
+   (3.7 s burst vs ~4 s CFE_TBL HK). **REFUTED by instance 2** (2026-09-23): the cell fails
+   **2/2** in INERTIAL and passes **6/6** elsewhere, while siblings `EX-0012.03`/`.05` — same
+   HK packet, same LOAD+ACTIVATE+RESET — pass **8/8**, including later in the run than `.04`.
+   Ruled out: differing commands (attack logs byte-identical), an RTS lock (`NumRtsActive=0`
+   in all 8), frozen HK (staleness: 0 stale frames in 5,740). ⚠ **Mechanism UNKNOWN**; needs
+   the EVS message text, which `ExcludeColumns` prunes, so it needs a live reproduction.
+   ⚠ The general lesson still stands: **a footprint miss means "not corroborated in
+   telemetry", NOT "the attack did not run"** — those runs are valid (exit 0, EVS stepped,
+   frames correctly labelled).
+
+⚠ `CI.usCmdCnt` and `TO.usCmdCnt` are near-dead (1 change in 2,610 frames) — do not assert on
+them; see `AINOS3-72` on the lab-vs-full app re-point.
+
+#### Cells the gates reject, all understood
+
+| cell | gate | why |
+|---|---|---|
+| `EX-0012.07` / INERTIAL | capture 33 % | thruster burn breaks the star-tracker lock — the technique's own footprint |
+| `EX-0014.03` / INERTIAL | capture 71 % | IMU disabled -> attitude solution degrades -> `qValid` follows |
+| `EX-0012.04` / INERTIAL | footprint | the sampling floor above; the run itself is sound |
+
+#### One run rejected and quarantined
+
+`EX-0014.03`/SUNSAFE, re-run: an ADCS app counter reset (`ADCS_HK.CommandCount` 236 -> 0, no
+processor reset, 26 apps and 38 tasks throughout) left 22 of 891 pre-attack frames reading
+`Mode = PASSIVE`. Seen **once in 76 runs**. Quarantined to `data/onair/csv_rejected/` with its
+manifest — see `AC9`.
+
+#### Tooling
+
+- `training/merge_chunk_results.py` — joins the 19 chunk results for
+  `build_corpus_manifest.py --batch-results`, excluding `*_remainder_results.json` and
+  refusing duplicate cells. ⚠ A completed resume leaves its remainder file on disk, and
+  globbing `*_results.json` counts those runs twice (observed: 77 runs for a 76-run corpus).
+- `training/verify_corpus_chunk.py` — per-run structural checks as chunks land.
+- `training/check_footprints.py` — the `AC8` assertion, non-zero exit on any miss.

@@ -36,6 +36,24 @@ _CSV_TS = re.compile(r"csv_out_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d+)_pid")
 _FILE_PID = re.compile(r"_pid(\d+)\.csv$")
 # iforest_out_2026-05-09T18-22-04-123456_pid8.csv
 _IFOREST_GLOB = "iforest_out_*_pid*.csv"
+
+# AINOS3-126: the per-frame arrival time the blended adapter stamps into every
+# row, ISO-8601 UTC, in the same form an attack manifest's start_utc uses.
+#
+# ⚠ Prefer it over _synthesize_row_times ALWAYS. That fallback rebuilds row
+# times as `file_start + row_idx / rate` with the rate inferred by
+# _compute_step_rates from the gap to the NEXT FILE's start — a gap that
+# includes the ~2 min `make stop` + `launch-quiet` between runs, so the rate is
+# systematically under-estimated and the error accumulates down the file.
+# Measured across the 113 rebuild_2026-09-10 runs: median 56.7 s of drift by
+# end-of-file, worst 187.5 s, against attack windows of a few minutes. Rows were
+# therefore labelled attack-vs-nominal against a clock that could be a minute
+# out.
+#
+# ⚠ The in-stream clocks cannot substitute: CFE_TIME.SecondsMET ticks once per
+# 4.000 s (24.9 frames), every other monotonic counter shares that cadence, and
+# on INTERLEAVED data MET steps backwards on 48.2 % of rows.
+RECV_TIME_COLUMN = "OnAIR.FrameRecvUTC"
 _IFOREST_TS = re.compile(r"iforest_out_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d+)_pid")
 
 # v4: ADCS mode labeling. ADCS_GNC.Mode stores the integer-valued mode the FSW
@@ -64,6 +82,12 @@ class LoadStats:
     files_skipped_schema: int = 0
     schema_columns: int = 0
     schema_variants: dict[int, int] = field(default_factory=dict)
+    # Which clock produced __time. "recorded" = the per-frame column the
+    # adapter stamps; "synthesized" = the file_start + row_idx/rate estimate.
+    # Never left unset, because the two differ by a median of 57 s.
+    row_time_source: str = ""
+    files_row_time_recorded: int = 0
+    files_row_time_synthesized: int = 0
 
 
 def _file_is_clean(path: str) -> tuple[bool, str]:
@@ -88,8 +112,7 @@ def _header_of(path: str) -> list[str]:
         return next(csv.reader(f), []) or []
 
 
-def list_clean_csvs(csv_dir: str, *, schema: list[str] | None = None,
-                    strict_schema: bool = False) -> tuple[list[str], LoadStats]:
+def list_clean_csvs(csv_dir: str, *, schema: list[str] | None = None, strict_schema: bool = False) -> tuple[list[str], LoadStats]:
     """Clean telemetry CSVs in `csv_dir`, restricted to ONE recorded schema.
 
     ⚠ THE SCHEMA GUARD, and why it is not optional.
@@ -387,6 +410,48 @@ def _synthesize_row_times(df: pd.DataFrame, rate_by_file: dict[str, float]) -> p
     return df
 
 
+def _apply_row_times(df: pd.DataFrame, file_records):
+    """Set `__time` from the RECORDED per-frame clock where it exists.
+
+    Falls back to `_synthesize_row_times` per file, so pre-AINOS3-126 corpora
+    still load — but the fallback is reported, never silent, because a
+    synthesized row time can be a minute out (see RECV_TIME_COLUMN).
+
+    A file counts as recorded only if the column is present AND parses for
+    every row of that file; a partially-written column is treated as absent
+    rather than mixed, since a half-recorded clock is worse than a consistently
+    estimated one.
+    """
+    counts = {"recorded": 0, "synthesized": 0}
+    if RECV_TIME_COLUMN not in df.columns:
+        rate_by_file = _compute_step_rates(file_records)
+        counts["synthesized"] = df["__file_id"].nunique()
+        return _synthesize_row_times(df, rate_by_file), "synthesized", counts
+
+    parsed = pd.to_datetime(df[RECV_TIME_COLUMN], errors="coerce", utc=True, format="ISO8601")
+    ok_by_file = parsed.notna().groupby(df["__file_id"]).all()
+    good = set(ok_by_file[ok_by_file].index)
+    counts["recorded"] = len(good)
+    counts["synthesized"] = int(df["__file_id"].nunique()) - len(good)
+
+    if counts["synthesized"] == 0:
+        df["__time"] = parsed
+        return df, "recorded", counts
+
+    # Mixed corpus: synthesize for the files that lack the column, keep the
+    # recorded clock for the ones that have it.
+    rate_by_file = _compute_step_rates(file_records)
+    df = _synthesize_row_times(df, rate_by_file)
+    mask = df["__file_id"].isin(good)
+    df.loc[mask, "__time"] = parsed[mask]
+    src = "recorded" if counts["synthesized"] == 0 else (
+        "mixed" if counts["recorded"] else "synthesized")
+    print(f"⚠ row times: {counts['recorded']} file(s) use the recorded "
+          f"{RECV_TIME_COLUMN} clock, {counts['synthesized']} fall back to "
+          f"file_start + row_idx/rate (median 57 s drift; see AINOS3-126)")
+    return df, src, counts
+
+
 def _tag_attack_rows(df: pd.DataFrame, attacks: list[dict]) -> pd.DataFrame:
     """Set `__attack_id`, `__attack_window`, and `__corruption_window`.
 
@@ -514,8 +579,9 @@ def load_with_labels(
         if ts is None:
             continue
         file_records.append((fid, ts, int(n_pre)))
-    rate_by_file = _compute_step_rates(file_records)
-    df = _synthesize_row_times(df, rate_by_file)
+    df, stats.row_time_source, per_file = _apply_row_times(df, file_records)
+    stats.files_row_time_recorded = per_file["recorded"]
+    stats.files_row_time_synthesized = per_file["synthesized"]
     df = _tag_attack_rows(df, attacks)
 
     # Per-row scenario assignment from __time. File-level assignment is
