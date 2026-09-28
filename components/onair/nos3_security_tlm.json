@@ -2362,6 +2362,13 @@
     },
     "description": "Magnetometer body-frame field vector as used by attitude determination [T]"
    },
+   "ADCS_AD.Mag.MagValid": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "Magnetometer data validity flag at the determination stage"
+   },
    "ADCS_AD.Sol.SunValid": {
     "conversion": "",
     "tests": {
@@ -3904,6 +3911,7 @@
   "FM.ChildCurrentCC",
   "FM.ChildPreviousCC",
   "ADCS_AD.Mag.bvb",
+  "ADCS_AD.Mag.MagValid",
   "ADCS_AD.Sol.SunValid",
   "ADCS_AD.Sol.FssValid",
   "ADCS_AD.Sol.svb",

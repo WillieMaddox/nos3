@@ -189,9 +189,9 @@ class NOVATEL_OEM615_Device_Data_tlm_t(Structure):
         ("VelX",            c_double),
         ("VelY",            c_double),
         ("VelZ",            c_double),
-        ("lat",             c_float),
-        ("lon",             c_float),
-        ("alt",             c_float),
+        ("lat",             c_double),
+        ("lon",             c_double),
+        ("alt",             c_double),
     ]
 
 class NOVATEL_OEM615_Device_tlm_t(Structure):
@@ -1148,6 +1148,7 @@ class Generic_ADCS_AD_Mag_Tlm_Payload_t(Structure):
     _pack_ = 1
     _fields_ = [
         ("bvb", c_double * 3),
+        ("MagValid", c_uint8),
     ]
 
 class Generic_ADCS_AD_Sol_Tlm_Payload_t(Structure):
@@ -1413,3 +1414,113 @@ class CS_HkPacket_t(Structure):
         ("LastOneShotChecksum",         c_uint32),
         ("PassCounter",                 c_uint32),
     ]
+
+
+# --- struct-size guard (merge=ours drift protection) ---
+# message_headers.py is a merge=ours file, so upstream FSW C-struct changes are
+# silently masked here. These sizes were verified byte-exact against the component
+# *_msg.h structs (see the MagValid / NOVATEL lat-lon-alt fixes). A mismatch means
+# the Python layout drifted from the C struct -> fail loudly at import instead of
+# recording misaligned garbage. On a legitimate C-struct change, re-audit and update.
+import ctypes as _ct
+_EXPECTED_STRUCT_SIZES = {
+    "CFE_ES_HousekeepingTlm_t": 164,
+    "CFE_EVS_AppTlmData_t": 8,
+    "CFE_EVS_HousekeepingTlm_t": 160,
+    "CFE_EVS_LongEventTlm_t": 172,
+    "CFE_EVS_PacketID_t": 32,
+    "CFE_SB_AllSubscriptionsTlm_t": 188,
+    "CFE_SB_HousekeepingTlm_t": 44,
+    "CFE_SB_SubEntries_t": 8,
+    "CFE_TBL_HousekeepingTlm_t": 298,
+    "CFE_TIME_HousekeepingTlm_t": 40,
+    "CF_HkChannel_Data_t": 88,
+    "CF_HkCmdCounters_t": 4,
+    "CF_HkCounters_t": 64,
+    "CF_HkFault_t": 24,
+    "CF_HkPacket_t": 200,
+    "CF_HkRecv_t": 24,
+    "CF_HkSent_t": 16,
+    "CI_HkTlm_t": 20,
+    "CI_LAB_HkTlm_Payload_t": 24,
+    "CI_LAB_HkTlm_t": 40,
+    "CS_HkPacket_t": 80,
+    "DS_HkPacket_t": 112,
+    "DS_HkTlm_Payload_t": 96,
+    "FM_HousekeepingPkt_t": 26,
+    "GENERIC_CSS_Device_Data_tlm_t": 12,
+    "GENERIC_CSS_Device_tlm_t": 28,
+    "GENERIC_CSS_Hk_tlm_t": 21,
+    "GENERIC_EPS_Device_HK_tlm_t": 64,
+    "GENERIC_EPS_Hk_tlm_t": 84,
+    "GENERIC_EPS_Switch_tlm_t": 6,
+    "GENERIC_FSS_Device_Data_tlm_t": 9,
+    "GENERIC_FSS_Device_tlm_t": 25,
+    "GENERIC_FSS_Hk_tlm_t": 21,
+    "GENERIC_IMU_Device_Axis_Data_t": 8,
+    "GENERIC_IMU_Device_Data_tlm_t": 24,
+    "GENERIC_IMU_Device_HK_tlm_t": 8,
+    "GENERIC_IMU_Device_tlm_t": 40,
+    "GENERIC_IMU_Hk_tlm_t": 29,
+    "GENERIC_MAG_Device_Data_tlm_t": 12,
+    "GENERIC_MAG_Device_tlm_t": 28,
+    "GENERIC_MAG_Hk_tlm_t": 21,
+    "GENERIC_RADIO_Device_HK_tlm_t": 12,
+    "GENERIC_RADIO_Device_tlm_t": 28,
+    "GENERIC_RADIO_Hk_tlm_t": 33,
+    "GENERIC_RW_Data_t": 24,
+    "GENERIC_RW_HkTlm_t": 51,
+    "GENERIC_STAR_TRACKER_Device_Data_tlm_t": 33,
+    "GENERIC_STAR_TRACKER_Device_HK_tlm_t": 4,
+    "GENERIC_STAR_TRACKER_Device_tlm_t": 49,
+    "GENERIC_STAR_TRACKER_Hk_tlm_t": 25,
+    "GENERIC_THRUSTER_Hk_tlm_t": 21,
+    "GENERIC_TORQUER_Device_tlm_t": 2,
+    "GENERIC_TORQUER_Hk_tlm_t": 31,
+    "Generic_ADCS_AC_Bdot_Tlm_t": 64,
+    "Generic_ADCS_AC_Inertial_Tlm_t": 248,
+    "Generic_ADCS_AC_Sunsafe_Tlm_t": 185,
+    "Generic_ADCS_AC_Tlm_t": 513,
+    "Generic_ADCS_AD_Imu_Tlm_Payload_t": 82,
+    "Generic_ADCS_AD_Mag_Tlm_Payload_t": 25,
+    "Generic_ADCS_AD_ST_Tlm_Payload_t": 33,
+    "Generic_ADCS_AD_Sol_Tlm_Payload_t": 26,
+    "Generic_ADCS_AD_Tlm_t": 182,
+    "Generic_ADCS_DI_Css_Sensor_Payload_t": 40,
+    "Generic_ADCS_DI_Css_Tlm_Payload_t": 265,
+    "Generic_ADCS_DI_Fss_Tlm_Payload_t": 57,
+    "Generic_ADCS_DI_Imu_Tlm_Payload_t": 105,
+    "Generic_ADCS_DI_Mag_Tlm_Payload_t": 56,
+    "Generic_ADCS_DI_Rw_Tlm_Payload_t": 120,
+    "Generic_ADCS_DI_St_Tlm_Payload_t": 65,
+    "Generic_ADCS_DI_Tlm_Payload_t": 668,
+    "Generic_ADCS_DI_Tlm_t": 684,
+    "Generic_ADCS_DO_Rw_TlmPayload_t": 96,
+    "Generic_ADCS_DO_Tlm_t": 168,
+    "Generic_ADCS_DO_Trq_TlmPayload_t": 56,
+    "Generic_ADCS_GNC_Hmgmt_t": 59,
+    "Generic_ADCS_GNC_Tlm_t": 327,
+    "Generic_ADCS_Hk_tlm_t": 18,
+    "LC_HkPacket_t": 172,
+    "NOVATEL_OEM615_Device_Data_tlm_t": 86,
+    "NOVATEL_OEM615_Device_tlm_t": 102,
+    "NOVATEL_OEM615_Hk_tlm_t": 21,
+    "SAMPLE_Device_HK_tlm_t": 12,
+    "SAMPLE_Hk_tlm_t": 33,
+    "SBN_ModuleStatusTlm_t": 82,
+    "SCH_HkPacket_t": 68,
+    "SC_HkTlm_t": 92,
+    "TO_HkTlm_t": 32,
+    "TO_LAB_HkTlm_Payload_t": 4,
+    "TO_LAB_HkTlm_t": 20,
+}
+_size_mismatches = [
+    f"{_n}: {_ct.sizeof(globals()[_n])}B != expected {_sz}B"
+    for _n, _sz in _EXPECTED_STRUCT_SIZES.items()
+    if _n in globals() and _ct.sizeof(globals()[_n]) != _sz
+]
+assert not _size_mismatches, (
+    "message_headers struct layout drifted from the FSW C structs "
+    "(merge=ours drift) -> " + "; ".join(_size_mismatches) +
+    " -- re-audit against the component *_msg.h and update _EXPECTED_STRUCT_SIZES."
+)
