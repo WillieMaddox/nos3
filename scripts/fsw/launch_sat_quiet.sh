@@ -74,9 +74,9 @@ $DNETWORK create \
     nos3-core
 echo ""
 
-# GSW (cosmos-openc3-operator-1) is expected to be already running from
-# ~/.nos3/cosmos/openc3.sh start. The quiet variant does NOT open firefox.
-export GSW="cosmos-openc3-operator-1"
+# GSW (openc3-openc3-operator-1) is expected to be already running from
+# ~/.nos3/openc3/openc3.sh start. The quiet variant does NOT open firefox.
+export GSW="openc3-openc3-operator-1"
 
 echo "Create NOS interfaces..."
 export GND_CFG_FILE="-f nos3-simulator.xml"
@@ -98,8 +98,8 @@ do
     $DNETWORK inspect $SC_NETNAME > /dev/null 2>&1 || $DNETWORK create $SC_NETNAME 2> /dev/null
     echo ""
 
-    echo $SC_NUM " - Connect GSW ${GSW:-cosmos-openc3-operator-1} to spacecraft network..."
-    $DNETWORK connect $SC_NETNAME "${GSW:-cosmos-openc3-operator-1}" --alias cosmos --alias active-gs 2> /dev/null || true
+    echo $SC_NUM " - Connect GSW ${GSW:-openc3-openc3-operator-1} to spacecraft network..."
+    $DNETWORK connect $SC_NETNAME "${GSW:-openc3-openc3-operator-1}" --alias cosmos --alias active-gs 2> /dev/null || true
     echo ""
 
     echo $SC_NUM " - 42 (headless: X11 mounts skipped, Graphics Front End disabled)..."

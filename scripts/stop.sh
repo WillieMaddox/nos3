@@ -17,12 +17,11 @@ rm -rf $BASE_DIR/fsw/build/exe/cpu1/scratch/*
 # Docker stop
 cd $SCRIPT_DIR; $DFLAG compose down > /dev/null 2>&1
 $DCALL ps --filter ancestor="$DBOX" -aq | xargs $DCALL stop > /dev/null 2>&1 &
-$DCALL ps --filter=name="^sc_" -aq | xargs $DCALL stop > /dev/null 2>&1 &
+$DCALL ps --filter=name="^sc0" -aq | xargs $DCALL stop > /dev/null 2>&1 &
 $DCALL ps --filter=name="nos_*" -aq | xargs $DCALL stop > /dev/null 2>&1 &
 $DCALL ps --filter=name="ait*" -aq | xargs $DCALL stop > /dev/null 2>&1 &
 # $DCALL ps --filter=name="influxdb*" -aq | xargs $DCALL stop > /dev/null 2>&1 &
 $DCALL ps --filter=name="ttc-command*" -aq | xargs $DCALL stop > /dev/null 2>&1 &
-$DCALL ps --filter=name="openc3*" -aq | xargs $DCALL stop > /dev/null 2>&1 &
 
 # Intentionally wait to complete
 wait 

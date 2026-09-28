@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 #
 # Convenience script for NOS3 development
 # Use with the Dockerfile in the deployment repository
@@ -43,6 +43,7 @@ cp $BASE_DIR/fsw/build/exe/cpu1/cf/cfe_es_startup.scr /tmp/nos3/uplink/tmp0.so 2
 cp $BASE_DIR/fsw/build/exe/cpu1/cf/sample.so /tmp/nos3/uplink/tmp1.so 2> /dev/null
 
 echo "Create networks..."
+$DNETWORK inspect nos3-core > /dev/null 2>&1 || \
 $DNETWORK create \
     --driver=overlay \
     --subnet=192.168.41.0/24 \
@@ -67,6 +68,7 @@ do
     export SC_NETNAME="nos3-"$SC_NUM
     export SC_CFG_FILE="-f nos3-simulator.xml" #"-f sc_"$i"_nos3_simulator.xml"
 
+    $DNETWORK inspect $SC_NETNAME > /dev/null 2>&1 || \
     $DNETWORK create \
         --driver=overlay \
         --attachable \
