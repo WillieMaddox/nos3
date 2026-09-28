@@ -33,6 +33,7 @@
 #include "cfe_msgids.h"
 #include "cf_msgids.h"
 #include "ci_msgids.h"
+#include "cs_msgids.h"
 #include "ds_msgids.h"
 #include "fm_msgids.h"
 //#include "hk_msgids.h"
@@ -102,8 +103,7 @@ SCH_MessageEntry_t SCH_DefaultMessageTable[SCH_MAX_MESSAGES] =
   **  CFS housekeeping request messages
   */
     /* command ID #6 - Checksum HK Request           */
-/*{ { CFE_MAKE_BIG16(CS_SEND_HK_MID),  CFE_MAKE_BIG16(0xC000), CFE_MAKE_BIG16(0x0001), 0x0000 } }, */
-  { { CFE_MAKE_BIG16(SCH_UNUSED_MID) } },
+  { { CFE_MAKE_BIG16(CS_SEND_HK_MID),  CFE_MAKE_BIG16(0xC000), CFE_MAKE_BIG16(0x0001), 0x0000 } },  /* CS Send HK */
     /* command ID #7 - Data Store HK Request         */
   { { CFE_MAKE_BIG16(DS_SEND_HK_MID),  CFE_MAKE_BIG16(0xC000), CFE_MAKE_BIG16(0x0001), 0x0000 } },
     /* command ID #8 - File Manager HK Request       */
@@ -144,8 +144,7 @@ SCH_MessageEntry_t SCH_DefaultMessageTable[SCH_MAX_MESSAGES] =
 /*{ { CFE_MAKE_BIG16(HK_SEND_COMBINED_PKT_MID), CFE_MAKE_BIG16(0xC000), CFE_MAKE_BIG16(0x0003), 0x0000, HK_COMBINED_PKT4_MID } }, */
   { { CFE_MAKE_BIG16(SCH_UNUSED_MID) } },
     /* command ID #20 - CS Background Cycle               */
-/*{ { CFE_MAKE_BIG16(CS_BACKGROUND_CYCLE_MID),  CFE_MAKE_BIG16(0xC000), CFE_MAKE_BIG16(0x0001), 0x0000 } }, */
-  { { CFE_MAKE_BIG16(SCH_UNUSED_MID) } },
+  { { CFE_MAKE_BIG16(CS_BACKGROUND_CYCLE_MID),  CFE_MAKE_BIG16(0xC000), CFE_MAKE_BIG16(0x0001), 0x0000 } },  /* CS Background Cycle */
     /* command ID #21 - SC 1 Hz Wakeup                    */
   { { CFE_MAKE_BIG16(SC_1HZ_WAKEUP_MID),        CFE_MAKE_BIG16(0xC000), CFE_MAKE_BIG16(0x0001), 0x0000 } },
     /* command ID #22 - LC Sample Action Points           */

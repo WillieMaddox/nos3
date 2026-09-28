@@ -1,8 +1,6 @@
-# Set the default behavior, in case people don't have core.autocrlf set.
-* text eol=lf
-
-# Declare files that will always have LF line endings on checkout.
-*.sh text eol=lf
-
-# Handle PNGs as binary
-*.png binary
+# ainos3 thin fork — files we own outright; keep OUR version on every upstream merge.
+# Needs (once per clone):  git config merge.ours.driver true
+# ⚠ merge=ours HIDES upstream edits — review these against upstream a couple times a year.
+cfg/nos3_defs/tables/sch_def_schtbl.c   merge=ours
+cfg/nos3_defs/tables/sch_def_msgtbl.c   merge=ours
+components/onair/message_headers.py     merge=ours

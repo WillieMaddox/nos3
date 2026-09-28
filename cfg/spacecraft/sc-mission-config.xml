@@ -4,6 +4,9 @@
 		<cf>
 			<enable>true</enable>
 		</cf>
+		<cs>
+			<enable>true</enable>
+		</cs>
 		<ds>
 			<enable>true</enable>
 		</ds>
@@ -14,7 +17,7 @@
 			<enable>true</enable>
 		</lc>
 		<sbn>
-			<enable>false</enable>
+			<enable>true</enable>
 		</sbn>
 		<sc>
 			<enable>true</enable>
@@ -49,7 +52,7 @@
 			<enable>true</enable>
 		</mgr>
 		<onair>
-			<enable>false</enable>
+			<enable>true</enable>
 		</onair>
 		<radio>
 			<enable>true</enable>
