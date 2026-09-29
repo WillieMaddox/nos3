@@ -91,18 +91,18 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #0 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 105, SCH_GROUP_NONE },  /* Thruster HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
   
   /* slot #1 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},  
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  26, SCH_GROUP_CFS_HK },  /* CF HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 26,  SCH_GROUP_CFS_HK },  /* CF HK Request */
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
     
   /* slot #2 - ADCS */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 51, SCH_GROUP_NONE },  /* GPS Data Request */
@@ -112,29 +112,29 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 81, SCH_GROUP_NONE },  /* MAG Data Request */ 
 
   /* slot #3 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  2, SCH_GROUP_CFE_HK },   /* EVS HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   2, SCH_GROUP_CFE_HK },  /* EVS HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE}, 
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   4, SCH_GROUP_CFE_HK },  /* TIME HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
 
   /* slot #4 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  4,  1,  6, SCH_GROUP_CFS_HK },  /* CS HK Request (AINOS3-111) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   6, SCH_GROUP_CFS_HK },  /* CS HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 20, SCH_GROUP_NONE },  /* CS Background Cycle (AINOS3-111) */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  14, SCH_GROUP_CFS_HK },  /* SC HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #5  - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 40, SCH_GROUP_NONE },   /* CAM HK Request */                                      
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 96, SCH_GROUP_NONE },   /* ADCS HK Request */       
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  96, SCH_GROUP_NONE },  /* ADCS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  70, SCH_GROUP_NONE },  /* CSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #6 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  60, SCH_GROUP_CFS_HK },  /* FSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -149,28 +149,28 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #8 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  85, SCH_GROUP_NONE },  /* Radio HK Request (1 Hz: every request fails with a sendto error + EVS error event) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #9 */
-  {  SCH_ENABLED, SCH_ACTIVITY_SEND_MSG,  1,  0,  7, SCH_GROUP_CFS_HK },  /* DS HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   7, SCH_GROUP_CFS_HK },  /* DS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  11, SCH_GROUP_CFS_HK },  /* LC HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  15, SCH_GROUP_CFS_HK },  /* SCH HK Request (1 Hz: SCH answers its own commands once per major frame, slot 99) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #10 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 100, SCH_GROUP_NONE },  /* ST HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  62, SCH_GROUP_NONE },  /* Torquer HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #11 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  45, SCH_GROUP_NONE },  /* RW HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -184,14 +184,14 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 81, SCH_GROUP_NONE },  /* MAG Data Request */ 
 
   /* slot #13 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  3, SCH_GROUP_CFE_HK },   /* SB HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  80, SCH_GROUP_NONE },  /* MAG HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   3, SCH_GROUP_CFE_HK },  /* SB HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   5, SCH_GROUP_CFE_HK },  /* TBL HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #14 */
-  {  SCH_ENABLED, SCH_ACTIVITY_SEND_MSG,  1,  0,  8, SCH_GROUP_CFS_HK },  /* FM HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   8, SCH_GROUP_CFS_HK },  /* FM HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -199,16 +199,16 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #15 - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 45, SCH_GROUP_NONE },   /* RW HK Request */         
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,100, SCH_GROUP_NONE },  /* ST HK Request */ 
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  65, SCH_GROUP_CFE_HK },  /* EPS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  75, SCH_GROUP_NONE },  /* IMU HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #16 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 20, SCH_GROUP_NONE }, */  /* CS Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  30, SCH_GROUP_NONE },  /* CI HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  31, SCH_GROUP_NONE },  /* TO HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -222,7 +222,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #18 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  1, SCH_GROUP_CFE_HK },   /* ES HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   1, SCH_GROUP_CFE_HK },  /* ES HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -237,14 +237,14 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #20 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 105, SCH_GROUP_NONE },  /* Thruster HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #21 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  26, SCH_GROUP_CFS_HK },  /* CF HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -258,16 +258,16 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 81, SCH_GROUP_NONE },  /* MAG Data Request */ 
 
   /* slot #23 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  4, SCH_GROUP_CFE_HK },   /* TIME HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   2, SCH_GROUP_CFE_HK },  /* EVS HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   4, SCH_GROUP_CFE_HK },  /* TIME HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #24 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  4,  1, 10, SCH_GROUP_CFS_HK }, */  /* HS HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   6, SCH_GROUP_CFS_HK },  /* CS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  14, SCH_GROUP_CFS_HK },  /* SC HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -277,12 +277,12 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 50, SCH_GROUP_CFE_HK },   /* GPS HK Request */         
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 51, SCH_GROUP_CFE_HK },  /* GPS Data Request   */                                              
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG, 10,  0, 35, SCH_GROUP_CFE_HK },   /* MGR HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  96, SCH_GROUP_NONE },  /* ADCS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  70, SCH_GROUP_NONE },  /* CSS HK Request (5 Hz) */
 
   /* slot #26 */
   {  SCH_ENABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 21, SCH_GROUP_NONE },  /* SC Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  60, SCH_GROUP_CFS_HK },  /* FSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -296,28 +296,28 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #28 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  2, SCH_GROUP_CFE_HK },   /* EVS HK Request */
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #29 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 11, SCH_GROUP_CFS_HK },  /* LC HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   7, SCH_GROUP_CFS_HK },  /* DS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  11, SCH_GROUP_CFS_HK },  /* LC HK Request (5 Hz) */
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #30 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 100, SCH_GROUP_NONE },  /* ST HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  62, SCH_GROUP_NONE },  /* Torquer HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #31 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  45, SCH_GROUP_NONE },  /* RW HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -331,15 +331,15 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 81, SCH_GROUP_NONE },  /* MAG Data Request */ 
 
   /* slot #33 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  5, SCH_GROUP_CFE_HK },   /* TBL HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  80, SCH_GROUP_NONE },  /* MAG HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   3, SCH_GROUP_CFE_HK },  /* SB HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   5, SCH_GROUP_CFE_HK },  /* TBL HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #34 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  4,  1, 12, SCH_GROUP_CFS_HK }, */  /* MD HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   8, SCH_GROUP_CFS_HK },  /* FM HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -350,13 +350,13 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 55, SCH_GROUP_CFE_HK },   /* Sample HK Request */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 56, SCH_GROUP_CFE_HK },   /* Sample Data Request */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 57, SCH_GROUP_CFE_HK },   /* SYN_APP Data Request */                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  65, SCH_GROUP_CFE_HK },  /* EPS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  75, SCH_GROUP_NONE },  /* IMU HK Request (5 Hz) */
 
   /* slot #36 */
   {  SCH_ENABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 23, SCH_GROUP_CFS_HK },  /* DS Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  30, SCH_GROUP_NONE },  /* CI HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  31, SCH_GROUP_NONE },  /* TO HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
@@ -369,7 +369,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #38 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   1, SCH_GROUP_CFE_HK },  /* ES HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -384,14 +384,14 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #40 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 105, SCH_GROUP_NONE },  /* Thruster HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #41 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  26, SCH_GROUP_CFS_HK },  /* CF HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -405,29 +405,29 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 81, SCH_GROUP_NONE },  /* MAG Data Request */ 
 
   /* slot #43 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  1, SCH_GROUP_CFE_HK },   /* ES HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   2, SCH_GROUP_CFE_HK },  /* EVS HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   4, SCH_GROUP_CFE_HK },  /* TIME HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #44 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 14, SCH_GROUP_CFS_HK },  /* SC HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   6, SCH_GROUP_CFS_HK },  /* CS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  14, SCH_GROUP_CFS_HK },  /* SC HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #45 - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 60, SCH_GROUP_CFS_HK },  /* FSS HK Request */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,105, SCH_GROUP_NONE },  /* Thruster HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  96, SCH_GROUP_NONE },  /* ADCS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  70, SCH_GROUP_NONE },  /* CSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #46 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  60, SCH_GROUP_CFS_HK },  /* FSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -442,29 +442,29 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #48 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #49 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  4,  2, 15, SCH_GROUP_CFS_HK },   /* SCH HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   7, SCH_GROUP_CFS_HK },  /* DS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  11, SCH_GROUP_CFS_HK },  /* LC HK Request (5 Hz) */
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #50 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 100, SCH_GROUP_NONE },  /* ST HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  62, SCH_GROUP_NONE },  /* Torquer HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #51 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 22, SCH_GROUP_NONE },   /* LC Sample Action Points */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  45, SCH_GROUP_NONE },  /* RW HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -478,13 +478,13 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #53 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  2, SCH_GROUP_CFE_HK },   /* EVS HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  80, SCH_GROUP_NONE },  /* MAG HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   3, SCH_GROUP_CFE_HK },  /* SB HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   5, SCH_GROUP_CFE_HK },  /* TBL HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #54 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   8, SCH_GROUP_CFS_HK },  /* FM HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -492,15 +492,15 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #55 - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 65, SCH_GROUP_CFE_HK },   /* EPS HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  65, SCH_GROUP_CFE_HK },  /* EPS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  75, SCH_GROUP_NONE },  /* IMU HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #56 */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 30, SCH_GROUP_NONE },  /* CI HK Request */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 31, SCH_GROUP_NONE },  /* TO HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  30, SCH_GROUP_NONE },  /* CI HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  31, SCH_GROUP_NONE },  /* TO HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -514,7 +514,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #58 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   1, SCH_GROUP_CFE_HK },  /* ES HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -528,14 +528,14 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #60 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 105, SCH_GROUP_NONE },  /* Thruster HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #61 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  26, SCH_GROUP_CFS_HK },  /* CF HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -550,28 +550,28 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #63 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   2, SCH_GROUP_CFE_HK },  /* EVS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   4, SCH_GROUP_CFE_HK },  /* TIME HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #64 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   6, SCH_GROUP_CFS_HK },  /* CS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  14, SCH_GROUP_CFS_HK },  /* SC HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #65 - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 70, SCH_GROUP_NONE },  /* CSS HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  96, SCH_GROUP_NONE },  /* ADCS HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 71, SCH_GROUP_NONE },  /* CSS Data Request */                                          
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  70, SCH_GROUP_NONE },  /* CSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #66 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  60, SCH_GROUP_CFS_HK },  /* FSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -586,28 +586,28 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #68 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  1, SCH_GROUP_CFE_HK },   /* ES HK Request */
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #69 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   7, SCH_GROUP_CFS_HK },  /* DS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  11, SCH_GROUP_CFS_HK },  /* LC HK Request (5 Hz) */
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #70 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 62, SCH_GROUP_NONE },  /* Torquer HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 100, SCH_GROUP_NONE },  /* ST HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  62, SCH_GROUP_NONE },  /* Torquer HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #71 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  45, SCH_GROUP_NONE },  /* RW HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -622,13 +622,13 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
  
   /* slot #73 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  80, SCH_GROUP_NONE },  /* MAG HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   3, SCH_GROUP_CFE_HK },  /* SB HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   5, SCH_GROUP_CFE_HK },  /* TBL HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #74 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   8, SCH_GROUP_CFS_HK },  /* FM HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -636,15 +636,15 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
  
   /* slot #75 - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 75, SCH_GROUP_NONE },  /* IMU HK Request */ 
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  65, SCH_GROUP_CFE_HK },  /* EPS HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 76, SCH_GROUP_NONE },  /* IMU Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 80, SCH_GROUP_NONE },  /* MAG HK Request */ 
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  75, SCH_GROUP_NONE },  /* IMU HK Request (5 Hz) */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 81, SCH_GROUP_NONE },  /* MAG Data Request */ 
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #76 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  30, SCH_GROUP_NONE },  /* CI HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  31, SCH_GROUP_NONE },  /* TO HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -658,7 +658,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #78 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  2, SCH_GROUP_CFE_HK },   /* EVS HK Request */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   1, SCH_GROUP_CFE_HK },  /* ES HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -672,14 +672,14 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #80 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 105, SCH_GROUP_NONE },  /* Thruster HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
 
   /* slot #81 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  26, SCH_GROUP_CFS_HK },  /* CF HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -694,28 +694,28 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #83 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   2, SCH_GROUP_CFE_HK },  /* EVS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   4, SCH_GROUP_CFE_HK },  /* TIME HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #84 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   6, SCH_GROUP_CFS_HK },  /* CS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  14, SCH_GROUP_CFS_HK },  /* SC HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #85 - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 85, SCH_GROUP_NONE },  /* Radio HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  96, SCH_GROUP_NONE },  /* ADCS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  70, SCH_GROUP_NONE },  /* CSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #86 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  60, SCH_GROUP_CFS_HK },  /* FSS HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -730,22 +730,22 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #88 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #89 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   7, SCH_GROUP_CFS_HK },  /* DS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  11, SCH_GROUP_CFS_HK },  /* LC HK Request (5 Hz) */
+  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #90 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 100, SCH_GROUP_NONE },  /* ST HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  62, SCH_GROUP_NONE },  /* Torquer HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 25,  SCH_GROUP_NONE },  /* CF Wakeup */
@@ -753,7 +753,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
   /* slot #91 */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  4,  0, 16, SCH_GROUP_CFS_HK }, */  /* HK Send Combined HK '1' */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  4,  1, 17, SCH_GROUP_CFS_HK }, */  /* HK Send Combined HK '2' */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  45, SCH_GROUP_NONE },  /* RW HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -770,13 +770,13 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #93 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,101, SCH_GROUP_NONE },  /* ST Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  1, SCH_GROUP_CFE_HK },   /* ES HK Request */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  80, SCH_GROUP_NONE },  /* MAG HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   3, SCH_GROUP_CFE_HK },  /* SB HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   5, SCH_GROUP_CFE_HK },  /* TBL HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #94 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   8, SCH_GROUP_CFS_HK },  /* FM HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -784,15 +784,15 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #95 - Component HK */
 /*{  SCH_DISABLED, SCH_ACTIVITY_SEND_MSG,  1,  0, 24, SCH_GROUP_MD_WAKEUP }, */  /* MD Wakeup */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                                   
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  65, SCH_GROUP_CFE_HK },  /* EPS HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  75, SCH_GROUP_NONE },  /* IMU HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
 
   /* slot #96 */
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  30, SCH_GROUP_NONE },  /* CI HK Request (5 Hz) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  31, SCH_GROUP_NONE },  /* TO HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -806,7 +806,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #98 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,   1, SCH_GROUP_CFE_HK },  /* ES HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        

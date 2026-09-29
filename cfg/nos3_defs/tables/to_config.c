@@ -98,25 +98,25 @@ TO_ConfigTable_t to_ConfigTable =
    {
        /* 0 - 9 */
        {CFE_SB_MSGID_WRAP_VALUE(CF_CONFIG_TLM_MID),            {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
-       {CFE_SB_MSGID_WRAP_VALUE(CF_HK_TLM_MID),                {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
+       {CFE_SB_MSGID_WRAP_VALUE(CF_HK_TLM_MID),                {0,0},  5,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CF_PDU_TLM_MID),               {0,0},  32,  0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_APP_TLM_MID),           {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
-       {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_HK_TLM_MID),            {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
+       {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_HK_TLM_MID),            {0,0},  5,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_MEMSTATS_TLM_MID),      {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_ALLSUBS_TLM_MID),       {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
-       {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_HK_TLM_MID),            {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
+       {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_HK_TLM_MID),            {0,0},  5,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_ONESUB_TLM_MID),        {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_STATS_TLM_MID),         {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        
        /* 10 - 19 */                                     
-       {CFE_SB_MSGID_WRAP_VALUE(CFE_TBL_HK_TLM_MID),           {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
+       {CFE_SB_MSGID_WRAP_VALUE(CFE_TBL_HK_TLM_MID),           {0,0},  5,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CFE_TBL_REG_TLM_MID),          {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(CFE_TIME_DIAG_TLM_MID),        {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
-       {CFE_SB_MSGID_WRAP_VALUE(CFE_TIME_HK_TLM_MID),          {0,0},  1,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
-       {CFE_SB_MSGID_WRAP_VALUE(TO_HK_TLM_MID),                {0,0},  1,   0xffff,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
+       {CFE_SB_MSGID_WRAP_VALUE(CFE_TIME_HK_TLM_MID),          {0,0},  5,   0xffff,     TO_GROUP_CFE | TO_MGROUP_ONE, 0,1},
+       {CFE_SB_MSGID_WRAP_VALUE(TO_HK_TLM_MID),                {0,0},  5,   0xffff,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(SCH_DIAG_TLM_MID),             {0,0},  1,   0xffff,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(SCH_HK_TLM_MID),               {0,0},  1,   0xffff,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
-       {CFE_SB_MSGID_WRAP_VALUE(CI_HK_TLM_MID),                {0,0},  1,   0xffff,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
+       {CFE_SB_MSGID_WRAP_VALUE(CI_HK_TLM_MID),                {0,0},  5,   0xffff,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(TO_DATA_TYPE_MID),             {0,0},  1,   0xffff,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
        {CFE_SB_MSGID_WRAP_VALUE(FM_HK_TLM_MID),                {0,0},  5,   0x0001,     TO_GROUP_APP | TO_MGROUP_ONE, 0,1},
        
