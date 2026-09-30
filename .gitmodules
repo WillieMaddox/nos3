@@ -76,8 +76,8 @@
 	branch = master
 [submodule "components/novatel_oem615"]
 	path = components/novatel_oem615
-	url = https://github.com/nasa-itc/novatel_oem615.git
-	branch = master
+	url = https://github.com/WillieMaddox/novatel_oem615.git
+	branch = wm-onair
 [submodule "fsw/apps/ds"]
 	path = fsw/apps/ds
 	url = https://github.com/nasa-itc/DS.git
