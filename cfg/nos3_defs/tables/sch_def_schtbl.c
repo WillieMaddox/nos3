@@ -149,7 +149,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #8 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  85, SCH_GROUP_NONE },  /* Radio HK Request (1 Hz: every request fails with a sendto error + EVS error event) */
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  85, SCH_GROUP_NONE },  /* Radio HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -296,7 +296,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #28 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  85, SCH_GROUP_NONE },  /* Radio HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -442,7 +442,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #48 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  85, SCH_GROUP_NONE },  /* Radio HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -586,7 +586,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #68 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  85, SCH_GROUP_NONE },  /* Radio HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
@@ -730,7 +730,7 @@ SCH_ScheduleEntry_t SCH_DefaultScheduleTable[SCH_TABLE_ENTRIES] =
 
   /* slot #88 */
   {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0, 95, SCH_GROUP_NONE },  /* ADCS DO Data Request */ 
-  {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},
+  {  SCH_ENABLED,  SCH_ACTIVITY_SEND_MSG,  1,  0,  85, SCH_GROUP_NONE },  /* Radio HK Request (5 Hz) */
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
   {  SCH_UNUSED,   0,      0,  0, 0,  SCH_GROUP_NONE},                                        
