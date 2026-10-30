@@ -38,3 +38,7 @@ docs/wiki/_templates
 cfg/InOut/*.42
 cfg/InOut/*.csv
 data/
+
+# OnAIR launch-time pip --target cache (onnxruntime et al.); runtime artifact, never committed
+onair_pydeps/
+onair_launch_debug.log
